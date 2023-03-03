@@ -1,27 +1,10 @@
-type Service {
-  _id: ID
-  name: String
-  options: [ServiceOption]
-}
-
-type ServiceOption {
-  id: ID
-  name: String
-  price: Float
-}
-
-type Query {
-  service(id: ID): [Service]
-  services: [Service]
+type Order {
+  id: ID!
+  startTime: String!
+  endTime: String!
+  status: String!
 }
 
 type Mutation {
-  createService(name: String, options: [ServiceOptionInput]): Service
-  updateService(id: ID, name: String, options: [ServiceOptionInput]): Service
-  deleteService(id: ID): ID
-}
-
-input ServiceOptionInput {
-  name: String
-  price: Float
+  createOrder(startTime: String!, endTime: String!, status: String!): Order!
 }
