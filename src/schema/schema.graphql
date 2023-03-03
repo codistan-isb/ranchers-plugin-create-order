@@ -1,17 +1,27 @@
-extend type ProductVariant {
-  Chassis: String
-  Colour: String
-  Sunroof: String
+type Service {
+  _id: ID
+  name: String
+  options: [ServiceOption]
 }
 
-extend input ProductVariantInput {
-  Chassis: String
-  Colour: String
-  Sunroof: String
+type ServiceOption {
+  id: ID
+  name: String
+  price: Float
 }
 
-extend type CatalogProduct {
-  Chassis: String
-  Colour: String
-  Sunroof: String
+type Query {
+  service(id: ID): [Service]
+  services: [Service]
+}
+
+type Mutation {
+  createService(name: String, options: [ServiceOptionInput]): Service
+  updateService(id: ID, name: String, options: [ServiceOptionInput]): Service
+  deleteService(id: ID): ID
+}
+
+input ServiceOptionInput {
+  name: String
+  price: Float
 }
