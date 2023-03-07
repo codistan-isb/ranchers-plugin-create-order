@@ -6,7 +6,11 @@ export default {
             // console.log(context.user.id)
             const { RiderOrder, RiderOrderHistory } = context.collections;
             const CurrentRiderID = context.user.id;
-            const insertedOrders = await RiderOrder.insertMany(orders);
+            const ordersWithRiderId = orders.map((order) => ({
+                ...order,
+                LoginRiderID: CurrentRiderID,
+            }));
+            const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
             console.log(insertedOrders.insertedIds)
             console.log(insertedOrders)
             const createdOrderIDs = {
@@ -64,7 +68,10 @@ export default {
             const orders = await RiderOrder.find({ OrderStatus: OrderStatus }).toArray();
             console.log(orders)
             if (orders) {
-                return orders.map(order => ({ id: order._id, OrderStatus: order.OrderStatus ? order.OrderStatus : null, ...order }));
+                return orders.map(order => ({
+                    id: order._id,
+                    ...order
+                }));
             } else {
                 return null;
             }
