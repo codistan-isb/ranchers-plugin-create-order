@@ -14,7 +14,7 @@ input NewRiderOrderInput {
   RiderOrderID: String!
 }
 type Mutation {
-  createRiderOrder(orders: [NewRiderOrderInput]): [Order!]
+  createRiderOrder(orders: [NewRiderOrderInput]): [Order]
   updateRiderOrder(
     id: ID!
     startTime: String
@@ -26,5 +26,5 @@ type Mutation {
 
 type Query {
   getOrderById(id: ID!): [Order]
-  getOrdersByStatus(OrderStatus: String!): [Order!]!
+  getOrdersByStatus(OrderStatus: String!): [Order]
 }
