@@ -5,7 +5,7 @@ type Order {
   OrderStatus: String
   RiderOrderID: String!
   OrderID: [String]
-  RiderID: String
+  LoginRiderID: String
 }
 input NewRiderOrderInput {
   startTime: String

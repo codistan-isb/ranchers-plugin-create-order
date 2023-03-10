@@ -64,6 +64,7 @@ export default {
         },
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
             console.log(OrderStatus)
+            console.log(context.collections)
             const { RiderOrder } = context.collections;
             const orders = await RiderOrder.find({ OrderStatus: OrderStatus }).toArray();
             console.log(orders)
