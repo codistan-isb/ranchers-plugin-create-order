@@ -16,6 +16,7 @@ export default {
             }).toArray();
 
             if (existingOrders.length > 0) {
+                // return "Order already Exist with same Rider ID"
                 throw new Error("One or more orders already exist");
             }
 
@@ -93,9 +94,49 @@ export default {
                 return null;
             }
         },
-        // async getReport(parent, args, context, info) {
-        //     console.log(args)
-        //     console.log(context)
-        // }
+        async generateReport(parent, args, context, info) {
+            const { RiderOrder, Users } = context.collections;
+            const { id } = context.user;
+            console.log(id)
+            const report = await RiderOrder.aggregate([
+                {
+                    $match: { LoginRiderID: id },
+                },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'LoginRiderID',
+                        foreignField: '_id',
+                        as: 'Rider',
+                    },
+                },
+                {
+                    $unwind: '$Rider',
+                },
+                {
+                    $project: {
+                        LoginRiderID: '$LoginRiderID',
+                        riderName: '$Rider.username',
+                        branchCity: '$Rider.branchCity',
+                        branchName: '$Rider.branchname',
+                        orderStatus: '$OrderStatus',
+                        startTime: { $toDate: '$startTime' },
+                        endTime: { $toDate: '$endTime' },
+                    },
+                },
+                {
+                    $addFields: {
+                        deliveryTime: { $divide: [{ $subtract: ['$endTime', '$startTime'] }, 60000] },
+
+                        // deliveryTime: { $subtract: ['$endTime', '$startTime'] },
+                    },
+                },
+            ]).toArray();
+
+            console.log(report);
+            return report;
+        }
+
+
     },
 }
