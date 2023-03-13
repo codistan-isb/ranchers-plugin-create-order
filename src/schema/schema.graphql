@@ -23,8 +23,16 @@ type Mutation {
     RiderOrderID: String!
   ): Order
 }
-
+type Report {
+  posRiderId: String
+  riderName: String
+  cityName: String
+  branchName: String
+  orderReportStatus: String
+  orderDeliveryTime: String
+}
 type Query {
   getOrderById(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: String!): [Order]
+  # getReport(): Report
 }

@@ -2,28 +2,37 @@ import ObjectID from "mongodb";
 export default {
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
-            console.log(orders)
-            // console.log(context.user.id)
+            console.log(orders);
+            console.log(context);
             const { RiderOrder, RiderOrderHistory } = context.collections;
             const CurrentRiderID = context.user.id;
             const ordersWithRiderId = orders.map((order) => ({
                 ...order,
                 LoginRiderID: CurrentRiderID,
             }));
+
+            const existingOrders = await RiderOrder.find({
+                RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
+            }).toArray();
+
+            if (existingOrders.length > 0) {
+                throw new Error("One or more orders already exist");
+            }
+
             const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
-            console.log(insertedOrders.insertedIds)
-            console.log(insertedOrders)
+            console.log(insertedOrders.insertedIds);
+            console.log(insertedOrders);
             const createdOrderIDs = {
                 OrderID: insertedOrders.insertedIds,
                 RiderID: CurrentRiderID,
-            }
+            };
             await RiderOrderHistory.insertOne(createdOrderIDs);
             console.log(RiderOrderHistory);
             return insertedOrders.ops;
         },
         async updateRiderOrder(parent, { id, startTime, endTime, OrderStatus, RiderOrderID }, context, info) {
             const { RiderOrder } = context.collections;
-            const filter = { _id: ObjectID.ObjectId(id) };
+            const filter = { RiderOrderID: RiderOrderID };
             const update = {};
             if (startTime) {
                 update.startTime = startTime;
@@ -84,5 +93,9 @@ export default {
                 return null;
             }
         },
+        // async getReport(parent, args, context, info) {
+        //     console.log(args)
+        //     console.log(context)
+        // }
     },
 }
