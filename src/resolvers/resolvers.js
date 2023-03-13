@@ -94,7 +94,7 @@ export default {
                 return null;
             }
         },
-        async generateReport(parent, args, context, info) {
+        async generateOrderReport(parent, args, context, info) {
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
             console.log(id)
