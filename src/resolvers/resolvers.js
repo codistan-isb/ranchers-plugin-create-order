@@ -64,15 +64,22 @@ export default {
         },
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
             console.log(OrderStatus)
-            console.log(context.collections)
+            console.log(context.user.id)
+            const LoginUserID = context.user.id
             const { RiderOrder } = context.collections;
             const orders = await RiderOrder.find({ OrderStatus: OrderStatus }).toArray();
             console.log(orders)
             if (orders) {
-                return orders.map(order => ({
+                const filteredOrders = orders.filter(order => order.LoginRiderID === LoginUserID);
+                const ordersWithId = filteredOrders.map(order => ({
                     id: order._id,
                     ...order
                 }));
+                return ordersWithId
+                // return orders.map(order => ({
+                //     id: order._id,
+                //     ...order
+                // }));
             } else {
                 return null;
             }
