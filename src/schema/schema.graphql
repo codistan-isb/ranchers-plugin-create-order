@@ -7,7 +7,7 @@ type Order {
   OrderID: [String]
   LoginRiderID: String
 }
-type User {
+type UserCurrentStatus {
   _id: ID
   currentStatus: UserStatus
   updatedAt: String
@@ -35,7 +35,7 @@ type Mutation {
     OrderStatus: String
     RiderOrderID: String!
   ): Order
-  updateUserCurrentStatus(status: UserStatus!): User
+  updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
 }
 type OrderReport {
   LoginRiderID: ID
