@@ -7,6 +7,19 @@ type Order {
   OrderID: [String]
   LoginRiderID: String
 }
+type User {
+  _id: ID
+  currentStatus: UserStatus
+  updatedAt: String
+  userRole: [String]
+  username: String
+  branchCity: String
+  branchname: String
+}
+enum UserStatus {
+  online
+  offline
+}
 input NewRiderOrderInput {
   startTime: String
   endTime: String
@@ -22,6 +35,7 @@ type Mutation {
     OrderStatus: String
     RiderOrderID: String!
   ): Order
+  updateUserCurrentStatus(status: UserStatus!): User
 }
 type OrderReport {
   LoginRiderID: ID
