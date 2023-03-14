@@ -44,9 +44,15 @@ type OrderReport {
   branchName: String
   orderStatus: String
   deliveryTime: String
+  startTime: DateTime
+  endTime: DateTime
 }
 type Query {
   getOrderById(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: String!): [Order]
-  generateOrderReport: [OrderReport]
+  generateOrderReport(
+    branchName: String
+    startTime: DateTime
+    endTime: DateTime
+  ): [OrderReport]
 }

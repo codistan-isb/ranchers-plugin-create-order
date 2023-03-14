@@ -6,6 +6,9 @@ export default {
             console.log(context);
             const { RiderOrder, RiderOrderHistory } = context.collections;
             const CurrentRiderID = context.user.id;
+            if (!CurrentRiderID) {
+                throw new Error("Unauthorized access. Please login first");
+            }
             const ordersWithRiderId = orders.map((order) => ({
                 ...order,
                 LoginRiderID: CurrentRiderID,
@@ -37,6 +40,10 @@ export default {
             context,
             info
         ) {
+            const CurrentRiderID = context.user.id;
+            if (!CurrentRiderID) {
+                throw new Error("Unauthorized access. Please login first");
+            }
             const { RiderOrder } = context.collections;
             const filter = { RiderOrderID: RiderOrderID };
             const update = {};
@@ -71,20 +78,20 @@ export default {
             };
         },
         async updateUserCurrentStatus(parent, args, context, info) {
-            const { users } = context.collections;
-            console.log(args.status)
-            console.log(context.user.id)
-            const currentStatus = args.status
+            const { Accounts } = context.collections;
+            console.log(args.status);
+            console.log(context.user.id);
+            const currentStatus = args.status;
             const userID = context.user.id;
             if (!userID) {
-                throw new Error('Please Login First');
+                throw new Error("Please Login First");
             }
-            const updatedUser = await users.findOneAndUpdate(
+            const updatedUser = await Accounts.findOneAndUpdate(
                 { _id: userID },
                 { $set: { currentStatus } },
                 { returnOriginal: false }
             );
-            console.log(updatedUser.value)
+            console.log(updatedUser.value);
             if (!updatedUser) {
                 throw new Error(`User with ID ${userID} not found`);
             }
@@ -103,8 +110,13 @@ export default {
     Query: {
         async getOrderById(parent, { id }, context, info) {
             const { RiderOrder } = context.collections;
+            const CurrentRiderID = context.user.id;
+            if (!CurrentRiderID) {
+                throw new Error("Unauthorized access. Please login first");
+            }
             const ordersresp = await RiderOrder.find({ LoginRiderID: id }).toArray();
             console.log(ordersresp);
+
             if (ordersresp) {
                 return ordersresp;
             } else {
@@ -116,6 +128,9 @@ export default {
             console.log(context.user.id);
             const LoginUserID = context.user.id;
             const { RiderOrder } = context.collections;
+            if (!LoginUserID) {
+                throw new Error("Unauthorized access. Please login first");
+            }
             const orders = await RiderOrder.find({
                 OrderStatus: OrderStatus,
             }).toArray();
@@ -137,10 +152,18 @@ export default {
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
             console.log(id);
+            console.log(args);
+            if (!id) {
+                throw new Error("Unauthorized access. Please login first");
+            }
+            const { branchName } = args;
             const report = await RiderOrder.aggregate([
                 {
                     $match: { LoginRiderID: id },
                 },
+
+
+
                 {
                     $lookup: {
                         from: "users",
@@ -169,7 +192,22 @@ export default {
                             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
                         },
 
-                        // deliveryTime: { $subtract: ['$endTime', '$startTime'] },
+                    },
+                },
+                // {
+                //     $match: {
+                //         ...(args.startTime && {
+                //             startTime: { $gte: new Date(args.startTime) },
+                //         }),
+                //         ...(args.endTime && {
+                //             endTime: { $lte: new Date(args.endTime) },
+                //         }),
+                //         // LoginRiderID: id,
+                //     },
+                // },
+                {
+                    $sort: {
+                        startTime: 1,
                     },
                 },
             ]).toArray();
