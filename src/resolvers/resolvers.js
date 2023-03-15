@@ -19,15 +19,9 @@ export default {
             const existingOrders = await RiderOrder.find({
                 RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
                 branchname: { $in: ordersWithRiderId.map((o) => o.branchname) },
-
-                // RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
-                // branchname: { $in: ordersWithRiderId.map((o) => o.branchname) },
-                // startTime: { $gte: new Date(currentDate) },
             }).toArray();
             console.log(existingOrders)
             if (existingOrders.length > 0) {
-                // return "Order already Exist with same Rider ID"
-                // throw new Error("One or more orders already exist");
                 throw new Error("One or more orders already exist for the same branch and day");
 
             }
@@ -55,7 +49,6 @@ export default {
             context,
             info
         ) {
-
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new Error("Unauthorized access. Please login first");
@@ -96,6 +89,10 @@ export default {
             };
         },
         async updateUserCurrentStatus(parent, args, context, info) {
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
+                throw new Error("Unauthorized access. Please login first");
+            }
             const { Accounts } = context.collections;
             console.log(args.status);
             console.log(context.user.id);
@@ -127,11 +124,12 @@ export default {
     },
     Query: {
         async getOrderById(parent, { id }, context, info) {
-            const { RiderOrder } = context.collections;
-            const CurrentRiderID = context.user.id;
-            if (!CurrentRiderID) {
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
                 throw new Error("Unauthorized access. Please login first");
             }
+            const { RiderOrder } = context.collections;
+            const CurrentRiderID = context.user.id;
             const ordersresp = await RiderOrder.find({ LoginRiderID: id }).toArray();
             console.log(ordersresp);
 
@@ -142,13 +140,14 @@ export default {
             }
         },
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
+                throw new Error("Unauthorized access. Please login first");
+            }
             console.log(OrderStatus);
             console.log(context.user.id);
             const LoginUserID = context.user.id;
             const { RiderOrder } = context.collections;
-            if (!LoginUserID) {
-                throw new Error("Unauthorized access. Please login first");
-            }
             const orders = await RiderOrder.find({
                 OrderStatus: OrderStatus,
             }).toArray();
@@ -167,13 +166,14 @@ export default {
             }
         },
         async generateOrderReport(parent, args, context, info) {
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
+                throw new Error("Unauthorized access. Please login first");
+            }
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
             console.log(id);
             console.log(args);
-            if (!id) {
-                throw new Error("Unauthorized access. Please login first");
-            }
             const { branchName } = args;
             const report = await RiderOrder.aggregate([
                 {
