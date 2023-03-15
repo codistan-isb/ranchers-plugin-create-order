@@ -20,12 +20,19 @@ enum UserStatus {
   online
   offline
 }
+type RiderOrderDetail {
+  RiderOrderID: ID!
+  startTime: String
+  endTime: String
+  orderStatus: String
+  branchname: String
+}
 input NewRiderOrderInput {
   startTime: String
   endTime: String
   OrderStatus: String
   RiderOrderID: String!
-  branchname: String!
+  branchname: String
 }
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): [Order]
@@ -57,4 +64,5 @@ type Query {
     endTime: DateTime
     LoginRiderID: ID
   ): [OrderReport]
+  getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
 }

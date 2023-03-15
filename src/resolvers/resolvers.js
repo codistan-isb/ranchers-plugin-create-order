@@ -236,5 +236,34 @@ export default {
             console.log(report);
             return report;
         },
+
+        getRiderOrdersByLoginRider: async (parent, args, context, info) => {
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
+                throw new Error("Unauthorized access. Please login first");
+            }
+            // const today = new Date().toISOString().substr(0, 10);
+
+            const { LoginRiderID } = args
+            const { RiderOrder } = context.collections;
+            const { id } = context.user;
+
+            const orders = await RiderOrder.find({
+                LoginRiderID: LoginRiderID,
+
+            }).toArray();
+            console.log(orders)
+            // get today's date
+            const today = new Date().toISOString().substring(0, 10);
+
+            // filter data array to include only items with today's date in startTime
+            const filteredData = orders.filter(item => {
+                const itemDate = item.startTime.substring(0, 10);
+                return itemDate === today;
+            });
+            console.log(filteredData);
+            return filteredData
+        }
+
     },
 };
