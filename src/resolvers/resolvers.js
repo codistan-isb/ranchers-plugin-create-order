@@ -3,12 +3,14 @@ export default {
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
             console.log(orders);
-            console.log(context);
-            const { RiderOrder, RiderOrderHistory } = context.collections;
-            const CurrentRiderID = context.user.id;
-            if (!CurrentRiderID) {
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
                 throw new Error("Unauthorized access. Please login first");
             }
+            const { RiderOrder, RiderOrderHistory } = context.collections;
+            const CurrentRiderID = context.user.id;
+            const currentDate = new Date().toISOString().substr(0, 10);
+            console.log(currentDate)
             const ordersWithRiderId = orders.map((order) => ({
                 ...order,
                 LoginRiderID: CurrentRiderID,
@@ -16,23 +18,36 @@ export default {
 
             const existingOrders = await RiderOrder.find({
                 RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
-            }).toArray();
+                branchname: { $in: ordersWithRiderId.map((o) => o.branchname) },
 
+                // RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
+                // branchname: { $in: ordersWithRiderId.map((o) => o.branchname) },
+                // startTime: { $gte: new Date(currentDate) },
+            }).toArray();
+            console.log(existingOrders)
             if (existingOrders.length > 0) {
                 // return "Order already Exist with same Rider ID"
-                throw new Error("One or more orders already exist");
-            }
+                // throw new Error("One or more orders already exist");
+                throw new Error("One or more orders already exist for the same branch and day");
 
-            const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
-            console.log(insertedOrders.insertedIds);
-            console.log(insertedOrders);
-            const createdOrderIDs = {
-                OrderID: insertedOrders.insertedIds,
-                RiderID: CurrentRiderID,
-            };
-            await RiderOrderHistory.insertOne(createdOrderIDs);
-            console.log(RiderOrderHistory);
-            return insertedOrders.ops;
+            }
+            try {
+                const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
+                console.log(insertedOrders.insertedIds);
+                // console.log(insertedOrders);
+                const createdOrderIDs = {
+                    OrderID: insertedOrders.insertedIds,
+                    RiderID: CurrentRiderID,
+                };
+                await RiderOrderHistory.insertOne(createdOrderIDs);
+                console.log(RiderOrderHistory);
+                return insertedOrders.ops;
+            } catch (err) {
+                if (err.code === 11000) {
+                    throw new Error("Order Already Exists");
+                }
+                throw err;
+            }
         },
         async updateRiderOrder(
             parent,
@@ -40,10 +55,13 @@ export default {
             context,
             info
         ) {
-            const CurrentRiderID = context.user.id;
-            if (!CurrentRiderID) {
+
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
                 throw new Error("Unauthorized access. Please login first");
             }
+            const CurrentRiderID = context.user.id;
+
             const { RiderOrder } = context.collections;
             const filter = { RiderOrderID: RiderOrderID };
             const update = {};
@@ -162,8 +180,6 @@ export default {
                     $match: { LoginRiderID: id },
                 },
 
-
-
                 {
                     $lookup: {
                         from: "users",
@@ -191,7 +207,6 @@ export default {
                         deliveryTime: {
                             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
                         },
-
                     },
                 },
                 // {

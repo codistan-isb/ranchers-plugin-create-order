@@ -25,6 +25,7 @@ input NewRiderOrderInput {
   endTime: String
   OrderStatus: String
   RiderOrderID: String!
+  branchname: String!
 }
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): [Order]
