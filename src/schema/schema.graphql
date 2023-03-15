@@ -55,5 +55,6 @@ type Query {
     branchName: String
     startTime: DateTime
     endTime: DateTime
+    LoginRiderID: ID
   ): [OrderReport]
 }

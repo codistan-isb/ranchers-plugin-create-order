@@ -7,10 +7,14 @@ export default {
             if (context.user === undefined || context.user === null) {
                 throw new Error("Unauthorized access. Please login first");
             }
-            const { RiderOrder, RiderOrderHistory } = context.collections;
+            const { RiderOrder, RiderOrderHistory, Accounts } = context.collections;
             const CurrentRiderID = context.user.id;
             const currentDate = new Date().toISOString().substr(0, 10);
             console.log(currentDate)
+            const riderStatus = await Accounts.findOne({ _id: CurrentRiderID });
+            if (riderStatus.currentStatus === "offline") {
+                throw new Error("Rider is offline, cannot create order");
+            }
             const ordersWithRiderId = orders.map((order) => ({
                 ...order,
                 LoginRiderID: CurrentRiderID,
@@ -211,6 +215,8 @@ export default {
                 },
                 // {
                 //     $match: {
+                // "Rider.branchname": args.branchName,
+                // 
                 //         ...(args.startTime && {
                 //             startTime: { $gte: new Date(args.startTime) },
                 //         }),
