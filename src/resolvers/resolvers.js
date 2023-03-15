@@ -178,12 +178,43 @@ export default {
             const { id } = context.user;
             console.log(id);
             console.log(args);
-            const { branchName } = args;
+            // const { branchName } = args;
+            let match = {};
+            if (args.LoginRiderID) {
+                match.LoginRiderID = args.LoginRiderID;
+            }
+            if (args.branchName) {
+                match.branchname = args.branchName;
+                // match["RiderOrder.branchname"] = args.branchName;
+            }
+            if (args.startDate) {
+                match.startTime = { $gte: new Date(args.startDate) };
+            }
+            if (args.endDate) {
+                match.endTime = { $lte: new Date(args.endDate) };
+            }
+            console.log(match)
             const report = await RiderOrder.aggregate([
+                // {
+                //     $match: {
+                //         LoginRiderID: args.LoginRiderID,
+                //         $or: [
+                //             { "RiderOrder.branchname": { $eq: args.branchName } },
+                //             { "RiderOrder.branchname": { $exists: false } },
+                //         ],
+                //         $or: [
+                //             { startTime: { $gte: new Date(args.startDate) } },
+                //             { startTime: { $exists: false } },
+                //         ],
+                //         $or: [
+                //             { endTime: { $lte: new Date(args.endDate) } },
+                //             { endTime: { $exists: false } },
+                //         ],
+                //     },
+                // },
                 {
-                    $match: { LoginRiderID: id },
+                    $match: match
                 },
-
                 {
                     $lookup: {
                         from: "users",
