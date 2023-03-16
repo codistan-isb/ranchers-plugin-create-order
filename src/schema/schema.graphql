@@ -6,6 +6,7 @@ type Order {
   RiderOrderID: String!
   OrderID: [String]
   LoginRiderID: String
+  username: String
 }
 type UserCurrentStatus {
   _id: ID
@@ -26,6 +27,7 @@ type RiderOrderDetail {
   endTime: String
   orderStatus: String
   branchname: String
+  username: String
 }
 input NewRiderOrderInput {
   startTime: String
