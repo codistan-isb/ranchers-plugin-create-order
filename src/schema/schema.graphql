@@ -11,7 +11,7 @@ type UserCurrentStatus {
   _id: ID
   currentStatus: UserStatus
   updatedAt: String
-  userRole: [String]
+  userRole: String
   username: String
   branchCity: String
   branchname: String
