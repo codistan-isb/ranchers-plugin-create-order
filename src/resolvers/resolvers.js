@@ -242,6 +242,7 @@ export default {
                         branchCity: "$Rider.branchCity",
                         branchName: "$Rider.branchname",
                         orderStatus: "$OrderStatus",
+                        username: "$username",
                         startTime: { $toDate: "$startTime" },
                         endTime: { $toDate: "$endTime" },
                     },

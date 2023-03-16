@@ -56,6 +56,7 @@ type OrderReport {
   deliveryTime: String
   startTime: DateTime
   endTime: DateTime
+  username: String
 }
 type Query {
   getOrderById(id: ID!): [Order]
