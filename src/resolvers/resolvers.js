@@ -133,8 +133,17 @@ export default {
                 throw new Error("Unauthorized access. Please login first");
             }
             const { RiderOrder } = context.collections;
-            const CurrentRiderID = context.user.id;
-            const ordersresp = await RiderOrder.find({ LoginRiderID: id }).toArray();
+            if (id === null || id === undefined) {
+                id = context.user.id;
+            }
+            const currentDate = new Date().toISOString().substr(0, 10); // get current date in ISO format (yyyy-mm-dd)
+
+            const ordersresp = await RiderOrder.find({
+                LoginRiderID: id,
+                $or: [
+                    { startTime: { $gte: currentDate } }, // include orders that start on or after the current date
+                ]
+            }).sort({ startTime: 1 }).toArray();
             console.log(ordersresp);
 
             if (ordersresp) {
