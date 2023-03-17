@@ -57,6 +57,7 @@ type OrderReport {
   startTime: DateTime
   endTime: DateTime
   username: String
+  RiderOrderID: String
 }
 type Query {
   getOrderById(id: ID!): [Order]
@@ -66,6 +67,7 @@ type Query {
     startTime: DateTime
     endTime: DateTime
     LoginRiderID: ID
+    RiderOrderID: String
   ): [OrderReport]
   getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
 }

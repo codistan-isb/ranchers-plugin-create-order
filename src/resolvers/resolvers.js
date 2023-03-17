@@ -199,6 +199,9 @@ export default {
             if (args.startDate) {
                 match.startTime = { $gte: new Date(args.startDate) };
             }
+            if (args.RiderOrderID) {
+                match.RiderOrderID =  args.RiderOrderID ;
+            }
             if (args.endDate) {
                 match.endTime = { $lte: new Date(args.endDate) };
             }
@@ -245,6 +248,7 @@ export default {
                         username: "$username",
                         startTime: { $toDate: "$startTime" },
                         endTime: { $toDate: "$endTime" },
+                        RiderOrderID: "$RiderOrderID",
                     },
                 },
                 {
