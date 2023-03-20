@@ -200,7 +200,7 @@ export default {
                 match.startTime = { $gte: new Date(args.startDate) };
             }
             if (args.RiderOrderID) {
-                match.RiderOrderID =  args.RiderOrderID ;
+                match.RiderOrderID = args.RiderOrderID;
             }
             if (args.endDate) {
                 match.endTime = { $lte: new Date(args.endDate) };
@@ -295,7 +295,6 @@ export default {
 
             const orders = await RiderOrder.find({
                 LoginRiderID: LoginRiderID,
-
             }).toArray();
             console.log(orders)
             // get today's date
