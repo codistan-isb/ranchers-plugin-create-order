@@ -33,7 +33,7 @@ type UserAccountDetail {
 }
 type UserBranchData {
   _id: ID!
-  branchname: [String]
+  branches: [String]
 }
 type RiderOrderDetail {
   RiderOrderID: ID!
@@ -60,7 +60,7 @@ type Mutation {
     RiderOrderID: String!
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
-  assignBranchtoUser(userID: ID!, branchName: String!): UserBranchData!
+  assignBranchtoUser(userID: ID!, branches: String!): UserBranchData!
 }
 type OrderReport {
   LoginRiderID: ID

@@ -143,7 +143,7 @@ export default {
             const CurrentUserID = context.user.id;
             const { Accounts } = context.collections;
             const filter = { _id: userID };
-            const update = { $push: { branchname: branchName } };
+            const update = { $push: { branches: branchName } };
             const options = { new: true };
 
             if (
