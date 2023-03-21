@@ -199,7 +199,7 @@ export default {
             const { RiderOrder } = context.collections;
             const orders = await RiderOrder.find({
                 OrderStatus: OrderStatus,
-            }).toArray();
+            }).sort({ startTime: 1 }).toArray();
             console.log(orders);
             if (orders) {
                 const filteredOrders = orders.filter(
@@ -331,7 +331,7 @@ export default {
 
             const orders = await RiderOrder.find({
                 LoginRiderID: LoginRiderID,
-            }).toArray();
+            }).sort({ startTime: 1 }).toArray();
             console.log(orders);
             // get today's date
             const today = new Date().toISOString().substring(0, 10);
