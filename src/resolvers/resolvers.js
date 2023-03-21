@@ -1,4 +1,5 @@
 import ObjectID from "mongodb";
+// import { canCreateUser } from "../utils/canCreateUser";
 export default {
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
@@ -10,7 +11,7 @@ export default {
             const { RiderOrder, RiderOrderHistory, Accounts } = context.collections;
             const CurrentRiderID = context.user.id;
             const currentDate = new Date().toISOString().substr(0, 10);
-            console.log(currentDate)
+            console.log(currentDate);
             const riderStatus = await Accounts.findOne({ _id: CurrentRiderID });
             if (riderStatus.currentStatus === "offline") {
                 throw new Error("Rider is offline, cannot create order");
@@ -24,10 +25,11 @@ export default {
                 RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
                 branchname: { $in: ordersWithRiderId.map((o) => o.branchname) },
             }).toArray();
-            console.log(existingOrders)
+            console.log(existingOrders);
             if (existingOrders.length > 0) {
-                throw new Error("One or more orders already exist for the same branch and day");
-
+                throw new Error(
+                    "One or more orders already exist for the same branch and day"
+                );
             }
             try {
                 const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
@@ -125,6 +127,38 @@ export default {
             //     return updatedUser;
             // }
         },
+        async assignBranchtoUser(parent, args, context, info) {
+            console.log(args);
+            // console.log(context.collections);
+            console.log(context.user);
+
+            if (
+                context.user === undefined ||
+                context.user === null ||
+                context.user === ""
+            ) {
+                throw new Error("Unauthorized access. Please login first");
+            }
+            const { userID, branchName } = args
+            const CurrentUserID = context.user.id;
+            const { Accounts } = context.collections;
+            const filter = { _id: userID };
+            const update = { $push: { branchname: branchName } };
+            const options = { new: true };
+
+            if (
+                context.user.UserRole.toLowerCase() === "admin" ||
+                context.user.UserRole.toLowerCase() === "dispatcher"
+            ) {
+                const updatedAccount = await Accounts.findOneAndUpdate(filter, update, options);
+                console.log(updatedAccount.value);
+                return updatedAccount.value;
+
+            }
+            else {
+                throw new Error("Unauthorized access!")
+            }
+        },
     },
     Query: {
         async getOrderById(parent, { id }, context, info) {
@@ -142,8 +176,10 @@ export default {
                 LoginRiderID: id,
                 $or: [
                     { startTime: { $gte: currentDate } }, // include orders that start on or after the current date
-                ]
-            }).sort({ startTime: 1 }).toArray();
+                ],
+            })
+                .sort({ startTime: 1 })
+                .toArray();
             console.log(ordersresp);
 
             if (ordersresp) {
@@ -205,7 +241,7 @@ export default {
             if (args.endDate) {
                 match.endTime = { $lte: new Date(args.endDate) };
             }
-            console.log(match)
+            console.log(match);
             const report = await RiderOrder.aggregate([
                 // {
                 //     $match: {
@@ -225,7 +261,7 @@ export default {
                 //     },
                 // },
                 {
-                    $match: match
+                    $match: match,
                 },
                 {
                     $lookup: {
@@ -261,7 +297,7 @@ export default {
                 // {
                 //     $match: {
                 // "Rider.branchname": args.branchName,
-                // 
+                //
                 //         ...(args.startTime && {
                 //             startTime: { $gte: new Date(args.startTime) },
                 //         }),
@@ -289,25 +325,24 @@ export default {
             }
             // const today = new Date().toISOString().substr(0, 10);
 
-            const { LoginRiderID } = args
+            const { LoginRiderID } = args;
             const { RiderOrder } = context.collections;
             const { id } = context.user;
 
             const orders = await RiderOrder.find({
                 LoginRiderID: LoginRiderID,
             }).toArray();
-            console.log(orders)
+            console.log(orders);
             // get today's date
             const today = new Date().toISOString().substring(0, 10);
 
             // filter data array to include only items with today's date in startTime
-            const filteredData = orders.filter(item => {
+            const filteredData = orders.filter((item) => {
                 const itemDate = item.startTime.substring(0, 10);
                 return itemDate === today;
             });
             console.log(filteredData);
-            return filteredData
-        }
-
+            return filteredData;
+        },
     },
 };

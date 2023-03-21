@@ -22,6 +22,11 @@ async function register(app) {
         updatedAt: { type: Date, default: Date.now },
         createdAt: { type: Date, default: Date.now },
       },
+      // users: {
+      //   name: "users",
+      //   updatedAt: { type: Date, default: Date.now },
+      //   createdAt: { type: Date, default: Date.now },
+      // },
     },
     graphQL: {
       schemas: [mySchema],

@@ -26,6 +26,15 @@ enum UserStatus {
   online
   offline
 }
+type UserAccountDetail {
+  _id: ID!
+  username: String
+  branch: [String!]!
+}
+type UserBranchData {
+  _id: ID!
+  branchname: [String]
+}
 type RiderOrderDetail {
   RiderOrderID: ID!
   startTime: String
@@ -51,6 +60,7 @@ type Mutation {
     RiderOrderID: String!
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
+  assignBranchtoUser(userID: ID!, branchName: String!): UserBranchData!
 }
 type OrderReport {
   LoginRiderID: ID
