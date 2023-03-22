@@ -139,12 +139,14 @@ export default {
             ) {
                 throw new Error("Unauthorized access. Please login first");
             }
-            const { userID, branchName } = args
+
+            const { userID, branches } = args
             const CurrentUserID = context.user.id;
             const { Accounts } = context.collections;
             const filter = { _id: userID };
-            const update = { $push: { branches: branchName } };
+            const update = { $push: { branches: branches } };
             const options = { new: true };
+            console.log(branches)
 
             if (
                 context.user.UserRole.toLowerCase() === "admin" ||
