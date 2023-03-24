@@ -153,14 +153,56 @@ export default {
                 context.user.UserRole.toLowerCase() === "dispatcher"
             ) {
                 const updatedAccount = await Accounts.findOneAndUpdate(filter, update, options);
-                console.log(updatedAccount.value);
-                return updatedAccount.value;
+                console.log(updatedAccount);
+                const updatedUser = await Accounts.findOne({ _id: userID });
+                console.log("updatedUser--->", updatedUser)
+                return updatedUser;
 
             }
             else {
                 throw new Error("Unauthorized access!")
             }
         },
+        async updateAccountAdmin(parent, args, context, info) {
+            console.log(args);
+            console.log(context.user);
+            console.log(context.user.UserRole);
+            if (
+                context.user === undefined ||
+                context.user === null ||
+                context.user === ""
+            ) {
+                throw new Error("Unauthorized access. Please login first");
+            }
+            if (context.user.UserRole.toLowerCase() === 'admin' ||
+                context.user.UserRole.toLowerCase() === 'dispatcher') {
+                const { Accounts } = context.collections;
+                const { userID, branches } = args;
+                const newBranchValue = branches
+                console.log(newBranchValue)
+                const checkAccountResponse = await Accounts.findOne({ _id: userID });
+                // console.log(checkAccountResponse);
+                // Check if the new branch already exists in the branches array
+                if (checkAccountResponse.branches.includes(newBranchValue)) {
+                    throw new Error('Branch Already Assigned');
+                }
+                // If the new value doesn't exist, update the branches array and return the new value
+                const updateAccountResult = await Accounts.updateOne(
+                    { _id: userID },
+                    { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
+                );
+                console.log(updateAccountResult)
+                if (updateAccountResult.modifiedCount !== 1) {
+                    throw new Error(`Failed to update branch value to user: ${userID}`);
+                }
+                const updatedUser = await Accounts.findOne({ _id: userID });
+                console.log("updatedUser--->", updatedUser)
+                return updatedUser;
+            }
+            else {
+                throw new Error("Unauthorized");
+            }
+        }
     },
     Query: {
         async getOrderById(parent, { id }, context, info) {

@@ -61,6 +61,7 @@ type Mutation {
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
   assignBranchtoUser(userID: ID!, branches: String!): UserBranchData!
+  updateAccountAdmin(userID: ID!, branches: String!): UserBranchData!
 }
 type OrderReport {
   LoginRiderID: ID
