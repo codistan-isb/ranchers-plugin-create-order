@@ -266,7 +266,8 @@ export default {
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
             console.log(id);
-            console.log(args);
+
+
             // const { branchName } = args;
             let match = {};
             if (args.LoginRiderID) {
@@ -276,34 +277,19 @@ export default {
                 match.branchname = args.branchName;
                 // match["RiderOrder.branchname"] = args.branchName;
             }
-            if (args.startDate) {
+            if (args.startDate && args.startDate !== undefined) {
+                console.log(args.startDate);
                 match.startTime = { $gte: new Date(args.startDate) };
             }
             if (args.RiderOrderID) {
                 match.RiderOrderID = args.RiderOrderID;
             }
-            if (args.endDate) {
+            if (args.endDate && args.endDate !== undefined) {
+                console.log(args.endDate);
                 match.endTime = { $lte: new Date(args.endDate) };
             }
             console.log(match);
             const report = await RiderOrder.aggregate([
-                // {
-                //     $match: {
-                //         LoginRiderID: args.LoginRiderID,
-                //         $or: [
-                //             { "RiderOrder.branchname": { $eq: args.branchName } },
-                //             { "RiderOrder.branchname": { $exists: false } },
-                //         ],
-                //         $or: [
-                //             { startTime: { $gte: new Date(args.startDate) } },
-                //             { startTime: { $exists: false } },
-                //         ],
-                //         $or: [
-                //             { endTime: { $lte: new Date(args.endDate) } },
-                //             { endTime: { $exists: false } },
-                //         ],
-                //     },
-                // },
                 {
                     $match: match,
                 },
@@ -326,8 +312,22 @@ export default {
                         branchName: "$Rider.branchname",
                         orderStatus: "$OrderStatus",
                         username: "$username",
-                        startTime: { $toDate: "$startTime" },
-                        endTime: { $toDate: "$endTime" },
+                        startTime: {
+                            $cond: {
+                                if: { $ne: ["$startTime", ""] },
+                                then: { $toDate: "$startTime" },
+                                else: null
+                            }
+                        },
+                        endTime: {
+                            $cond: {
+                                if: { $ne: ["$endTime", ""] },
+                                then: { $toDate: "$endTime" },
+                                else: null
+                            }
+                        },
+                        // startTime: { $toDate: "$startTime" },
+                        // endTime: { $toDate: "$endTime" },
                         RiderOrderID: "$RiderOrderID",
                     },
                 },
@@ -336,19 +336,15 @@ export default {
                         deliveryTime: {
                             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
                         },
+                        startTime: { $toDate: "$startTime" },
+                        endTime: { $toDate: "$endTime" },
                     },
                 },
                 // {
-                //     $match: {
-                // "Rider.branchname": args.branchName,
-                //
-                //         ...(args.startTime && {
-                //             startTime: { $gte: new Date(args.startTime) },
-                //         }),
-                //         ...(args.endTime && {
-                //             endTime: { $lte: new Date(args.endTime) },
-                //         }),
-                //         // LoginRiderID: id,
+                //     $addFields: {
+                //         deliveryTime: {
+                //             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+                //         },
                 //     },
                 // },
                 {
