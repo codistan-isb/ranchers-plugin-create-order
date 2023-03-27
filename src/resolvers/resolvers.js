@@ -34,7 +34,7 @@ export default {
             try {
                 const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
                 console.log(insertedOrders.insertedIds);
-                // console.log(insertedOrders);
+                console.log(insertedOrders);
                 const createdOrderIDs = {
                     OrderID: insertedOrders.insertedIds,
                     RiderID: CurrentRiderID,
