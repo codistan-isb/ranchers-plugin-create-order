@@ -313,11 +313,11 @@ export default {
                 {
                     $project: {
                         LoginRiderID: "$LoginRiderID",
-                        riderName: "$Rider.username",
+                        riderName: { $concat: ["$Rider.firstName", " ", "$Rider.lastName"] },
                         branchCity: "$Rider.branchCity",
                         branchName: "$Rider.branchname",
                         orderStatus: "$OrderStatus",
-                        username: "$username",
+                        username: "$Rider.username",
                         startTime: {
                             $cond: {
                                 if: { $ne: ["$startTime", ""] },
