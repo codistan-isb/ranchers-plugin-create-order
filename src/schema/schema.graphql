@@ -26,6 +26,14 @@ enum UserStatus {
   online
   offline
 }
+# type branchOwnerReportOutput {
+#   _id: ID
+#   accountId: String
+#   cartId: String
+#   createdAt:String
+#   currencyCode: String
+#   email: String
+# }
 type UserAccountDetail {
   _id: ID!
   username: String
@@ -86,4 +94,5 @@ type Query {
     RiderOrderID: String
   ): [OrderReport]
   getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
+  # getBranchOwnerReport(branchID: String, orderStatus: String): [Order]
 }

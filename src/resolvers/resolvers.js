@@ -140,27 +140,29 @@ export default {
                 throw new Error("Unauthorized access. Please login first");
             }
 
-            const { userID, branches } = args
+            const { userID, branches } = args;
             const CurrentUserID = context.user.id;
             const { Accounts } = context.collections;
             const filter = { _id: userID };
             const update = { $push: { branches: branches } };
             const options = { new: true };
-            console.log(branches)
+            console.log(branches);
 
             if (
                 context.user.UserRole.toLowerCase() === "admin" ||
                 context.user.UserRole.toLowerCase() === "dispatcher"
             ) {
-                const updatedAccount = await Accounts.findOneAndUpdate(filter, update, options);
+                const updatedAccount = await Accounts.findOneAndUpdate(
+                    filter,
+                    update,
+                    options
+                );
                 console.log(updatedAccount);
                 const updatedUser = await Accounts.findOne({ _id: userID });
-                console.log("updatedUser--->", updatedUser)
+                console.log("updatedUser--->", updatedUser);
                 return updatedUser;
-
-            }
-            else {
-                throw new Error("Unauthorized access!")
+            } else {
+                throw new Error("Unauthorized access!");
             }
         },
         async updateAccountAdmin(parent, args, context, info) {
@@ -174,35 +176,36 @@ export default {
             ) {
                 throw new Error("Unauthorized access. Please login first");
             }
-            if (context.user.UserRole.toLowerCase() === 'admin' ||
-                context.user.UserRole.toLowerCase() === 'dispatcher') {
+            if (
+                context.user.UserRole.toLowerCase() === "admin" ||
+                context.user.UserRole.toLowerCase() === "dispatcher"
+            ) {
                 const { Accounts } = context.collections;
                 const { userID, branches } = args;
-                const newBranchValue = branches
-                console.log(newBranchValue)
+                const newBranchValue = branches;
+                console.log(newBranchValue);
                 const checkAccountResponse = await Accounts.findOne({ _id: userID });
                 // console.log(checkAccountResponse);
                 // Check if the new branch already exists in the branches array
                 if (checkAccountResponse.branches.includes(newBranchValue)) {
-                    throw new Error('Branch Already Assigned');
+                    throw new Error("Branch Already Assigned");
                 }
                 // If the new value doesn't exist, update the branches array and return the new value
                 const updateAccountResult = await Accounts.updateOne(
                     { _id: userID },
                     { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
                 );
-                console.log(updateAccountResult)
+                console.log(updateAccountResult);
                 if (updateAccountResult.modifiedCount !== 1) {
                     throw new Error(`Failed to update branch value to user: ${userID}`);
                 }
                 const updatedUser = await Accounts.findOne({ _id: userID });
-                console.log("updatedUser--->", updatedUser)
+                console.log("updatedUser--->", updatedUser);
                 return updatedUser;
-            }
-            else {
+            } else {
                 throw new Error("Unauthorized");
             }
-        }
+        },
     },
     Query: {
         async getOrderById(parent, { id }, context, info) {
@@ -241,11 +244,15 @@ export default {
             console.log(context.user.id);
             const LoginUserID = context.user.id;
             const { RiderOrder } = context.collections;
+            // Get Order by status
             const orders = await RiderOrder.find({
                 OrderStatus: OrderStatus,
-            }).sort({ startTime: 1 }).toArray();
+            })
+                .sort({ startTime: 1 })
+                .toArray();
             console.log(orders);
             if (orders) {
+                // Current Login User Order
                 const filteredOrders = orders.filter(
                     (order) => order.LoginRiderID === LoginUserID
                 );
@@ -266,7 +273,6 @@ export default {
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
             console.log(id);
-
 
             // const { branchName } = args;
             let match = {};
@@ -316,15 +322,15 @@ export default {
                             $cond: {
                                 if: { $ne: ["$startTime", ""] },
                                 then: { $toDate: "$startTime" },
-                                else: null
-                            }
+                                else: null,
+                            },
                         },
                         endTime: {
                             $cond: {
                                 if: { $ne: ["$endTime", ""] },
                                 then: { $toDate: "$endTime" },
-                                else: null
-                            }
+                                else: null,
+                            },
                         },
                         // startTime: { $toDate: "$startTime" },
                         // endTime: { $toDate: "$endTime" },
@@ -353,11 +359,9 @@ export default {
                     },
                 },
             ]).toArray();
-
             console.log(report);
             return report;
         },
-
         getRiderOrdersByLoginRider: async (parent, args, context, info) => {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
@@ -371,7 +375,9 @@ export default {
 
             const orders = await RiderOrder.find({
                 LoginRiderID: LoginRiderID,
-            }).sort({ startTime: 1 }).toArray();
+            })
+                .sort({ startTime: 1 })
+                .toArray();
             console.log(orders);
             // get today's date
             const today = new Date().toISOString().substring(0, 10);
@@ -384,5 +390,43 @@ export default {
             console.log(filteredData);
             return filteredData;
         },
+        // async getBranchOwnerReport(parent, args, context, info) {
+        //     // console.log(context.collections)
+        //     console.log(args);
+        //     const { branchID, orderStatus } = args;
+        //     console.log(context.user);
+        //     // console.log(context.user.UserRole);
+        //     console.log(!context.user.branches);
+        //     if (context.user === undefined || context.user === null) {
+        //         throw new Error("Unauthorized access. Please login first");
+        //     }
+        //     if (
+        //         context.user.UserRole !== "admin" &&
+        //         (!context.user.branches ||
+        //             (context.user.branches && !context.user.branches.includes(branchID)))
+        //     ) {
+        //         throw new Error(
+        //             "Only admins or authorized branch users can access orders report"
+        //         );
+        //     }
+        //     const { BranchData, Orders } = context.collections;
+        //     const query = {};
+        //     if (branchID) {
+        //         query.branchID = branchID;
+        //     } else if (user.branches) {
+        //         query.branchID = { $in: user.branches };
+        //     }
+        //     if (orderStatus) {
+        //         query.status = orderStatus;
+        //     }
+        //     console.log(query);
+        //     const ordersResp = await Orders.find(query).sort({ createdAt: -1 }).toArray();
+        //     console.log(ordersResp)
+        //     const ordersWithId = ordersResp.map((order) => ({
+        //         id: order._id,
+        //         ...order,
+        //     }));
+        //     return ordersWithId
+        // },
     },
 };
