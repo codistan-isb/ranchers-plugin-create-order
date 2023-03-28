@@ -1,4 +1,4 @@
-type Order {
+extend type Order {
   id: ID!
   startTime: String
   endTime: String
@@ -7,12 +7,24 @@ type Order {
   OrderID: [String]
   LoginRiderID: String
   username: String
+  branchname: String
 }
+# type BranchOrderReport {
+#   b_id: ID
+#   branchAccountId: ID
+#   branchCartId: ID
+#   branchCreatedAt: String
+#   branchCurrencyCode: String
+#   branchEmail: String
+#   branchOrdererPreferredLanguage: String
+#   branchPayments: [Payment]
+#   branchShipping: [Shipping]
+# }
 type UserCurrentStatus {
   _id: ID
   currentStatus: UserStatus
   updatedAt: String
-  userRole: UserRoleValue
+  UserRole: UserRoleValue
   username: String
   branchCity: String
   branchname: String
@@ -94,5 +106,5 @@ type Query {
     RiderOrderID: String
   ): [OrderReport]
   getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
-  # getBranchOwnerReport(branchID: String, orderStatus: String): [Order]
+  getBranchOwnerReport(branchID: String, orderStatus: String): [Order]
 }
