@@ -1,14 +1,17 @@
 import ObjectID from "mongodb";
+import updateOrderStatus from "../utils/updateOrderStatus.js";
 // import { canCreateUser } from "../utils/canCreateUser";
 export default {
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
-            console.log(orders);
+            console.log(orders.RiderOrderID);
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new Error("Unauthorized access. Please login first");
             }
-            const { RiderOrder, RiderOrderHistory, Accounts } = context.collections;
+
+            const AllOrdersArray = orders
+            const { RiderOrder, Accounts, Orders } = context.collections;
             const CurrentRiderID = context.user.id;
             const currentDate = new Date().toISOString().substr(0, 10);
             const currentOrderDate = new Date().toISOString();
@@ -37,13 +40,8 @@ export default {
             try {
                 const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
                 console.log(insertedOrders.insertedIds);
-                console.log(insertedOrders);
-                const createdOrderIDs = {
-                    OrderID: insertedOrders.insertedIds,
-                    RiderID: CurrentRiderID,
-                };
-                await RiderOrderHistory.insertOne(createdOrderIDs);
-                console.log(RiderOrderHistory);
+                console.log(AllOrdersArray);
+                updateOrderStatus(orders, "picked", Orders)
                 return insertedOrders.ops;
             } catch (err) {
                 if (err.code === 11000) {
@@ -316,7 +314,9 @@ export default {
                 {
                     $project: {
                         LoginRiderID: "$LoginRiderID",
-                        riderName: { $concat: ["$Rider.firstName", " ", "$Rider.lastName"] },
+                        riderName: {
+                            $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
+                        },
                         branchCity: "$Rider.branchCity",
                         branchName: "$Rider.branchname",
                         orderStatus: "$OrderStatus",
@@ -416,7 +416,7 @@ export default {
             const query = {};
             if (branchID) {
                 query.branchID = branchID;
-            } 
+            }
             // else if (user.branches) {
             //     query.branchID = { $in: user.branches };
             // }
@@ -424,13 +424,22 @@ export default {
                 query.status = orderStatus;
             }
             console.log(query);
-            const ordersResp = await Orders.find(query).sort({ createdAt: -1 }).toArray();
-            console.log(ordersResp)
+            const ordersResp = await Orders.find(query)
+                .sort({ createdAt: -1 })
+                .toArray();
+            console.log(ordersResp);
             const ordersWithId = ordersResp.map((order) => ({
                 id: order._id,
                 ...order,
             }));
-            return ordersWithId
+            return ordersWithId;
+        },
+        async getRiderOrder(parent, args, context, info) {
+            console.log(context.user);
+            if (context.user === undefined || context.user === null) {
+                throw new Error("Unauthorized access. Please login first");
+            }
+            const { RiderOrderHistory } = context.collections;
         },
     },
 };

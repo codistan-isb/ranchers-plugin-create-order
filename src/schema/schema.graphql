@@ -95,6 +95,11 @@ type OrderReport {
   username: String
   RiderOrderID: String
 }
+type RiderOrderHistory {
+  _id: ID!
+  OrderID: [String]
+  RiderID: String
+}
 type Query {
   getOrderById(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: String!): [Order]
@@ -107,4 +112,5 @@ type Query {
   ): [OrderReport]
   getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
   getBranchOwnerReport(branchID: String, orderStatus: String): [Order]
+  getRiderOrder: [RiderOrderHistory]
 }
