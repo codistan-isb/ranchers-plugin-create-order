@@ -434,12 +434,6 @@ export default {
             }));
             return ordersWithId;
         },
-        async getRiderOrder(parent, args, context, info) {
-            console.log(context.user);
-            if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
-            }
-            const { RiderOrderHistory } = context.collections;
-        },
+
     },
 };
