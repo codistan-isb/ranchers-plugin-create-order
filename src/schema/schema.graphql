@@ -9,6 +9,10 @@ extend type Order {
   username: String
   branchname: String
 }
+extend type Address {
+  Latitude: Float
+  Longitude: Float
+}
 # type BranchOrderReport {
 #   b_id: ID
 #   branchAccountId: ID
