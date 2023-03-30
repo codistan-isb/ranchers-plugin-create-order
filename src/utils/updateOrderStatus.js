@@ -1,8 +1,6 @@
 export default async function updateOrderStatus(OrderData, Status, Orders) {
-
     console.log(OrderData);
     console.log(Status);
-
     OrderData.map(async (order) => {
         // Note the use of async here
         console.log(order.RiderOrderID);
@@ -21,7 +19,6 @@ export default async function updateOrderStatus(OrderData, Status, Orders) {
         const updatedOrder = await Orders.findOneAndUpdate({ _id: order.RiderOrderID }, updateOrders, options);
         console.log(updatedOrder);
     });
-
 }
 
 

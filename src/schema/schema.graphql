@@ -59,7 +59,7 @@ type RiderOrderDetail {
   RiderOrderID: ID!
   startTime: String
   endTime: String
-  orderStatus: String
+  OrderStatus: String
   branchname: String
   username: String
 }
@@ -107,5 +107,5 @@ type Query {
     RiderOrderID: String
   ): [OrderReport]
   getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
-  getBranchOwnerReport(branchID: String, orderStatus: String): [Order]
+  getBranchOwnerReport(branchID: String, Orderstatus: String): [Order]
 }
