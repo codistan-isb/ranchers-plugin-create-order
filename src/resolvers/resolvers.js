@@ -370,7 +370,7 @@ export default {
             console.log(report);
             return report;
         },
-        getRiderOrdersByLoginRider: async (parent, args, context, info) => {
+        async getRiderOrdersByLoginRider(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new Error("Unauthorized access. Please login first");
