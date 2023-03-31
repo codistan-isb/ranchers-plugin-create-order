@@ -413,7 +413,7 @@ export default {
             console.log(filteredData);
             return filteredData;
         },
-        async getBranchOwnerReport(parent, args, context, info) {
+        async getKichtenReport(parent, args, context, info) {
             // console.log(context.collections)
             console.log(args);
             const { branchID, orderStatus } = args;

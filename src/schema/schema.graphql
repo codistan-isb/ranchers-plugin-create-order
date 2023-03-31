@@ -111,5 +111,5 @@ type Query {
     RiderOrderID: String
   ): [OrderReport]
   getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
-  getBranchOwnerReport(branchID: String, Orderstatus: String): [Order]
+  getKichtenReport(branchID: String, Orderstatus: String): [Order]
 }
