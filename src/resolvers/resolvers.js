@@ -10,7 +10,7 @@ export default {
                 throw new Error("Unauthorized access. Please login first");
             }
 
-            const AllOrdersArray = orders
+            const AllOrdersArray = orders;
             const { RiderOrder, Accounts, Orders } = context.collections;
             const CurrentRiderID = context.user.id;
             const currentDate = new Date().toISOString().substr(0, 10);
@@ -41,7 +41,7 @@ export default {
                 const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
                 console.log(insertedOrders.insertedIds);
                 console.log(AllOrdersArray);
-                updateOrderStatus(orders, "picked", Orders)
+                updateOrderStatus(orders, "picked", Orders);
                 return insertedOrders.ops;
             } catch (err) {
                 if (err.code === 11000) {
@@ -149,8 +149,11 @@ export default {
             const options = { new: true };
             console.log(branches);
             const userAccount = await Accounts.findOne(filter);
-            console.log(userAccount)
-            if (userAccount.branches && userAccount.branches.includes(args.branches)) {
+            console.log(userAccount);
+            if (
+                userAccount.branches &&
+                userAccount.branches.includes(args.branches)
+            ) {
                 throw new Error("Branch Already Assigned");
             }
 
@@ -193,7 +196,10 @@ export default {
                 const checkAccountResponse = await Accounts.findOne({ _id: userID });
                 // console.log(checkAccountResponse);
                 // Check if the new branch already exists in the branches array
-                if (checkAccountResponse.branches && checkAccountResponse.branches.includes(newBranchValue)) {
+                if (
+                    checkAccountResponse.branches &&
+                    checkAccountResponse.branches.includes(newBranchValue)
+                ) {
                     throw new Error("Branch Already Assigned");
                 }
                 // If the new value doesn't exist, update the branches array and return the new value
@@ -231,10 +237,16 @@ export default {
                     { startTime: { $gte: currentDate } }, // include orders that start on or after the current date
                 ],
             })
-                .sort({ startTime: 1 })
+                .sort({ createdAt: -1 })
                 .toArray();
             console.log(ordersresp);
 
+            // replace null createdAt with empty string
+            ordersresp.forEach(order => {
+                if (order.createdAt === null || order.createdAt === undefined) {
+                    order.createdAt = new Date(0)
+                }
+            });
             if (ordersresp) {
                 return ordersresp;
             } else {
@@ -254,7 +266,7 @@ export default {
             const orders = await RiderOrder.find({
                 OrderStatus: OrderStatus,
             })
-                .sort({ startTime: 1 })
+                .sort({ createdAt: 1 })
                 .toArray();
             console.log(orders);
             if (orders) {
@@ -363,7 +375,7 @@ export default {
                 // },
                 {
                     $sort: {
-                        startTime: 1,
+                        createdAt: 1,
                     },
                 },
             ]).toArray();
@@ -384,15 +396,18 @@ export default {
             const orders = await RiderOrder.find({
                 LoginRiderID: LoginRiderID,
             })
-                .sort({ startTime: 1 })
+                .sort({ createdAt: 1 })
                 .toArray();
             console.log(orders);
             // get today's date
             const today = new Date().toISOString().substring(0, 10);
-
+            console.log(today)
             // filter data array to include only items with today's date in startTime
             const filteredData = orders.filter((item) => {
-                const itemDate = item.startTime.substring(0, 10);
+                if (!item.createdAt) {
+                    return false;
+                }
+                const itemDate = item.createdAt.substring(0, 10);
                 return itemDate === today;
             });
             console.log(filteredData);
@@ -421,8 +436,7 @@ export default {
             const query = {};
             if (branchID) {
                 query.branchID = branchID;
-            }
-            else if (user.branches) {
+            } else if (user.branches) {
                 query.branchID = { $in: user.branches };
             }
             if (orderStatus) {
@@ -439,6 +453,5 @@ export default {
             }));
             return ordersWithId;
         },
-
     },
 };
