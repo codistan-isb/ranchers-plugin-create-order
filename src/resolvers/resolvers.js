@@ -436,9 +436,10 @@ export default {
             const query = {};
             if (branchID) {
                 query.branchID = branchID;
-            } else if (user.branches) {
-                query.branchID = { $in: user.branches };
             }
+            // else if (context.user.branches) {
+            //     query.branchID = { $in: context.user.branches };
+            // }
             if (orderStatus) {
                 query.status = orderStatus;
             }
