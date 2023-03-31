@@ -266,7 +266,7 @@ export default {
             const orders = await RiderOrder.find({
                 OrderStatus: OrderStatus,
             })
-                .sort({ createdAt: 1 })
+                .sort({ createdAt: -1 })
                 .toArray();
             console.log(orders);
             if (orders) {
@@ -375,7 +375,7 @@ export default {
                 // },
                 {
                     $sort: {
-                        createdAt: 1,
+                        createdAt: -1,
                     },
                 },
             ]).toArray();
@@ -396,7 +396,7 @@ export default {
             const orders = await RiderOrder.find({
                 LoginRiderID: LoginRiderID,
             })
-                .sort({ createdAt: 1 })
+                .sort({ createdAt: -1 })
                 .toArray();
             console.log(orders);
             // get today's date
