@@ -148,6 +148,11 @@ export default {
             const update = { $push: { branches: branches } };
             const options = { new: true };
             console.log(branches);
+            const userAccount = await Accounts.findOne(filter);
+            console.log(userAccount)
+            if (userAccount.branches && userAccount.branches.includes(args.branches)) {
+                throw new Error("Branch Already Assigned");
+            }
 
             if (
                 context.user.UserRole.toLowerCase() === "admin" ||
@@ -188,7 +193,7 @@ export default {
                 const checkAccountResponse = await Accounts.findOne({ _id: userID });
                 // console.log(checkAccountResponse);
                 // Check if the new branch already exists in the branches array
-                if (checkAccountResponse.branches.includes(newBranchValue)) {
+                if (checkAccountResponse.branches && checkAccountResponse.branches.includes(newBranchValue)) {
                     throw new Error("Branch Already Assigned");
                 }
                 // If the new value doesn't exist, update the branches array and return the new value
@@ -417,9 +422,9 @@ export default {
             if (branchID) {
                 query.branchID = branchID;
             }
-            // else if (user.branches) {
-            //     query.branchID = { $in: user.branches };
-            // }
+            else if (user.branches) {
+                query.branchID = { $in: user.branches };
+            }
             if (orderStatus) {
                 query.status = orderStatus;
             }

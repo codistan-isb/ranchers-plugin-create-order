@@ -14,7 +14,7 @@ export default async function updateOrderStatus(OrderData, Status, Orders) {
         const orderToUpdate = await GetOrderData.next();
         console.log(orderToUpdate)
         if (!orderToUpdate) {
-            console.log(`No order found with _id = ${order.RiderOrderID}`);
+            console.log(`No order found with ID = ${order.RiderOrderID}`);
         }
         const updatedOrder = await Orders.findOneAndUpdate({ _id: order.RiderOrderID }, updateOrders, options);
         console.log(updatedOrder);
