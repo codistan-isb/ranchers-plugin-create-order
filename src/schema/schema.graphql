@@ -73,6 +73,7 @@ input NewRiderOrderInput {
   OrderStatus: String
   RiderOrderID: String!
   branchname: String
+  riderID: String
 }
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): [Order]
@@ -82,6 +83,7 @@ type Mutation {
     endTime: String
     OrderStatus: String
     RiderOrderID: String!
+    riderID: String
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
   assignBranchtoUser(userID: ID!, branches: String!): UserBranchData!
@@ -110,6 +112,14 @@ type Query {
     LoginRiderID: ID
     RiderOrderID: String
   ): [OrderReport]
-  getRiderOrdersByLoginRider(LoginRiderID: String!): [RiderOrderDetail]
-  getKitchenReport(branchID: String, Orderstatus: String): [Order]
+  getRiderOrdersByLoginRider(
+    LoginRiderID: String! # startDate: String # endDate: String
+  ): [RiderOrderDetail]
+  getKitchenReport(
+    branchID: String
+    Orderstatus: String
+    startDate: String
+    endDate: String
+  ): [Order]
+  # getAllRiders(branches:[String]):[]
 }

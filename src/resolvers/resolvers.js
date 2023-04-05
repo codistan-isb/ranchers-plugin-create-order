@@ -389,13 +389,25 @@ export default {
             }
             // const today = new Date().toISOString().substr(0, 10);
 
-            const { LoginRiderID } = args;
+            const { startDate, endDate, LoginRiderID } = args;
             const { RiderOrder } = context.collections;
             const { id } = context.user;
+            console.log(id)
+            // const query = {};
+            // if (LoginRiderID) {
+            //     query.LoginRiderID = LoginRiderID;
+            // }
 
-            const orders = await RiderOrder.find({
-                LoginRiderID: LoginRiderID,
-            })
+            // if (startDate && endDate) {
+            //     const start = new Date(startDate);
+            //     const end = new Date(endDate);
+            //     query.createdAt = {
+            //         $gte: start,
+            //         $lte: end,
+            //     };
+            // }
+            // console.log(query);
+            const orders = await RiderOrder.find({ LoginRiderID: LoginRiderID })
                 .sort({ createdAt: -1 })
                 .toArray();
             console.log(orders);
@@ -416,7 +428,7 @@ export default {
         async getKitchenReport(parent, args, context, info) {
             // console.log(context.collections)
             console.log(args);
-            const { branchID, Orderstatus } = args;
+            const { startDate, endDate, branchID, Orderstatus } = args;
             console.log(context.user);
             // console.log(context.user.UserRole);
             // console.log(!context.user.branches);
@@ -440,9 +452,17 @@ export default {
             // else if (context.user.branches) {
             //     query.branchID = { $in: context.user.branches };
             // }
-            if (args.Orderstatus) {
+            if (Orderstatus) {
                 // query.workflow.status = args.Orderstatus;
-                query['workflow.status'] = args.Orderstatus;
+                query['workflow.status'] = Orderstatus;
+            }
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                query.createdAt = {
+                    $gte: start,
+                    $lte: end,
+                };
             }
             console.log(query);
             const ordersResp = await Orders.find(query)
