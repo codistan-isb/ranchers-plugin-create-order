@@ -413,10 +413,10 @@ export default {
             console.log(filteredData);
             return filteredData;
         },
-        async getKichtenReport(parent, args, context, info) {
+        async getKitchenReport(parent, args, context, info) {
             // console.log(context.collections)
             console.log(args);
-            const { branchID, orderStatus } = args;
+            const { branchID, Orderstatus } = args;
             console.log(context.user);
             // console.log(context.user.UserRole);
             // console.log(!context.user.branches);
@@ -440,8 +440,9 @@ export default {
             // else if (context.user.branches) {
             //     query.branchID = { $in: context.user.branches };
             // }
-            if (orderStatus) {
-                query.status = orderStatus;
+            if (args.Orderstatus) {
+                // query.workflow.status = args.Orderstatus;
+                query['workflow.status'] = args.Orderstatus;
             }
             console.log(query);
             const ordersResp = await Orders.find(query)
