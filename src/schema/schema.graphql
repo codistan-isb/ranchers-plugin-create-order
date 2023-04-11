@@ -34,11 +34,32 @@ type UserCurrentStatus {
   branchname: String
 }
 enum OrderStatusValue {
+  "A new order that needs processing"
+  new
+
+  "An order that is being processed"
+  processing
+
+  "orderConfirmed order"
   orderConfirmed
+
+  "preparing order"
   preparing
+
+  "ready order"
   ready
+
+  "pickedUp order"
   pickedUp
+
+  "delivered order"
   delivered
+
+  "Canceled order"
+  canceled
+
+  "A completed order"
+  completed
 }
 enum UserRoleValue {
   admin
