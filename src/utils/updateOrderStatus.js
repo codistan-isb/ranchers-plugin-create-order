@@ -1,3 +1,4 @@
+import ReactionError from "@reactioncommerce/reaction-error";
 export default async function updateOrderStatus(OrderData, Status, Orders) {
     console.log(OrderData);
     console.log(Status);
@@ -14,7 +15,9 @@ export default async function updateOrderStatus(OrderData, Status, Orders) {
         const orderToUpdate = await GetOrderData.next();
         console.log(orderToUpdate)
         if (!orderToUpdate) {
-            console.log(`No order found with ID = ${order.RiderOrderID}`);
+            throw new ReactionError(`No order found with ID = ${order.RiderOrderID}`);
+
+
         }
         const updatedOrder = await Orders.findOneAndUpdate({ _id: order.RiderOrderID }, updateOrders, options);
         console.log(updatedOrder);

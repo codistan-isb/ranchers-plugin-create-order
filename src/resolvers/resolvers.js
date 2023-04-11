@@ -1,5 +1,6 @@
 import ObjectID from "mongodb";
 import updateOrderStatus from "../utils/updateOrderStatus.js";
+import ReactionError from "@reactioncommerce/reaction-error";
 // import { canCreateUser } from "../utils/canCreateUser";
 export default {
     Mutation: {
@@ -7,7 +8,7 @@ export default {
             console.log(orders.RiderOrderID);
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Please Login First");
             }
 
             const AllOrdersArray = orders;
@@ -19,7 +20,7 @@ export default {
             console.log(currentDate);
             const riderStatus = await Accounts.findOne({ _id: CurrentRiderID });
             if (riderStatus.currentStatus === "offline") {
-                throw new Error("Rider is offline, cannot create order");
+                throw new ReactionError("Rider is offline, cannot create order");
             }
             const ordersWithRiderId = orders.map((order) => ({
                 ...order,
@@ -33,9 +34,7 @@ export default {
             }).toArray();
             console.log(existingOrders);
             if (existingOrders.length > 0) {
-                throw new Error(
-                    "One or more orders already exist for the same branch and day"
-                );
+                throw new ReactionError("One or more orders already exist for the same branch and day");
             }
             try {
                 const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
@@ -45,7 +44,7 @@ export default {
                 return insertedOrders.ops;
             } catch (err) {
                 if (err.code === 11000) {
-                    throw new Error("Order Already Exists");
+                    throw new ReactionError("Order Already Exists");
                 }
                 throw err;
             }
@@ -58,7 +57,7 @@ export default {
         ) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Please Login First");
             }
             const CurrentRiderID = context.user.id;
 
@@ -98,7 +97,7 @@ export default {
         async updateUserCurrentStatus(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
             const { Accounts } = context.collections;
             console.log(args.status);
@@ -106,7 +105,7 @@ export default {
             const currentStatus = args.status;
             const userID = context.user.id;
             if (!userID) {
-                throw new Error("Please Login First");
+                throw new ReactionError("Please Login First");
             }
             const updatedUser = await Accounts.findOneAndUpdate(
                 { _id: userID },
@@ -115,18 +114,11 @@ export default {
             );
             console.log(updatedUser.value);
             if (!updatedUser) {
-                throw new Error(`User with ID ${userID} not found`);
+                throw new ReactionError(`User with ID ${userID} not found`);
             }
 
             return updatedUser.value;
-            //     const updatedUser = await users.findOneAndUpdate(
-            //         { _id: ObjectID(userID) },
-            //         { $set: { currentStatus: status } },
-            //         { returnOriginal: false }
-            //     );
 
-            //     return updatedUser;
-            // }
         },
         async assignBranchtoUser(parent, args, context, info) {
             console.log(args);
@@ -138,7 +130,7 @@ export default {
                 context.user === null ||
                 context.user === ""
             ) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
 
             const { userID, branches } = args;
@@ -154,7 +146,7 @@ export default {
                 userAccount.branches &&
                 userAccount.branches.includes(args.branches)
             ) {
-                throw new Error("Branch Already Assigned");
+                throw new ReactionError("Branch Already Assigned");
             }
 
             if (
@@ -171,7 +163,7 @@ export default {
                 console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
-                throw new Error("Unauthorized access!");
+                throw new ReactionError("Unauthorized access!");
             }
         },
         async updateAccountAdmin(parent, args, context, info) {
@@ -183,7 +175,7 @@ export default {
                 context.user === null ||
                 context.user === ""
             ) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
             if (
                 context.user.UserRole.toLowerCase() === "admin" ||
@@ -200,7 +192,7 @@ export default {
                     checkAccountResponse.branches &&
                     checkAccountResponse.branches.includes(newBranchValue)
                 ) {
-                    throw new Error("Branch Already Assigned");
+                    throw new ReactionError("Branch Already Assigned");
                 }
                 // If the new value doesn't exist, update the branches array and return the new value
                 const updateAccountResult = await Accounts.updateOne(
@@ -209,13 +201,13 @@ export default {
                 );
                 console.log(updateAccountResult);
                 if (updateAccountResult.modifiedCount !== 1) {
-                    throw new Error(`Failed to update branch value to user: ${userID}`);
+                    throw new ReactionError(`Failed to update branch value to user: ${userID}`);
                 }
                 const updatedUser = await Accounts.findOne({ _id: userID });
                 console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
-                throw new Error("Unauthorized");
+                throw new ReactionError("Unauthorized");
             }
         },
     },
@@ -223,7 +215,7 @@ export default {
         async getOrderById(parent, { id }, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
             const { RiderOrder } = context.collections;
             if (id === null || id === undefined) {
@@ -256,7 +248,7 @@ export default {
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
             console.log(OrderStatus);
             console.log(context.user.id);
@@ -286,7 +278,7 @@ export default {
         async generateOrderReport(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
@@ -385,7 +377,7 @@ export default {
         async getRiderOrdersByLoginRider(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
             // const today = new Date().toISOString().substr(0, 10);
 
@@ -433,14 +425,14 @@ export default {
             // console.log(context.user.UserRole);
             // console.log(!context.user.branches);
             if (context.user === undefined || context.user === null) {
-                throw new Error("Unauthorized access. Please login first");
+                throw new ReactionError("Unauthorized access. Please login first");
             }
             if (
                 context.user.UserRole !== "admin" &&
                 (!context.user.branches ||
                     (context.user.branches && !context.user.branches.includes(branchID)))
             ) {
-                throw new Error(
+                throw new ReactionError(
                     "Only admins or authorized branch users can access orders report"
                 );
             }

@@ -2,7 +2,7 @@ extend type Order {
   id: ID!
   startTime: String
   endTime: String
-  OrderStatus: String
+  OrderStatus: OrderStatusValue
   RiderOrderID: String!
   OrderID: [String]
   LoginRiderID: String
@@ -32,6 +32,13 @@ type UserCurrentStatus {
   username: String
   branchCity: String
   branchname: String
+}
+enum OrderStatusValue {
+  orderConfirmed
+  preparing
+  ready
+  pickedUp
+  delivered
 }
 enum UserRoleValue {
   admin
@@ -63,14 +70,14 @@ type RiderOrderDetail {
   RiderOrderID: ID!
   startTime: String
   endTime: String
-  OrderStatus: String
+  OrderStatus: OrderStatusValue
   branchname: String
   username: String
 }
 input NewRiderOrderInput {
   startTime: String
   endTime: String
-  OrderStatus: String
+  OrderStatus: OrderStatusValue
   RiderOrderID: String!
   branchname: String
   riderID: String
@@ -81,7 +88,7 @@ type Mutation {
     id: ID
     startTime: String
     endTime: String
-    OrderStatus: String
+    OrderStatus: OrderStatusValue
     RiderOrderID: String!
     riderID: String
   ): Order
@@ -94,7 +101,7 @@ type OrderReport {
   riderName: String
   branchCity: String
   branchName: String
-  orderStatus: String
+  orderStatus: OrderStatusValue
   deliveryTime: String
   startTime: DateTime
   endTime: DateTime
@@ -117,7 +124,7 @@ type Query {
   ): [RiderOrderDetail]
   getKitchenReport(
     branchID: String
-    Orderstatus: String
+    Orderstatus: OrderStatusValue
     startDate: String
     endDate: String
   ): [Order]
