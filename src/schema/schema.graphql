@@ -101,7 +101,7 @@ type OrderReport {
   riderName: String
   branchCity: String
   branchName: String
-  orderStatus: OrderStatusValue
+  OrderStatus: OrderStatusValue
   deliveryTime: String
   startTime: DateTime
   endTime: DateTime
@@ -111,7 +111,7 @@ type OrderReport {
 
 type Query {
   getOrderById(id: ID!): [Order]
-  getOrdersByStatus(OrderStatus: String!): [Order]
+  getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
   generateOrderReport(
     branchName: String
     startTime: DateTime
@@ -124,7 +124,7 @@ type Query {
   ): [RiderOrderDetail]
   getKitchenReport(
     branchID: String
-    Orderstatus: OrderStatusValue
+    OrderStatus: OrderStatusValue
     startDate: String
     endDate: String
   ): [Order]
