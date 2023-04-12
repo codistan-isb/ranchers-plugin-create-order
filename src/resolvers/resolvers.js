@@ -7,44 +7,55 @@ export default {
         async createRiderOrder(parent, { orders }, context, info) {
             console.log(orders);
             console.log(context.user);
+            const currentDate = new Date().toISOString().substr(0, 10);
+            const currentOrderDate = new Date().toISOString();
             // const assignTo = ""
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Please Login First");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
-            // if (!orders[0].assignTo) {
-            //     orders[0].assignTo = context.user.id
+            // if (!orders[0].riderID) {
+            //     orders[0].riderID = context.user.id
             // }
-
+            console.log("Hello")
             const AllOrdersArray = orders;
             const { RiderOrder, Accounts, Orders } = context.collections;
             const CurrentRiderID = context.user.id;
-            const RiderIDForAssign = orders[0].riderID;
-            const currentDate = new Date().toISOString().substr(0, 10);
-            const currentOrderDate = new Date().toISOString();
+            // const RiderIDForAssign = orders[0].riderID ? orders[0].riderID : context.user.id;
+            const RiderIDForAssign = orders.map(order => {
+                const riderId = order.riderID ? order.riderID : CurrentRiderID;
+                return {
+                    ...order,
+                    riderID: riderId,
+                    createdAt: currentOrderDate,
+                };
+            });
+            // const RiderIDForAssign = orders[0].riderID;
+
             console.log(RiderIDForAssign);
             console.log(currentDate);
+
             const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
             console.log("Status of Rider : ", riderStatus)
-            if (riderStatus.currentStatus === "offline") {
+
+            if (riderStatus && riderStatus.currentStatus === "offline") {
                 throw new ReactionError("Rider is offline, cannot create order");
             }
 
-            const ordersWithRiderId = orders.map((order) => ({
-                ...order,
-                LoginRiderID: RiderIDForAssign,
-                createdAt: currentOrderDate,
-            }));
-            console.log("ordersWithRiderId", ordersWithRiderId)
+            // const ordersWithRiderId = orders.map((order) => ({
+            //     ...order,
+
+            // }));
+            // console.log("ordersWithRiderId", ordersWithRiderId)
             const existingOrders = await RiderOrder.find({
-                RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
-                branchname: { $in: ordersWithRiderId.map((o) => o.branchname) },
+                OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
+                branches: { $in: RiderIDForAssign.map((o) => o.branches) },
             }).toArray();
             console.log("existingOrders :", existingOrders);
             if (existingOrders.length > 0) {
-                throw new ReactionError("One or more orders already exist for the same branch and day");
+                throw new ReactionError("Already Exist", "One or more orders already exist for the same branch and day");
             }
             try {
-                const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
+                const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
                 console.log(insertedOrders.insertedIds);
                 console.log(AllOrdersArray);
                 updateOrderStatus(orders, "pickedUp", Orders);
@@ -58,18 +69,18 @@ export default {
         },
         async updateRiderOrder(
             parent,
-            { id, startTime, endTime, OrderStatus, RiderOrderID },
+            { id, startTime, endTime, OrderStatus, OrderID },
             context,
             info
         ) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Please Login First");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             const CurrentRiderID = context.user.id;
 
             const { RiderOrder } = context.collections;
-            const filter = { RiderOrderID: RiderOrderID };
+            const filter = { OrderID: OrderID };
             const update = {};
             if (startTime) {
                 update.startTime = startTime;
@@ -80,8 +91,8 @@ export default {
             if (OrderStatus) {
                 update.OrderStatus = OrderStatus;
             }
-            if (RiderOrderID) {
-                update.RiderOrderID = RiderOrderID;
+            if (OrderID) {
+                update.OrderID = OrderID;
             }
             const options = { returnOriginal: false };
             const response = await RiderOrder.findOneAndUpdate(
@@ -96,15 +107,15 @@ export default {
                 startTime: response.value.startTime,
                 endTime: response.value.endTime,
                 OrderStatus: response.value.OrderStatus,
-                RiderOrderID: response.value.RiderOrderID,
-                LoginRiderID: response.value.LoginRiderID,
+                OrderID: response.value.OrderID,
+                riderID: response.value.riderID,
                 OrderID: response.value.OrderID,
             };
         },
         async updateUserCurrentStatus(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             const { Accounts } = context.collections;
             console.log(args.status);
@@ -137,7 +148,7 @@ export default {
                 context.user === null ||
                 context.user === ""
             ) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
 
             const { userID, branches } = args;
@@ -182,7 +193,7 @@ export default {
                 context.user === null ||
                 context.user === ""
             ) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             if (
                 context.user.UserRole.toLowerCase() === "admin" ||
@@ -222,7 +233,7 @@ export default {
         async getOrderById(parent, { id }, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             const { RiderOrder } = context.collections;
             if (id === null || id === undefined) {
@@ -231,7 +242,7 @@ export default {
             const currentDate = new Date().toISOString().substr(0, 10); // get current date in ISO format (yyyy-mm-dd)
 
             const ordersresp = await RiderOrder.find({
-                assignTo: id,
+                riderID: id,
                 $or: [
                     { startTime: { $gte: currentDate } }, // include orders that start on or after the current date
                 ],
@@ -255,7 +266,7 @@ export default {
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             console.log(OrderStatus);
             console.log(context.user.id);
@@ -271,7 +282,7 @@ export default {
             if (orders) {
                 // Current Login User Order
                 const filteredOrders = orders.filter(
-                    (order) => order.assignTo === LoginUserID
+                    (order) => order.riderID === LoginUserID
                 );
                 const ordersWithId = filteredOrders.map((order) => ({
                     id: order._id,
@@ -285,7 +296,7 @@ export default {
         async generateOrderReport(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
@@ -293,8 +304,8 @@ export default {
 
             // const { branchName } = args;
             let match = {};
-            if (args.LoginRiderID) {
-                match.LoginRiderID = args.LoginRiderID;
+            if (args.riderID) {
+                match.riderID = args.riderID;
             }
             if (args.branchName) {
                 match.branchname = args.branchName;
@@ -304,8 +315,8 @@ export default {
                 console.log(args.startDate);
                 match.startTime = { $gte: new Date(args.startDate) };
             }
-            if (args.RiderOrderID) {
-                match.RiderOrderID = args.RiderOrderID;
+            if (args.OrderID) {
+                match.OrderID = args.OrderID;
             }
             if (args.endDate && args.endDate !== undefined) {
                 console.log(args.endDate);
@@ -319,7 +330,7 @@ export default {
                 {
                     $lookup: {
                         from: "users",
-                        localField: "LoginRiderID",
+                        localField: "riderID",
                         foreignField: "_id",
                         as: "Rider",
                     },
@@ -329,7 +340,7 @@ export default {
                 },
                 {
                     $project: {
-                        LoginRiderID: "$LoginRiderID",
+                        riderID: "$riderID",
                         riderName: {
                             $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
                         },
@@ -353,7 +364,7 @@ export default {
                         },
                         // startTime: { $toDate: "$startTime" },
                         // endTime: { $toDate: "$endTime" },
-                        RiderOrderID: "$RiderOrderID",
+                        OrderID: "$OrderID",
                     },
                 },
                 {
@@ -384,17 +395,17 @@ export default {
         async getRiderOrdersByLoginRider(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             // const today = new Date().toISOString().substr(0, 10);
 
-            const { startDate, endDate, LoginRiderID } = args;
+            const { startDate, endDate, riderID } = args;
             const { RiderOrder } = context.collections;
             const { id } = context.user;
             console.log(id)
             // const query = {};
-            // if (LoginRiderID) {
-            //     query.LoginRiderID = LoginRiderID;
+            // if (riderID) {
+            //     query.riderID = riderID;
             // }
 
             // if (startDate && endDate) {
@@ -406,7 +417,7 @@ export default {
             //     };
             // }
             // console.log(query);
-            const orders = await RiderOrder.find({ LoginRiderID: LoginRiderID })
+            const orders = await RiderOrder.find({ riderID: riderID })
                 .sort({ createdAt: -1 })
                 .toArray();
             console.log(orders);
@@ -432,7 +443,7 @@ export default {
             // console.log(context.user.UserRole);
             // console.log(!context.user.branches);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("Unauthorized access. Please login first");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             if (
                 context.user.UserRole !== "admin" &&

@@ -3,11 +3,10 @@ extend type Order {
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue
-  RiderOrderID: String!
-  OrderID: [String]
-  LoginRiderID: String
+  OrderID: String!
   username: String
   branchname: String
+  riderID: String
 }
 extend type Address {
   Latitude: Float
@@ -79,7 +78,7 @@ type UserBranchData {
   branches: [String]
 }
 type RiderOrderDetail {
-  RiderOrderID: ID!
+  OrderID: ID!
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue
@@ -90,10 +89,9 @@ input NewRiderOrderInput {
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue!
-  RiderOrderID: String!
-  branchname: String!
-  riderID: String!
-  assignTo: String!
+  OrderID: String!
+  branchname: String
+  riderID: String
 }
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): [Order]
@@ -102,7 +100,7 @@ type Mutation {
     startTime: String
     endTime: String
     OrderStatus: OrderStatusValue
-    RiderOrderID: String!
+    OrderID: String!
     riderID: String
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
@@ -110,7 +108,7 @@ type Mutation {
   updateAccountAdmin(userID: ID!, branches: String!): UserBranchData!
 }
 type OrderReport {
-  LoginRiderID: ID
+  riderID: String
   riderName: String
   branchCity: String
   branchName: String
@@ -119,7 +117,7 @@ type OrderReport {
   startTime: DateTime
   endTime: DateTime
   username: String
-  RiderOrderID: String
+  OrderID: String
 }
 
 type Query {
@@ -129,8 +127,8 @@ type Query {
     branchName: String
     startTime: DateTime
     endTime: DateTime
-    LoginRiderID: ID
-    RiderOrderID: String
+    riderID: String
+    OrderID: String
   ): [OrderReport]
   getRiderOrdersByLoginRider(
     LoginRiderID: String! # startDate: String # endDate: String
