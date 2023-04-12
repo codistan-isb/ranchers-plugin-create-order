@@ -89,10 +89,11 @@ type RiderOrderDetail {
 input NewRiderOrderInput {
   startTime: String
   endTime: String
-  OrderStatus: OrderStatusValue
+  OrderStatus: OrderStatusValue!
   RiderOrderID: String!
-  branchname: String
-  riderID: String
+  branchname: String!
+  riderID: String!
+  assignTo: String!
 }
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): [Order]

@@ -5,34 +5,41 @@ import ReactionError from "@reactioncommerce/reaction-error";
 export default {
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
-            console.log(orders.RiderOrderID);
+            console.log(orders);
             console.log(context.user);
+            // const assignTo = ""
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError("access-denied", "Please Login First");
             }
+            // if (!orders[0].assignTo) {
+            //     orders[0].assignTo = context.user.id
+            // }
 
             const AllOrdersArray = orders;
             const { RiderOrder, Accounts, Orders } = context.collections;
             const CurrentRiderID = context.user.id;
+            const RiderIDForAssign = orders[0].riderID;
             const currentDate = new Date().toISOString().substr(0, 10);
             const currentOrderDate = new Date().toISOString();
-
+            console.log(RiderIDForAssign);
             console.log(currentDate);
-            const riderStatus = await Accounts.findOne({ _id: CurrentRiderID });
+            const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
+            console.log("Status of Rider : ", riderStatus)
             if (riderStatus.currentStatus === "offline") {
                 throw new ReactionError("Rider is offline, cannot create order");
             }
+
             const ordersWithRiderId = orders.map((order) => ({
                 ...order,
-                LoginRiderID: CurrentRiderID,
+                LoginRiderID: RiderIDForAssign,
                 createdAt: currentOrderDate,
             }));
-
+            console.log("ordersWithRiderId", ordersWithRiderId)
             const existingOrders = await RiderOrder.find({
                 RiderOrderID: { $in: ordersWithRiderId.map((o) => o.RiderOrderID) },
                 branchname: { $in: ordersWithRiderId.map((o) => o.branchname) },
             }).toArray();
-            console.log(existingOrders);
+            console.log("existingOrders :", existingOrders);
             if (existingOrders.length > 0) {
                 throw new ReactionError("One or more orders already exist for the same branch and day");
             }
@@ -224,7 +231,7 @@ export default {
             const currentDate = new Date().toISOString().substr(0, 10); // get current date in ISO format (yyyy-mm-dd)
 
             const ordersresp = await RiderOrder.find({
-                LoginRiderID: id,
+                assignTo: id,
                 $or: [
                     { startTime: { $gte: currentDate } }, // include orders that start on or after the current date
                 ],
@@ -264,7 +271,7 @@ export default {
             if (orders) {
                 // Current Login User Order
                 const filteredOrders = orders.filter(
-                    (order) => order.LoginRiderID === LoginUserID
+                    (order) => order.assignTo === LoginUserID
                 );
                 const ordersWithId = filteredOrders.map((order) => ({
                     id: order._id,
