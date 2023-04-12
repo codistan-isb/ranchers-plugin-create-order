@@ -40,7 +40,7 @@ export default {
                 const insertedOrders = await RiderOrder.insertMany(ordersWithRiderId);
                 console.log(insertedOrders.insertedIds);
                 console.log(AllOrdersArray);
-                updateOrderStatus(orders, "picked", Orders);
+                updateOrderStatus(orders, "pickedUp", Orders);
                 return insertedOrders.ops;
             } catch (err) {
                 if (err.code === 11000) {
