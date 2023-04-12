@@ -5,7 +5,7 @@ extend type Order {
   OrderStatus: OrderStatusValue
   OrderID: String!
   username: String
-  branchname: String
+  branches: String
   riderID: String
 }
 extend type Address {
@@ -30,7 +30,7 @@ type UserCurrentStatus {
   UserRole: UserRoleValue
   username: String
   branchCity: String
-  branchname: String
+  branches: String
 }
 enum OrderStatusValue {
   "Preparing your meal"
@@ -82,7 +82,7 @@ type RiderOrderDetail {
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue
-  branchname: String
+  branches: String
   username: String
 }
 input NewRiderOrderInput {
@@ -90,7 +90,7 @@ input NewRiderOrderInput {
   endTime: String
   OrderStatus: OrderStatusValue!
   OrderID: String!
-  branchname: String
+  branches: String
   riderID: String
 }
 type Mutation {
@@ -111,7 +111,7 @@ type OrderReport {
   riderID: String
   riderName: String
   branchCity: String
-  branchName: String
+  branches: String
   OrderStatus: OrderStatusValue
   deliveryTime: String
   startTime: DateTime
@@ -124,7 +124,7 @@ type Query {
   getOrderById(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
   generateOrderReport(
-    branchName: String
+    branches: String
     startTime: DateTime
     endTime: DateTime
     riderID: String
@@ -139,5 +139,4 @@ type Query {
     startDate: String
     endDate: String
   ): [Order]
-  # getAllRiders(branches:[String]):[]
 }

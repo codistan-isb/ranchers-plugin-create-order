@@ -302,14 +302,14 @@ export default {
             const { id } = context.user;
             console.log(id);
 
-            // const { branchName } = args;
+            // const { branches } = args;
             let match = {};
             if (args.riderID) {
                 match.riderID = args.riderID;
             }
-            if (args.branchName) {
-                match.branchname = args.branchName;
-                // match["RiderOrder.branchname"] = args.branchName;
+            if (args.branches) {
+                match.branches = args.branches;
+                // match["RiderOrder.branches"] = args.branches;
             }
             if (args.startDate && args.startDate !== undefined) {
                 console.log(args.startDate);
@@ -345,7 +345,7 @@ export default {
                             $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
                         },
                         branchCity: "$Rider.branchCity",
-                        branchName: "$Rider.branchname",
+                        branches: "$Rider.branches",
                         orderStatus: "$OrderStatus",
                         username: "$Rider.username",
                         startTime: {
