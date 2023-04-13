@@ -58,7 +58,14 @@ export default {
                 const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
                 console.log(insertedOrders.insertedIds);
                 console.log(AllOrdersArray);
-                updateOrderStatus(orders, "pickedUp", Orders);
+                console.log("Order ID:- ", AllOrdersArray[0].OrderID);
+                if (insertedOrders) {
+                    const updateOrders = { $set: { 'workflow.status': "pickedUp" } };
+                    const options = { new: true };
+                    const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
+                    console.log("updated Order:- ", updatedOrder)
+                }
+                // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
                 return insertedOrders.ops;
             } catch (err) {
                 if (err.code === 11000) {
@@ -284,10 +291,12 @@ export default {
                 const filteredOrders = orders.filter(
                     (order) => order.riderID === LoginUserID
                 );
+                console.log("Filter Order: ", filteredOrders)
                 const ordersWithId = filteredOrders.map((order) => ({
                     id: order._id,
                     ...order,
                 }));
+                console.log("Order with ID: ", ordersWithId)
                 return ordersWithId;
             } else {
                 return null;
@@ -438,7 +447,7 @@ export default {
         async getKitchenReport(parent, args, context, info) {
             // console.log(context.collections)
             console.log(args);
-            const { startDate, endDate, branchID, Orderstatus } = args;
+            const { startDate, endDate, branchID, OrderStatus } = args;
             console.log(context.user);
             // console.log(context.user.UserRole);
             // console.log(!context.user.branches);
@@ -462,9 +471,9 @@ export default {
             // else if (context.user.branches) {
             //     query.branchID = { $in: context.user.branches };
             // }
-            if (Orderstatus) {
+            if (OrderStatus) {
                 // query.workflow.status = args.Orderstatus;
-                query['workflow.status'] = Orderstatus;
+                query['workflow.status'] = args.OrderStatus;
             }
             if (startDate && endDate) {
                 const start = new Date(startDate);
@@ -474,7 +483,7 @@ export default {
                     $lte: end,
                 };
             }
-            console.log(query);
+            console.log("query: ", query);
             const ordersResp = await Orders.find(query)
                 .sort({ createdAt: -1 })
                 .toArray();
@@ -483,6 +492,7 @@ export default {
                 id: order._id,
                 ...order,
             }));
+            console.log(ordersWithId)
             return ordersWithId;
         },
     },

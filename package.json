@@ -2,7 +2,7 @@
   "name": "@shoaibfarooq3/ranchers-plugin-create-order",
   "description": "Boilerplate plugin for the Reaction API",
   "label": "Create Order Plugin",
-  "version": "9.8.6-development",
+  "version": "9.8.7-development",
   "main": "index.js",
   "type": "module",
   "engines": {

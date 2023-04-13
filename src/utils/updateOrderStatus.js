@@ -1,7 +1,7 @@
 import ReactionError from "@reactioncommerce/reaction-error";
 export default async function updateOrderStatus(OrderData, Status, Orders) {
     console.log(OrderData);
-    console.log(Status);
+    console.log(OrderData.OrderStatus);
     OrderData.map(async (order) => {
         // Note the use of async here
         console.log(order.RiderID);
@@ -10,7 +10,7 @@ export default async function updateOrderStatus(OrderData, Status, Orders) {
         const updateOrders = { $set: { 'workflow.status': Status } };
         // Use find to get a cursor to the matching document
         const GetOrderData = await Orders.find({ _id: order.RiderID });
-        console.log(GetOrderData)
+        console.log("Get Order Data : ", GetOrderData)
         // Get the first document from the cursor
         const orderToUpdate = await GetOrderData.next();
         console.log(orderToUpdate)
