@@ -7,9 +7,8 @@ export default {
         async createRiderOrder(parent, { orders }, context, info) {
             console.log(orders);
             console.log(context.user);
-            const currentDate = new Date().toISOString().substr(0, 10);
-            const currentOrderDate = new Date().toISOString();
-            // const assignTo = ""
+            // const currentDate = new Date().toISOString().substr(0, 10);
+            const now = new Date();            // const assignTo = ""
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
@@ -26,7 +25,7 @@ export default {
                 return {
                     ...order,
                     riderID: riderId,
-                    createdAt: currentOrderDate,
+                    createdAt: now,
                 };
             });
             // const RiderIDForAssign = orders[0].riderID;
@@ -38,7 +37,8 @@ export default {
             console.log("Status of Rider : ", riderStatus)
 
             if (riderStatus && riderStatus.currentStatus === "offline") {
-                throw new ReactionError("Rider is offline, cannot create order");
+                throw new ReactionError("not-found", "Rider is offline, cannot create order");
+                // throw new ReactionError("Rider is offline, cannot create order");
             }
 
             // const ordersWithRiderId = orders.map((order) => ({
@@ -52,7 +52,9 @@ export default {
             }).toArray();
             console.log("existingOrders :", existingOrders);
             if (existingOrders.length > 0) {
-                throw new ReactionError("Already Exist", "One or more orders already exist for the same branch and day");
+                throw new ReactionError("duplicate", "One or more orders already exist for the same branch and day");
+
+                // throw new ReactionError("Already Exist", "One or more orders already exist for the same branch and day");
             }
             try {
                 const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
@@ -69,7 +71,9 @@ export default {
                 return insertedOrders.ops;
             } catch (err) {
                 if (err.code === 11000) {
-                    throw new ReactionError("Order Already Exists");
+                    throw new ReactionError("duplicate", "Order Already Exists");
+
+                    // throw new ReactionError("Order Already Exists");
                 }
                 throw err;
             }
@@ -101,7 +105,7 @@ export default {
             if (OrderID) {
                 update.OrderID = OrderID;
             }
-            const options = { returnOriginal: false };
+            const options = { returnOriginal: true };
             const response = await RiderOrder.findOneAndUpdate(
                 filter,
                 { $set: update },
@@ -130,7 +134,7 @@ export default {
             const currentStatus = args.status;
             const userID = context.user.id;
             if (!userID) {
-                throw new ReactionError("Please Login First");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
             const updatedUser = await Accounts.findOneAndUpdate(
                 { _id: userID },
@@ -139,7 +143,7 @@ export default {
             );
             console.log(updatedUser.value);
             if (!updatedUser) {
-                throw new ReactionError(`User with ID ${userID} not found`);
+                throw new ReactionError("not-found", `User with ID ${userID} not found`);
             }
 
             return updatedUser.value;
@@ -171,7 +175,9 @@ export default {
                 userAccount.branches &&
                 userAccount.branches.includes(args.branches)
             ) {
-                throw new ReactionError("Branch Already Assigned");
+                throw new ReactionError("duplicate", "Branch Already Assigned");
+
+                // throw new ReactionError("Branch Already Assigned");
             }
 
             if (
@@ -188,7 +194,9 @@ export default {
                 console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
-                throw new ReactionError("Unauthorized access!");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+
+                // throw new ReactionError("Unauthorized access!");
             }
         },
         async updateAccountAdmin(parent, args, context, info) {
@@ -217,7 +225,9 @@ export default {
                     checkAccountResponse.branches &&
                     checkAccountResponse.branches.includes(newBranchValue)
                 ) {
-                    throw new ReactionError("Branch Already Assigned");
+                    throw new ReactionError("duplicate", "branch already assigned");
+
+                    // throw new ReactionError("Duplicate Error", "branch already assigned");
                 }
                 // If the new value doesn't exist, update the branches array and return the new value
                 const updateAccountResult = await Accounts.updateOne(
@@ -226,13 +236,15 @@ export default {
                 );
                 console.log(updateAccountResult);
                 if (updateAccountResult.modifiedCount !== 1) {
-                    throw new ReactionError(`Failed to update branch value to user: ${userID}`);
+                    if (!updatedAccount) throw new ReactionError("server-error", "Unable to update Account, Try again later");
+
+                    // throw new ReactionError("Failed", `Failed to update branch value to user: ${userID}`);
                 }
                 const updatedUser = await Accounts.findOne({ _id: userID });
                 console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
-                throw new ReactionError("Unauthorized");
+                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
         },
     },
@@ -459,9 +471,11 @@ export default {
                 (!context.user.branches ||
                     (context.user.branches && !context.user.branches.includes(branchID)))
             ) {
-                throw new ReactionError(
-                    "Only admins or authorized branch users can access orders report"
-                );
+                throw new ReactionError("conflict", "Only admins or authorized branch users can access orders report");
+
+                // throw new ReactionError(
+                //     "Only admins or authorized branch users can access orders report"
+                // );
             }
             const { BranchData, Orders } = context.collections;
             const query = {};
@@ -483,7 +497,7 @@ export default {
                     $lte: end,
                 };
             }
-            console.log("query: ", query);
+            console.log("query:- ", query);
             const ordersResp = await Orders.find(query)
                 .sort({ createdAt: -1 })
                 .toArray();
