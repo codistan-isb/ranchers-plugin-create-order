@@ -365,8 +365,8 @@ export default {
                             $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
                         },
                         branchCity: "$Rider.branchCity",
-                        branches: "$Rider.branches",
-                        orderStatus: "$OrderStatus",
+                        branches: "$branches",
+                        OrderStatus: "$OrderStatus",
                         username: "$Rider.username",
                         startTime: {
                             $cond: {
@@ -409,7 +409,7 @@ export default {
                     },
                 },
             ]).toArray();
-            console.log(report);
+            console.log("FInal Order Report :- ", report);
             return report;
         },
         async getRiderOrdersByLoginRider(parent, args, context, info) {
