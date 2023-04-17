@@ -31,7 +31,6 @@ export default {
             // const RiderIDForAssign = orders[0].riderID;
 
             console.log(RiderIDForAssign);
-            console.log(currentDate);
 
             const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
             console.log("Status of Rider : ", riderStatus)
