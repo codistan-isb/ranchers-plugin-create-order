@@ -90,7 +90,7 @@ input NewRiderOrderInput {
   endTime: String
   OrderStatus: OrderStatusValue!
   OrderID: String!
-  branches: String
+  branches: ID!
   riderID: String
 }
 type Mutation {
