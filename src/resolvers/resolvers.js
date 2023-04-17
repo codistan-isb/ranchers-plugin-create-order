@@ -89,7 +89,7 @@ export default {
             }
             const CurrentRiderID = context.user.id;
 
-            const { RiderOrder } = context.collections;
+            const { RiderOrder, Orders } = context.collections;
             const filter = { OrderID: OrderID };
             const update = {};
             if (startTime) {
@@ -100,6 +100,10 @@ export default {
             }
             if (OrderStatus) {
                 update.OrderStatus = OrderStatus;
+                const updateOrders = { $set: { 'workflow.status': OrderStatus } };
+                const options = { new: true };
+                const updatedOrder = await Orders.findOneAndUpdate({ _id: OrderID }, updateOrders, options);
+                console.log("updated Order:- ", updatedOrder)
             }
             if (OrderID) {
                 update.OrderID = OrderID;
@@ -110,6 +114,12 @@ export default {
                 { $set: update },
                 options
             );
+            if (response) {
+                // const updateOrders = { $set: { 'workflow.status': OrderStatus } };
+                // const options = { new: true };
+                // const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
+                // console.log("updated Order:- ", updatedOrder)
+            }
             console.log(response);
             console.log(response.value);
             return {
