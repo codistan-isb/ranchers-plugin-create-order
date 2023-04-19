@@ -415,7 +415,7 @@ export default {
                 // },
                 {
                     $sort: {
-                        createdAt: -1,
+                        startTime: -1,
                     },
                 },
             ]).toArray();
