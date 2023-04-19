@@ -481,21 +481,13 @@ export default {
                     (context.user.branches && !context.user.branches.includes(branchID)))
             ) {
                 throw new ReactionError("conflict", "Only admins or authorized branch users can access orders report");
-
-                // throw new ReactionError(
-                //     "Only admins or authorized branch users can access orders report"
-                // );
             }
             const { BranchData, Orders } = context.collections;
             const query = {};
             if (branchID) {
                 query.branchID = branchID;
             }
-            // else if (context.user.branches) {
-            //     query.branchID = { $in: context.user.branches };
-            // }
             if (OrderStatus) {
-                // query.workflow.status = args.Orderstatus;
                 query['workflow.status'] = args.OrderStatus;
             }
             if (startDate && endDate) {
@@ -507,15 +499,34 @@ export default {
                 };
             }
             console.log("query:- ", query);
+            // const ordersResp = await Orders.aggregate([
+            //     { $match: query },
+            //     {
+            //         $lookup: {
+            //             from: "BranchData",
+            //             localField: "branchID",
+            //             foreignField: "_id",
+            //             as: "branchData",
+            //         },
+            //     },
+            //     {
+            //         $unwind: {
+            //             path: "$branchData",
+            //             preserveNullAndEmptyArrays: true,
+            //         },
+            //     },
+            //     { $sort: { createdAt: -1 } },
+            // ]).toArray();
+            // console.log("ordersResp:- ", ordersResp);
             const ordersResp = await Orders.find(query)
                 .sort({ createdAt: -1 })
                 .toArray();
-            console.log(ordersResp);
+            console.log("Orders Resp:- ", ordersResp);
             const ordersWithId = ordersResp.map((order) => ({
                 id: order._id,
                 ...order,
             }));
-            console.log(ordersWithId)
+            console.log("ordersWithId:- ", ordersWithId)
             return ordersWithId;
         },
     },
