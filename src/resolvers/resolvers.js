@@ -3,6 +3,22 @@ import updateOrderStatus from "../utils/updateOrderStatus.js";
 import ReactionError from "@reactioncommerce/reaction-error";
 // import { canCreateUser } from "../utils/canCreateUser";
 export default {
+    Order: {
+        async branchInfo(parent, args, context, info) {
+            console.log("parent", parent)
+            const BranchID = parent.branchID
+            console.log("BranchID:- ", BranchID)
+            if (BranchID) {
+                const { BranchData } = context.collections;
+                const branchDataResponse = await BranchData.find({ _id: ObjectID.ObjectId(BranchID) }).toArray();
+                console.log("Branch Data : ", branchDataResponse[0])
+                return branchDataResponse[0]
+            }
+            else {
+                return [];
+            }
+        }
+    },
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
             console.log(orders);
@@ -474,12 +490,9 @@ export default {
             return filteredData;
         },
         async getKitchenReport(parent, args, context, info) {
-            // console.log(context.collections)
-            console.log(args);
+
             const { startDate, endDate, branchID, OrderStatus } = args;
-            console.log(context.user);
-            // console.log(context.user.UserRole);
-            // console.log(!context.user.branches);
+
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
@@ -507,35 +520,16 @@ export default {
                 };
             }
             console.log("query:- ", query);
-            // const ordersResp = await Orders.aggregate([
-            //     { $match: query },
-            //     {
-            //         $lookup: {
-            //             from: "BranchData",
-            //             localField: "branchID",
-            //             foreignField: "_id",
-            //             as: "branchData",
-            //         },
-            //     },
-            //     {
-            //         $unwind: {
-            //             path: "$branchData",
-            //             preserveNullAndEmptyArrays: true,
-            //         },
-            //     },
-            //     { $sort: { createdAt: -1 } },
-            // ]).toArray();
-            // console.log("ordersResp:- ", ordersResp);
             const ordersResp = await Orders.find(query)
                 .sort({ createdAt: -1 })
                 .toArray();
-            console.log("Orders Resp:- ", ordersResp);
             const ordersWithId = ordersResp.map((order) => ({
                 id: order._id,
                 ...order,
             }));
             console.log("ordersWithId:- ", ordersWithId)
             return ordersWithId;
+
         },
     },
 };

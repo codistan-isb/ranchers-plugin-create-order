@@ -7,6 +7,22 @@ extend type Order {
   username: String
   branches: String
   riderID: String
+  "branch Info Displayed"
+  branchInfo: Branch
+}
+type OrderReport {
+  riderID: String
+  riderName: String
+  branchCity: String
+  branches: String
+  OrderStatus: OrderStatusValue
+  deliveryTime: String
+  startTime: DateTime
+  endTime: DateTime
+  username: String
+  OrderID: String
+  "branch Info Displayed"
+  branchInfo: Branch
 }
 extend type Address {
   Latitude: Float
@@ -106,18 +122,6 @@ type Mutation {
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
   assignBranchtoUser(userID: ID!, branches: String!): UserBranchData!
   updateAccountAdmin(userID: ID!, branches: String!): UserBranchData!
-}
-type OrderReport {
-  riderID: String
-  riderName: String
-  branchCity: String
-  branches: String
-  OrderStatus: OrderStatusValue
-  deliveryTime: String
-  startTime: DateTime
-  endTime: DateTime
-  username: String
-  OrderID: String
 }
 
 type Query {
