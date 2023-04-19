@@ -30,7 +30,7 @@ export default {
             });
             // const RiderIDForAssign = orders[0].riderID;
 
-            console.log(RiderIDForAssign);
+            console.log("RiderIDForAssign", RiderIDForAssign);
 
             const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
             console.log("Status of Rider : ", riderStatus)
@@ -83,7 +83,7 @@ export default {
             context,
             info
         ) {
-            console.log(context.user);
+            // console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
@@ -105,6 +105,14 @@ export default {
                 const updatedOrder = await Orders.findOneAndUpdate({ _id: OrderID }, updateOrders, options);
                 console.log("updated Order:- ", updatedOrder)
             }
+            if (OrderStatus === 'ready') {
+                const updatedBranch = {
+                    prepTime: 0, // add prepTime field here
+                    updatedAt: new Date().toISOString(),
+                };
+                // const UpdatedBranchDataResp = await BranchData.updateOne({ _id: branch._id }, { $set: updatedBranch });
+                // console.log(UpdatedBranchDataResp)
+            }
             if (OrderID) {
                 update.OrderID = OrderID;
             }
@@ -120,7 +128,7 @@ export default {
                 // const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
                 // console.log("updated Order:- ", updatedOrder)
             }
-            console.log(response);
+            console.log("response", response);
             console.log(response.value);
             return {
                 id: response.value._id,
