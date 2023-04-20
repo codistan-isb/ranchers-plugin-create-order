@@ -19,6 +19,22 @@ export default {
             }
         }
     },
+      OrderReport : {
+        async branchInfo(parent, args, context, info) {
+            console.log("parent", parent)
+            const BranchID = parent.branchID
+            console.log("BranchID:- ", BranchID)
+            if (BranchID) {
+                const { BranchData } = context.collections;
+                const branchDataResponse = await BranchData.find({ _id: ObjectID.ObjectId(BranchID) }).toArray();
+                console.log("Branch Data : ", branchDataResponse[0])
+                return branchDataResponse[0]
+            }
+            else {
+                return [];
+            }
+        }
+    },
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
             console.log(orders);
