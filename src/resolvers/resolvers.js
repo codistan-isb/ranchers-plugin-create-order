@@ -22,7 +22,7 @@ export default {
       OrderReport : {
         async branchInfo(parent, args, context, info) {
             console.log("parent", parent)
-            const BranchID = parent.branchID
+            const BranchID = parent.branches
             console.log("BranchID:- ", BranchID)
             if (BranchID) {
                 const { BranchData } = context.collections;
