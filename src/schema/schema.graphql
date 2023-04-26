@@ -50,10 +50,10 @@ type UserCurrentStatus {
 }
 enum OrderStatusValue {
   "Preparing your meal"
-  preparing
+  processing
 
   "We're all set"
-  orderConfirmed
+  confirmed
 
   " The food's ready to ride"
   ready
@@ -66,6 +66,9 @@ enum OrderStatusValue {
 
   "Canceled order"
   canceled
+
+  "For new order"
+  new
 }
 enum UserRoleValue {
   admin
