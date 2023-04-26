@@ -10,6 +10,7 @@ extend type Order {
   "branch Info Displayed"
   branchInfo: Branch
   Notes: String
+  riderInfo: Account
 }
 type OrderReport {
   riderID: String

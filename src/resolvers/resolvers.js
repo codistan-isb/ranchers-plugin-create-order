@@ -1,18 +1,35 @@
 import ObjectID from "mongodb";
 import updateOrderStatus from "../utils/updateOrderStatus.js";
 import ReactionError from "@reactioncommerce/reaction-error";
-// import { canCreateUser } from "../utils/canCreateUser";
 export default {
     Order: {
         async branchInfo(parent, args, context, info) {
-            console.log("parent", parent)
+            // console.log("parent", parent)
             const BranchID = parent.branchID
-            console.log("BranchID:- ", BranchID)
+            // console.log("BranchID:- ", BranchID)
             if (BranchID) {
                 const { BranchData } = context.collections;
                 const branchDataResponse = await BranchData.find({ _id: ObjectID.ObjectId(BranchID) }).toArray();
-                console.log("Branch Data : ", branchDataResponse[0])
+                // console.log("Branch Data : ", branchDataResponse[0])
                 return branchDataResponse[0]
+            }
+            else {
+                return [];
+            }
+        },
+        async riderInfo(parent, args, context, info) {
+            console.log("parent", parent)
+            const { RiderOrder, Accounts } = context.collections;
+            const { id } = parent
+            console.log("OrderID:- ", id)
+            if (id) {
+                const RiderOrderResponse = await RiderOrder.find({ OrderID: id }).toArray();
+                if (RiderOrderResponse[0] !== undefined) {
+                    console.log("rider ID Data : ", RiderOrderResponse[0].riderID)
+                    const RiderDataResponse = await Accounts.find({ _id: RiderOrderResponse[0].riderID }).toArray();
+                    console.log("RiderDataResponse Data : ", RiderDataResponse[0])
+                    return RiderDataResponse[0]
+                }
             }
             else {
                 return [];
