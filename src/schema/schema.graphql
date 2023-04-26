@@ -3,12 +3,13 @@ extend type Order {
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue
-  OrderID: String!
+  OrderID: String
   username: String
   branches: String
   riderID: String
   "branch Info Displayed"
   branchInfo: Branch
+  Notes: String
 }
 type OrderReport {
   riderID: String
@@ -97,7 +98,7 @@ type UserBranchData {
   branches: [String]
 }
 type RiderOrderDetail {
-  OrderID: ID!
+  OrderID: ID
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue
@@ -108,23 +109,26 @@ input NewRiderOrderInput {
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue!
-  OrderID: String!
+  OrderID: String
   branches: ID!
   riderID: String
+  oldRiderID: String
 }
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): [Order]
+
   updateRiderOrder(
     id: ID
     startTime: String
     endTime: String
     OrderStatus: OrderStatusValue
-    OrderID: String!
+    OrderID: String
     riderID: String
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
   assignBranchtoUser(userID: ID!, branches: String!): UserBranchData!
   updateAccountAdmin(userID: ID!, branches: String!): UserBranchData!
+  addBranchNotes(orderId: ID!, Notes: String!): Order
 }
 
 type Query {

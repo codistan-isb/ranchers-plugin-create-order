@@ -19,7 +19,7 @@ export default {
             }
         }
     },
-      OrderReport : {
+    OrderReport: {
         async branchInfo(parent, args, context, info) {
             console.log("parent", parent)
             const BranchID = parent.branches
@@ -296,6 +296,17 @@ export default {
                 throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
             }
         },
+        async addBranchNotes(parent, args, context, info) {
+            console.log(args)
+            const { orderId, Notes } = args;
+            const { Orders } = context.collections;
+            console.log(orderId)
+            const updateOrders = { $set: { Notes: Notes } };
+            const options = { new: true };
+            const updatedOrderResp = await Orders.findOneAndUpdate({ _id: orderId }, updateOrders, options);
+            console.log("Update Order:- ", updatedOrderResp)
+            return updatedOrderResp.value
+        }
     },
     Query: {
         async getOrderById(parent, { id }, context, info) {
