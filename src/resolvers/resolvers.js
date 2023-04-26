@@ -305,7 +305,14 @@ export default {
             const options = { new: true };
             const updatedOrderResp = await Orders.findOneAndUpdate({ _id: orderId }, updateOrders, options);
             console.log("Update Order:- ", updatedOrderResp)
-            return updatedOrderResp.value
+            if (updatedOrderResp.value) {
+                return updatedOrderResp.value
+            }
+            else {
+                throw new ReactionError("server-error", "Something went wrong , please try later");
+
+            }
+
         }
     },
     Query: {
