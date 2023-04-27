@@ -5,71 +5,80 @@ export default {
     Order: {
         async branchInfo(parent, args, context, info) {
             // console.log("parent", parent)
-            const BranchID = parent.branchID
+            const BranchID = parent.branchID;
             // console.log("BranchID:- ", BranchID)
             if (BranchID) {
                 const { BranchData } = context.collections;
-                const branchDataResponse = await BranchData.find({ _id: ObjectID.ObjectId(BranchID) }).toArray();
+                const branchDataResponse = await BranchData.find({
+                    _id: ObjectID.ObjectId(BranchID),
+                }).toArray();
                 // console.log("Branch Data : ", branchDataResponse[0])
-                return branchDataResponse[0]
-            }
-            else {
+                return branchDataResponse[0];
+            } else {
                 return [];
             }
         },
         async riderInfo(parent, args, context, info) {
-            console.log("parent", parent)
+            console.log("parent", parent);
             const { RiderOrder, Accounts } = context.collections;
-            const { id } = parent
-            console.log("OrderID:- ", id)
+            const { id } = parent;
+            console.log("OrderID:- ", id);
             if (id) {
-                const RiderOrderResponse = await RiderOrder.find({ OrderID: id }).toArray();
+                const RiderOrderResponse = await RiderOrder.find({
+                    OrderID: id,
+                }).toArray();
                 if (RiderOrderResponse[0] !== undefined) {
-                    console.log("rider ID Data : ", RiderOrderResponse[0].riderID)
-                    const RiderDataResponse = await Accounts.find({ _id: RiderOrderResponse[0].riderID }).toArray();
-                    console.log("RiderDataResponse Data : ", RiderDataResponse[0])
-                    return RiderDataResponse[0]
+                    console.log("rider ID Data : ", RiderOrderResponse[0].riderID);
+                    const RiderDataResponse = await Accounts.find({
+                        _id: RiderOrderResponse[0].riderID,
+                    }).toArray();
+                    console.log("RiderDataResponse Data : ", RiderDataResponse[0]);
+                    return RiderDataResponse[0];
                 }
-            }
-            else {
+            } else {
                 return [];
             }
-        }
+        },
     },
     OrderReport: {
         async branchInfo(parent, args, context, info) {
-            console.log("parent", parent)
-            const BranchID = parent.branches
-            console.log("BranchID:- ", BranchID)
+            console.log("parent", parent);
+            const BranchID = parent.branches;
+            console.log("BranchID:- ", BranchID);
             if (BranchID) {
                 const { BranchData } = context.collections;
-                const branchDataResponse = await BranchData.find({ _id: ObjectID.ObjectId(BranchID) }).toArray();
-                console.log("Branch Data : ", branchDataResponse[0])
-                return branchDataResponse[0]
-            }
-            else {
+                const branchDataResponse = await BranchData.find({
+                    _id: ObjectID.ObjectId(BranchID),
+                }).toArray();
+                console.log("Branch Data : ", branchDataResponse[0]);
+                return branchDataResponse[0];
+            } else {
                 return [];
             }
-        }
+        },
     },
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
-            console.log(orders);
-            console.log(context.user);
-            // const currentDate = new Date().toISOString().substr(0, 10);
-            const now = new Date();            // const assignTo = ""
+            // console.log(orders);
+            // console.log(context.user);
+            // Get the start and end of today
+
+            const now = new Date();
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
-            // if (!orders[0].riderID) {
-            //     orders[0].riderID = context.user.id
-            // }
-            console.log("Hello")
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const todayEnd = new Date();
+            todayEnd.setHours(23, 59, 59, 999);
+            console.log("Hello");
             const AllOrdersArray = orders;
             const { RiderOrder, Accounts, Orders } = context.collections;
             const CurrentRiderID = context.user.id;
-            // const RiderIDForAssign = orders[0].riderID ? orders[0].riderID : context.user.id;
-            const RiderIDForAssign = orders.map(order => {
+            const RiderIDForAssign = orders.map((order) => {
                 const riderId = order.riderID ? order.riderID : CurrentRiderID;
                 return {
                     ...order,
@@ -77,54 +86,151 @@ export default {
                     createdAt: now,
                 };
             });
-            // const RiderIDForAssign = orders[0].riderID;
 
             console.log("RiderIDForAssign", RiderIDForAssign);
 
             const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
-            console.log("Status of Rider : ", riderStatus)
+            console.log("Status of Rider : ", riderStatus);
 
             if (riderStatus && riderStatus.currentStatus === "offline") {
-                throw new ReactionError("not-found", "Rider is offline, cannot create order");
-                // throw new ReactionError("Rider is offline, cannot create order");
+                throw new ReactionError(
+                    "not-found",
+                    "Rider is offline, cannot create order"
+                );
             }
-
-            // const ordersWithRiderId = orders.map((order) => ({
-            //     ...order,
-
-            // }));
-            // console.log("ordersWithRiderId", ordersWithRiderId)
-            const existingOrders = await RiderOrder.find({
+            const existingRiderOrders = await RiderOrder.find({
                 OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
-                branches: { $in: RiderIDForAssign.map((o) => o.branches) },
             }).toArray();
-            console.log("existingOrders :", existingOrders);
-            if (existingOrders.length > 0) {
-                throw new ReactionError("duplicate", "One or more orders already exist for the same branch and day");
+            console.log("existingRiderOrders:- ", existingRiderOrders);
+            if (existingRiderOrders.length > 0) {
+                if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
+                    // const insertedOrders1 = await RiderOrder.insertOne(RiderIDForAssign[0]);
+                    const update = {};
+                    // if (existingRiderOrders[0].startTime) {
+                    //     update.startTime = existingRiderOrders[0].startTime;
+                    // }
+                    const insertedOrders1 = await RiderOrder.findOneAndUpdate(
+                        { _id: existingRiderOrders[0]._id },
+                        // { $set: { riderID: RiderIDForAssign[0].riderID } },
+                        {
+                            $set: {
+                                riderID: RiderIDForAssign[0].riderID,
+                                branches: RiderIDForAssign[0].branches,
+                                OrderID: RiderIDForAssign[0].OrderID,
+                                OrderStatus: RiderIDForAssign[0].OrderStatus,
+                                startTime: RiderIDForAssign[0].startTime
+                            }
+                        },
+                        { new: true }
+                    );
+                    console.log("insertedOrders1:- ", insertedOrders1);
+                    if (insertedOrders1) {
+                        return insertedOrders1.value
+                    }
+                    else {
+                        console.log("else part uper")
+                        try {
+                            const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
+                            console.log("here");
+                            console.log("inserted Data:- ", insertedOrders[0])
+                            // console.log(AllOrdersArray);
+                            // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
+                            if (insertedOrders) {
+                                const updateOrders = { $set: { "workflow.status": "pickedUp" } };
+                                const options = { new: true };
+                                const updatedOrder = await Orders.findOneAndUpdate(
+                                    { _id: AllOrdersArray[0].OrderID },
+                                    updateOrders,
+                                    options
+                                );
+                                console.log("updated Order:- ", updatedOrder);
+                            }
+                            // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
+                            return insertedOrders.ops;
+                        } catch (err) {
+                            if (err.code === 11000) {
+                                throw new ReactionError("duplicate", "Order Already Exists");
 
-                // throw new ReactionError("Already Exist", "One or more orders already exist for the same branch and day");
-            }
-            try {
-                const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
-                console.log(insertedOrders.insertedIds);
-                console.log(AllOrdersArray);
-                console.log("Order ID:- ", AllOrdersArray[0].OrderID);
-                if (insertedOrders) {
-                    const updateOrders = { $set: { 'workflow.status': "pickedUp" } };
-                    const options = { new: true };
-                    const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
-                    console.log("updated Order:- ", updatedOrder)
+                                // throw new ReactionError("Order Already Exists");
+                            }
+                            throw err;
+                        }
+                    }
                 }
-                // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
-                return insertedOrders.ops;
-            } catch (err) {
-                if (err.code === 11000) {
-                    throw new ReactionError("duplicate", "Order Already Exists");
+                else {
+                    throw new ReactionError(
+                        "duplicate",
+                        "One or more orders already exist for the same branch and day"
+                    );
+                }
+            }
+            else {
+                console.log("else 2 part")
+                try {
+                    const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
+                    console.log(insertedOrders.insertedIds);
+                    console.log("inserted Data:- ", insertedOrders)
+                    // console.log(AllOrdersArray);
+                    console.log("Order ID:- ", AllOrdersArray[0].OrderID);
+                    if (insertedOrders) {
+                        const updateOrders = { $set: { "workflow.status": "pickedUp" } };
+                        const options = { new: true };
+                        const updatedOrder = await Orders.findOneAndUpdate(
+                            { _id: AllOrdersArray[0].OrderID },
+                            updateOrders,
+                            options
+                        );
+                        console.log("updated Order:- ", updatedOrder);
+                    }
+                    // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
+                    return insertedOrders.ops[0];
+                } catch (err) {
+                    if (err.code === 11000) {
+                        throw new ReactionError("duplicate", "Order Already Exists");
 
-                    // throw new ReactionError("Order Already Exists");
+                        // throw new ReactionError("Order Already Exists");
+                    }
+                    throw err;
                 }
-                throw err;
             }
+
+            // const existingOrders = await RiderOrder.find({
+            //     OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
+            //     branches: { $in: RiderIDForAssign.map((o) => o.branches) },
+            //     createdAt: {
+            //         $gte: todayStart,
+            //         $lte: todayEnd,
+            //     },
+            // }).toArray();
+            // console.log("existingOrders :", existingOrders);
+            // if (existingOrders.length > 0) {
+            //     throw new ReactionError("duplicate", "One or more orders already exist for the same branch and day");
+            // }
+            // try {
+            //     const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
+            //     console.log(insertedOrders.insertedIds);
+            //     console.log(AllOrdersArray);
+            //     console.log("Order ID:- ", AllOrdersArray[0].OrderID);
+            //     if (insertedOrders) {
+            //         const updateOrders = { $set: { "workflow.status": "pickedUp" } };
+            //         const options = { new: true };
+            //         const updatedOrder = await Orders.findOneAndUpdate(
+            //             { _id: AllOrdersArray[0].OrderID },
+            //             updateOrders,
+            //             options
+            //         );
+            //         console.log("updated Order:- ", updatedOrder);
+            //     }
+            //     // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
+            //     return insertedOrders.ops;
+            // } catch (err) {
+            //     if (err.code === 11000) {
+            //         throw new ReactionError("duplicate", "Order Already Exists");
+
+            //         // throw new ReactionError("Order Already Exists");
+            //     }
+            //     throw err;
+            // }
         },
         async updateRiderOrder(
             parent,
@@ -134,7 +240,10 @@ export default {
         ) {
             // console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             const CurrentRiderID = context.user.id;
 
@@ -149,12 +258,16 @@ export default {
             }
             if (OrderStatus) {
                 update.OrderStatus = OrderStatus;
-                const updateOrders = { $set: { 'workflow.status': OrderStatus } };
+                const updateOrders = { $set: { "workflow.status": OrderStatus } };
                 const options = { new: true };
-                const updatedOrder = await Orders.findOneAndUpdate({ _id: OrderID }, updateOrders, options);
-                console.log("updated Order:- ", updatedOrder)
+                const updatedOrder = await Orders.findOneAndUpdate(
+                    { _id: OrderID },
+                    updateOrders,
+                    options
+                );
+                console.log("updated Order:- ", updatedOrder);
             }
-            if (OrderStatus === 'ready') {
+            if (OrderStatus === "ready") {
                 const updatedBranch = {
                     prepTime: 0, // add prepTime field here
                     updatedAt: new Date().toISOString(),
@@ -192,7 +305,10 @@ export default {
         async updateUserCurrentStatus(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             const { Accounts } = context.collections;
             console.log(args.status);
@@ -200,7 +316,10 @@ export default {
             const currentStatus = args.status;
             const userID = context.user.id;
             if (!userID) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             const updatedUser = await Accounts.findOneAndUpdate(
                 { _id: userID },
@@ -209,11 +328,13 @@ export default {
             );
             console.log(updatedUser.value);
             if (!updatedUser) {
-                throw new ReactionError("not-found", `User with ID ${userID} not found`);
+                throw new ReactionError(
+                    "not-found",
+                    `User with ID ${userID} not found`
+                );
             }
 
             return updatedUser.value;
-
         },
         async assignBranchtoUser(parent, args, context, info) {
             console.log(args);
@@ -225,7 +346,10 @@ export default {
                 context.user === null ||
                 context.user === ""
             ) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
 
             const { userID, branches } = args;
@@ -260,7 +384,10 @@ export default {
                 console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
 
                 // throw new ReactionError("Unauthorized access!");
             }
@@ -274,7 +401,10 @@ export default {
                 context.user === null ||
                 context.user === ""
             ) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             if (
                 context.user.UserRole.toLowerCase() === "admin" ||
@@ -302,7 +432,11 @@ export default {
                 );
                 console.log(updateAccountResult);
                 if (updateAccountResult.modifiedCount !== 1) {
-                    if (!updatedAccount) throw new ReactionError("server-error", "Unable to update Account, Try again later");
+                    if (!updatedAccount)
+                        throw new ReactionError(
+                            "server-error",
+                            "Unable to update Account, Try again later"
+                        );
 
                     // throw new ReactionError("Failed", `Failed to update branch value to user: ${userID}`);
                 }
@@ -310,33 +444,43 @@ export default {
                 console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
         },
         async addBranchNotes(parent, args, context, info) {
-            console.log(args)
+            console.log(args);
             const { orderId, Notes } = args;
             const { Orders } = context.collections;
-            console.log(orderId)
+            console.log(orderId);
             const updateOrders = { $set: { Notes: Notes } };
             const options = { new: true };
-            const updatedOrderResp = await Orders.findOneAndUpdate({ _id: orderId }, updateOrders, options);
-            console.log("Update Order:- ", updatedOrderResp)
+            const updatedOrderResp = await Orders.findOneAndUpdate(
+                { _id: orderId },
+                updateOrders,
+                options
+            );
+            console.log("Update Order:- ", updatedOrderResp);
             if (updatedOrderResp.value) {
-                return updatedOrderResp.value
+                return updatedOrderResp.value;
+            } else {
+                throw new ReactionError(
+                    "server-error",
+                    "Something went wrong , please try later"
+                );
             }
-            else {
-                throw new ReactionError("server-error", "Something went wrong , please try later");
-
-            }
-
-        }
+        },
     },
     Query: {
         async getOrderById(parent, { id }, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             const { RiderOrder } = context.collections;
             if (id === null || id === undefined) {
@@ -355,9 +499,9 @@ export default {
             console.log(ordersresp);
 
             // replace null createdAt with empty string
-            ordersresp.forEach(order => {
+            ordersresp.forEach((order) => {
                 if (order.createdAt === null || order.createdAt === undefined) {
-                    order.createdAt = new Date(0)
+                    order.createdAt = new Date(0);
                 }
             });
             if (ordersresp) {
@@ -369,7 +513,10 @@ export default {
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             console.log(OrderStatus);
             console.log(context.user.id);
@@ -387,12 +534,12 @@ export default {
                 const filteredOrders = orders.filter(
                     (order) => order.riderID === LoginUserID
                 );
-                console.log("Filter Order: ", filteredOrders)
+                console.log("Filter Order: ", filteredOrders);
                 const ordersWithId = filteredOrders.map((order) => ({
                     id: order._id,
                     ...order,
                 }));
-                console.log("Order with ID: ", ordersWithId)
+                console.log("Order with ID: ", ordersWithId);
                 return ordersWithId;
             } else {
                 return null;
@@ -401,7 +548,10 @@ export default {
         async generateOrderReport(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
@@ -500,14 +650,17 @@ export default {
         async getRiderOrdersByLoginRider(parent, args, context, info) {
             console.log(context.user);
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             // const today = new Date().toISOString().substr(0, 10);
 
             const { startDate, endDate, riderID } = args;
             const { RiderOrder } = context.collections;
             const { id } = context.user;
-            console.log(id)
+            console.log(id);
             // const query = {};
             // if (riderID) {
             //     query.riderID = riderID;
@@ -528,7 +681,7 @@ export default {
             console.log(orders);
             // get today's date
             const today = new Date().toISOString().substring(0, 10);
-            console.log(today)
+            console.log(today);
             // filter data array to include only items with today's date in startTime
             const filteredData = orders.filter((item) => {
                 if (!item.createdAt) {
@@ -541,18 +694,23 @@ export default {
             return filteredData;
         },
         async getKitchenReport(parent, args, context, info) {
-
             const { startDate, endDate, branchID, OrderStatus } = args;
 
             if (context.user === undefined || context.user === null) {
-                throw new ReactionError("access-denied", "Unauthorized access. Please Login First");
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
             }
             if (
                 context.user.UserRole !== "admin" &&
                 (!context.user.branches ||
                     (context.user.branches && !context.user.branches.includes(branchID)))
             ) {
-                throw new ReactionError("conflict", "Only admins or authorized branch users can access orders report");
+                throw new ReactionError(
+                    "conflict",
+                    "Only admins or authorized branch users can access orders report"
+                );
             }
             const { BranchData, Orders } = context.collections;
             const query = {};
@@ -560,7 +718,7 @@ export default {
                 query.branchID = branchID;
             }
             if (OrderStatus) {
-                query['workflow.status'] = args.OrderStatus;
+                query["workflow.status"] = args.OrderStatus;
             }
             if (startDate && endDate) {
                 const start = new Date(startDate);
@@ -578,9 +736,8 @@ export default {
                 id: order._id,
                 ...order,
             }));
-            console.log("ordersWithId:- ", ordersWithId)
+            console.log("ordersWithId:- ", ordersWithId);
             return ordersWithId;
-
         },
     },
 };

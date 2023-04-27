@@ -116,8 +116,7 @@ input NewRiderOrderInput {
   oldRiderID: String
 }
 type Mutation {
-  createRiderOrder(orders: [NewRiderOrderInput]): [Order]
-
+  createRiderOrder(orders: [NewRiderOrderInput]): Order
   updateRiderOrder(
     id: ID
     startTime: String
