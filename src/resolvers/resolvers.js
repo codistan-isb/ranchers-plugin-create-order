@@ -1,5 +1,5 @@
 import ObjectID from "mongodb";
-import updateOrderStatus from "../utils/updateOrderStatus.js";
+// import updateOrderStatus from "../utils/updateOrderStatus.js";
 import ReactionError from "@reactioncommerce/reaction-error";
 export default {
     Order: {
@@ -19,20 +19,20 @@ export default {
             }
         },
         async riderInfo(parent, args, context, info) {
-            console.log("parent", parent);
+            // console.log("parent", parent);
             const { RiderOrder, Accounts } = context.collections;
             const { id } = parent;
-            console.log("OrderID:- ", id);
+            // console.log("OrderID:- ", id);
             if (id) {
                 const RiderOrderResponse = await RiderOrder.find({
                     OrderID: id,
                 }).toArray();
                 if (RiderOrderResponse[0] !== undefined) {
-                    console.log("rider ID Data : ", RiderOrderResponse[0].riderID);
+                    // console.log("rider ID Data : ", RiderOrderResponse[0].riderID);
                     const RiderDataResponse = await Accounts.find({
                         _id: RiderOrderResponse[0].riderID,
                     }).toArray();
-                    console.log("RiderDataResponse Data : ", RiderDataResponse[0]);
+                    // console.log("RiderDataResponse Data : ", RiderDataResponse[0]);
                     return RiderDataResponse[0];
                 }
             } else {
@@ -42,15 +42,15 @@ export default {
     },
     OrderReport: {
         async branchInfo(parent, args, context, info) {
-            console.log("parent", parent);
+            // console.log("parent", parent);
             const BranchID = parent.branches;
-            console.log("BranchID:- ", BranchID);
+            // console.log("BranchID:- ", BranchID);
             if (BranchID) {
                 const { BranchData } = context.collections;
                 const branchDataResponse = await BranchData.find({
                     _id: ObjectID.ObjectId(BranchID),
                 }).toArray();
-                console.log("Branch Data : ", branchDataResponse[0]);
+                // console.log("Branch Data : ", branchDataResponse[0]);
                 return branchDataResponse[0];
             } else {
                 return [];
@@ -74,7 +74,7 @@ export default {
             todayStart.setHours(0, 0, 0, 0);
             const todayEnd = new Date();
             todayEnd.setHours(23, 59, 59, 999);
-            console.log("Hello");
+            // console.log("Hello");
             const AllOrdersArray = orders;
             const { RiderOrder, Accounts, Orders } = context.collections;
             const CurrentRiderID = context.user.id;
@@ -87,10 +87,10 @@ export default {
                 };
             });
 
-            console.log("RiderIDForAssign", RiderIDForAssign);
+            // console.log("RiderIDForAssign", RiderIDForAssign);
 
             const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
-            console.log("Status of Rider : ", riderStatus);
+            // console.log("Status of Rider : ", riderStatus);
 
             if (riderStatus && riderStatus.currentStatus === "offline") {
                 throw new ReactionError(
@@ -101,7 +101,7 @@ export default {
             const existingRiderOrders = await RiderOrder.find({
                 OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
             }).toArray();
-            console.log("existingRiderOrders:- ", existingRiderOrders);
+            // console.log("existingRiderOrders:- ", existingRiderOrders);
             if (existingRiderOrders.length > 0) {
                 if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
                     // const insertedOrders1 = await RiderOrder.insertOne(RiderIDForAssign[0]);
@@ -123,16 +123,16 @@ export default {
                         },
                         { new: true }
                     );
-                    console.log("insertedOrders1:- ", insertedOrders1);
+                    // console.log("insertedOrders1:- ", insertedOrders1);
                     if (insertedOrders1) {
                         return insertedOrders1.value
                     }
                     else {
-                        console.log("else part uper")
+                        // console.log("else part uper")
                         try {
                             const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
-                            console.log("here");
-                            console.log("inserted Data:- ", insertedOrders[0])
+                            // console.log("here");
+                            // console.log("inserted Data:- ", insertedOrders[0])
                             // console.log(AllOrdersArray);
                             // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
                             if (insertedOrders) {
@@ -143,9 +143,9 @@ export default {
                                     updateOrders,
                                     options
                                 );
-                                console.log("updated Order:- ", updatedOrder);
+                                // console.log("updated Order:- ", updatedOrder);
                             }
-                            // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
+                            // (AllOrdersArray[0].OrderID, "pickedUp", Orders);
                             return insertedOrders.ops;
                         } catch (err) {
                             if (err.code === 11000) {
@@ -165,13 +165,13 @@ export default {
                 }
             }
             else {
-                console.log("else 2 part")
+                // console.log("else 2 part")
                 try {
                     const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
-                    console.log(insertedOrders.insertedIds);
-                    console.log("inserted Data:- ", insertedOrders)
+                    // console.log(insertedOrders.insertedIds);
+                    // console.log("inserted Data:- ", insertedOrders)
                     // console.log(AllOrdersArray);
-                    console.log("Order ID:- ", AllOrdersArray[0].OrderID);
+                    // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
                     if (insertedOrders) {
                         const updateOrders = { $set: { "workflow.status": "pickedUp" } };
                         const options = { new: true };
@@ -180,7 +180,7 @@ export default {
                             updateOrders,
                             options
                         );
-                        console.log("updated Order:- ", updatedOrder);
+                        // console.log("updated Order:- ", updatedOrder);
                     }
                     // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
                     return insertedOrders.ops[0];
@@ -250,7 +250,7 @@ export default {
             const { RiderOrder, Orders } = context.collections;
             const filter = { OrderID: OrderID };
             const update = {};
-            if (startTime) {
+            if (getKitchenReport) {
                 update.startTime = startTime;
             }
             if (endTime) {
@@ -265,7 +265,7 @@ export default {
                     updateOrders,
                     options
                 );
-                console.log("updated Order:- ", updatedOrder);
+                // console.log("updated Order:- ", updatedOrder);
             }
             if (OrderStatus === "ready") {
                 const updatedBranch = {
@@ -290,8 +290,8 @@ export default {
                 // const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
                 // console.log("updated Order:- ", updatedOrder)
             }
-            console.log("response", response);
-            console.log(response.value);
+            // console.log("response", response);
+            // console.log(response.value);
             return {
                 id: response.value._id,
                 startTime: response.value.startTime,
@@ -303,7 +303,7 @@ export default {
             };
         },
         async updateUserCurrentStatus(parent, args, context, info) {
-            console.log(context.user);
+            // console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError(
                     "access-denied",
@@ -311,8 +311,8 @@ export default {
                 );
             }
             const { Accounts } = context.collections;
-            console.log(args.status);
-            console.log(context.user.id);
+            // console.log(args.status);
+            // console.log(context.user.id);
             const currentStatus = args.status;
             const userID = context.user.id;
             if (!userID) {
@@ -326,7 +326,7 @@ export default {
                 { $set: { currentStatus } },
                 { returnOriginal: false }
             );
-            console.log(updatedUser.value);
+            // console.log(updatedUser.value);
             if (!updatedUser) {
                 throw new ReactionError(
                     "not-found",
@@ -337,9 +337,9 @@ export default {
             return updatedUser.value;
         },
         async assignBranchtoUser(parent, args, context, info) {
-            console.log(args);
+            // console.log(args);
             // console.log(context.collections);
-            console.log(context.user);
+            // console.log(context.user);
 
             if (
                 context.user === undefined ||
@@ -358,9 +358,9 @@ export default {
             const filter = { _id: userID };
             const update = { $push: { branches: branches } };
             const options = { new: true };
-            console.log(branches);
+            // console.log(branches);
             const userAccount = await Accounts.findOne(filter);
-            console.log(userAccount);
+            // console.log(userAccount);
             if (
                 userAccount.branches &&
                 userAccount.branches.includes(args.branches)
@@ -379,9 +379,9 @@ export default {
                     update,
                     options
                 );
-                console.log(updatedAccount);
+                // console.log(updatedAccount);
                 const updatedUser = await Accounts.findOne({ _id: userID });
-                console.log("updatedUser--->", updatedUser);
+                // console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
                 throw new ReactionError(
@@ -393,9 +393,9 @@ export default {
             }
         },
         async updateAccountAdmin(parent, args, context, info) {
-            console.log(args);
-            console.log(context.user);
-            console.log(context.user.UserRole);
+            // console.log(args);
+            // console.log(context.user);
+            // console.log(context.user.UserRole);
             if (
                 context.user === undefined ||
                 context.user === null ||
@@ -413,7 +413,7 @@ export default {
                 const { Accounts } = context.collections;
                 const { userID, branches } = args;
                 const newBranchValue = branches;
-                console.log(newBranchValue);
+                // console.log(newBranchValue);
                 const checkAccountResponse = await Accounts.findOne({ _id: userID });
                 // console.log(checkAccountResponse);
                 // Check if the new branch already exists in the branches array
@@ -430,7 +430,7 @@ export default {
                     { _id: userID },
                     { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
                 );
-                console.log(updateAccountResult);
+                // console.log(updateAccountResult);
                 if (updateAccountResult.modifiedCount !== 1) {
                     if (!updatedAccount)
                         throw new ReactionError(
@@ -441,7 +441,7 @@ export default {
                     // throw new ReactionError("Failed", `Failed to update branch value to user: ${userID}`);
                 }
                 const updatedUser = await Accounts.findOne({ _id: userID });
-                console.log("updatedUser--->", updatedUser);
+                // console.log("updatedUser--->", updatedUser);
                 return updatedUser;
             } else {
                 throw new ReactionError(
@@ -451,10 +451,10 @@ export default {
             }
         },
         async addBranchNotes(parent, args, context, info) {
-            console.log(args);
+            // console.log(args);
             const { orderId, Notes } = args;
             const { Orders } = context.collections;
-            console.log(orderId);
+            // console.log(orderId);
             const updateOrders = { $set: { Notes: Notes } };
             const options = { new: true };
             const updatedOrderResp = await Orders.findOneAndUpdate(
@@ -462,7 +462,7 @@ export default {
                 updateOrders,
                 options
             );
-            console.log("Update Order:- ", updatedOrderResp);
+            // console.log("Update Order:- ", updatedOrderResp);
             if (updatedOrderResp.value) {
                 return updatedOrderResp.value;
             } else {
@@ -475,7 +475,7 @@ export default {
     },
     Query: {
         async getOrderById(parent, { id }, context, info) {
-            console.log(context.user);
+            // console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError(
                     "access-denied",
@@ -496,7 +496,7 @@ export default {
             })
                 .sort({ createdAt: -1 })
                 .toArray();
-            console.log(ordersresp);
+            // console.log(ordersresp);
 
             // replace null createdAt with empty string
             ordersresp.forEach((order) => {
@@ -511,15 +511,15 @@ export default {
             }
         },
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
-            console.log(context.user);
+            // console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError(
                     "access-denied",
                     "Unauthorized access. Please Login First"
                 );
             }
-            console.log(OrderStatus);
-            console.log(context.user.id);
+            // console.log(OrderStatus);
+            // console.log(context.user.id);
             const LoginUserID = context.user.id;
             const { RiderOrder } = context.collections;
             // Get Order by status
@@ -528,25 +528,25 @@ export default {
             })
                 .sort({ createdAt: -1 })
                 .toArray();
-            console.log(orders);
+            // console.log(orders);
             if (orders) {
                 // Current Login User Order
                 const filteredOrders = orders.filter(
                     (order) => order.riderID === LoginUserID
                 );
-                console.log("Filter Order: ", filteredOrders);
+                // console.log("Filter Order: ", filteredOrders);
                 const ordersWithId = filteredOrders.map((order) => ({
                     id: order._id,
                     ...order,
                 }));
-                console.log("Order with ID: ", ordersWithId);
+                // console.log("Order with ID: ", ordersWithId);
                 return ordersWithId;
             } else {
                 return null;
             }
         },
         async generateOrderReport(parent, args, context, info) {
-            console.log(context.user);
+            // console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError(
                     "access-denied",
@@ -555,7 +555,7 @@ export default {
             }
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
-            console.log(id);
+            // console.log(id);
 
             // const { branches } = args;
             let match = {};
@@ -567,17 +567,17 @@ export default {
                 // match["RiderOrder.branches"] = args.branches;
             }
             if (args.startDate && args.startDate !== undefined) {
-                console.log(args.startDate);
+                // console.log(args.startDate);
                 match.startTime = { $gte: new Date(args.startDate) };
             }
             if (args.OrderID) {
                 match.OrderID = args.OrderID;
             }
             if (args.endDate && args.endDate !== undefined) {
-                console.log(args.endDate);
+                // console.log(args.endDate);
                 match.endTime = { $lte: new Date(args.endDate) };
             }
-            console.log(match);
+            // console.log(match);
             const report = await RiderOrder.aggregate([
                 {
                     $match: match,
@@ -644,11 +644,11 @@ export default {
                     },
                 },
             ]).toArray();
-            console.log("FInal Order Report :- ", report);
+            // console.log("FInal Order Report :- ", report);
             return report;
         },
         async getRiderOrdersByLoginRider(parent, args, context, info) {
-            console.log(context.user);
+            // console.log(context.user);
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError(
                     "access-denied",
@@ -660,7 +660,7 @@ export default {
             const { startDate, endDate, riderID } = args;
             const { RiderOrder } = context.collections;
             const { id } = context.user;
-            console.log(id);
+            // console.log(id);
             // const query = {};
             // if (riderID) {
             //     query.riderID = riderID;
@@ -678,10 +678,10 @@ export default {
             const orders = await RiderOrder.find({ riderID: riderID })
                 .sort({ createdAt: -1 })
                 .toArray();
-            console.log(orders);
+            // console.log(orders);
             // get today's date
             const today = new Date().toISOString().substring(0, 10);
-            console.log(today);
+            // console.log(today);
             // filter data array to include only items with today's date in startTime
             const filteredData = orders.filter((item) => {
                 if (!item.createdAt) {
@@ -690,7 +690,7 @@ export default {
                 const itemDate = item.createdAt.substring(0, 10);
                 return itemDate === today;
             });
-            console.log(filteredData);
+            // console.log(filteredData);
             return filteredData;
         },
         async getKitchenReport(parent, args, context, info) {
@@ -728,7 +728,7 @@ export default {
                     $lte: end,
                 };
             }
-            console.log("query:- ", query);
+            // console.log("query:- ", query);
             const ordersResp = await Orders.find(query)
                 .sort({ createdAt: -1 })
                 .toArray();
@@ -736,7 +736,7 @@ export default {
                 id: order._id,
                 ...order,
             }));
-            console.log("ordersWithId:- ", ordersWithId);
+            // console.log("ordersWithId:- ", ordersWithId);
             return ordersWithId;
         },
     },

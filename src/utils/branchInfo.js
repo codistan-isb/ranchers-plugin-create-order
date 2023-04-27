@@ -1,10 +1,10 @@
 import ObjectID from "mongodb";
 import ReactionError from "@reactioncommerce/reaction-error";
 export default async function branchInfo(parent, args, context, info) {
-    console.log(parent)
+    // console.log(parent)
 
     if (parent.branches) {
-        console.log("Have Branch")
+        // console.log("Have Branch")
         // const BranchID = parent.branches
         // console.log("BranchID:- ", BranchID)
         // const { BranchData } = context.collections;
@@ -14,7 +14,7 @@ export default async function branchInfo(parent, args, context, info) {
         
     }
     else {
-        console.log("No Branch")
+        // console.log("No Branch")
         // return []
     }
 
