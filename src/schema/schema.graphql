@@ -71,6 +71,9 @@ enum OrderStatusValue {
 
   "For new order"
   new
+
+  "Reject Order"
+  reject
 }
 enum UserRoleValue {
   admin
