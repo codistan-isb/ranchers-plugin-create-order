@@ -18,7 +18,7 @@ type OrderReport {
   branchCity: String
   branches: String
   OrderStatus: OrderStatusValue
-  deliveryTime: Int
+  deliveryTime: String
   startTime: DateTime
   endTime: DateTime
   username: String
