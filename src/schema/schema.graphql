@@ -11,6 +11,7 @@ extend type Order {
   branchInfo: Branch
   Notes: String
   riderInfo: Account
+  customerInfo: customerInfoPayload
 }
 type OrderReport {
   riderID: String
@@ -29,6 +30,15 @@ type OrderReport {
 extend type Address {
   Latitude: Float
   Longitude: Float
+}
+type customerInfoPayload {
+  fullName: String
+  phone: String
+  address1: String
+  city: String
+  country: String
+  postal: String
+  region: String
 }
 # type BranchOrderReport {
 #   b_id: ID

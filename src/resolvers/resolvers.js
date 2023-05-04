@@ -39,6 +39,19 @@ export default {
                 return [];
             }
         },
+        async customerInfo(parent, args, context, info) {
+            const { Orders } = context.collections;
+            const orderInfoResponse = await Orders.find({
+                _id: parent.OrderID,
+            }).toArray();
+            if (orderInfoResponse) {
+                return orderInfoResponse[0].shipping[0].address
+            }
+            else {
+                return null
+            }
+
+        }
     },
     OrderReport: {
         async branchInfo(parent, args, context, info) {
@@ -511,7 +524,7 @@ export default {
             }
         },
         async getOrdersByStatus(parent, { OrderStatus }, context, info) {
-            // console.log(context.user);
+            // console.log("context.user ", context.user);
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError(
                     "access-denied",
