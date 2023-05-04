@@ -247,7 +247,7 @@ export default {
         },
         async updateRiderOrder(
             parent,
-            { id, startTime, endTime, OrderStatus, OrderID },
+            { id, startTime, endTime, OrderStatus, OrderID, rejectionReason },
             context,
             info
         ) {
@@ -263,7 +263,10 @@ export default {
             const { RiderOrder, Orders } = context.collections;
             const filter = { OrderID: OrderID };
             const update = {};
-            if (getKitchenReport) {
+            if (rejectionReason) {
+                update.rejectionReason = rejectionReason;
+            }
+            if (startTime) {
                 update.startTime = startTime;
             }
             if (endTime) {
@@ -291,7 +294,8 @@ export default {
             if (OrderID) {
                 update.OrderID = OrderID;
             }
-            const options = { returnOriginal: true };
+            console.log("Update ", update)
+            const options = { new: true };
             const response = await RiderOrder.findOneAndUpdate(
                 filter,
                 { $set: update },
@@ -303,7 +307,7 @@ export default {
                 // const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
                 // console.log("updated Order:- ", updatedOrder)
             }
-            // console.log("response", response);
+            console.log("response", response);
             // console.log(response.value);
             return {
                 id: response.value._id,
@@ -312,7 +316,7 @@ export default {
                 OrderStatus: response.value.OrderStatus,
                 OrderID: response.value.OrderID,
                 riderID: response.value.riderID,
-                OrderID: response.value.OrderID,
+                rejectionReason: response.value.rejectionReason,
             };
         },
         async updateUserCurrentStatus(parent, args, context, info) {
@@ -534,7 +538,7 @@ export default {
             // console.log(OrderStatus);
             // console.log(context.user.id);
             const LoginUserID = context.user.id;
-            const { RiderOrder } = context.collections;
+            const { RiderOrder, Orders } = context.collections;
             // Get Order by status
             const orders = await RiderOrder.find({
                 OrderStatus: OrderStatus,
@@ -542,16 +546,26 @@ export default {
                 .sort({ createdAt: -1 })
                 .toArray();
             // console.log(orders);
+
             if (orders) {
                 // Current Login User Order
                 const filteredOrders = orders.filter(
                     (order) => order.riderID === LoginUserID
                 );
                 // console.log("Filter Order: ", filteredOrders);
+                // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
+                const kitchenOrderIDResp = await Orders.find({
+                    _id: filteredOrders[0].OrderID,
+                })
+                    .sort({ createdAt: -1 })
+                    .toArray();
+                // console.log("kitchenOrderID: ", kitchenOrderIDResp[0].kitchenOrderID);
                 const ordersWithId = filteredOrders.map((order) => ({
                     id: order._id,
                     ...order,
+                    kitchenOrderID: kitchenOrderIDResp[0].kitchenOrderID
                 }));
+                // const OrderWithkitchenOrderID =
                 // console.log("Order with ID: ", ordersWithId);
                 return ordersWithId;
             } else {

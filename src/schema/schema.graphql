@@ -12,6 +12,7 @@ extend type Order {
   Notes: String
   riderInfo: Account
   customerInfo: customerInfoPayload
+  rejectionReason: String
 }
 type OrderReport {
   riderID: String
@@ -137,6 +138,7 @@ type Mutation {
     OrderStatus: OrderStatusValue
     OrderID: String
     riderID: String
+    rejectionReason: String
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
   assignBranchtoUser(userID: ID!, branches: String!): UserBranchData!
