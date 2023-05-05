@@ -165,4 +165,5 @@ type Query {
     startDate: String
     endDate: String
   ): [Order]
+  getCustomerOrderbyID(ID: ID!): Order
 }

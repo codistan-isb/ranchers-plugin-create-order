@@ -294,7 +294,7 @@ export default {
             if (OrderID) {
                 update.OrderID = OrderID;
             }
-            console.log("Update ", update)
+            // console.log("Update ", update)
             const options = { new: true };
             const response = await RiderOrder.findOneAndUpdate(
                 filter,
@@ -307,7 +307,7 @@ export default {
                 // const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
                 // console.log("updated Order:- ", updatedOrder)
             }
-            console.log("response", response);
+            // console.log("response", response);
             // console.log(response.value);
             return {
                 id: response.value._id,
@@ -560,10 +560,13 @@ export default {
                     .sort({ createdAt: -1 })
                     .toArray();
                 // console.log("kitchenOrderID: ", kitchenOrderIDResp[0].kitchenOrderID);
+                // if (kitchenOrderIDResp) {
+
+                // }
                 const ordersWithId = filteredOrders.map((order) => ({
                     id: order._id,
                     ...order,
-                    kitchenOrderID: kitchenOrderIDResp[0].kitchenOrderID
+                    kitchenOrderID: kitchenOrderIDResp?.kitchenOrderIDResp[0]?.kitchenOrderID
                 }));
                 // const OrderWithkitchenOrderID =
                 // console.log("Order with ID: ", ordersWithId);
@@ -766,5 +769,18 @@ export default {
             // console.log("ordersWithId:- ", ordersWithId);
             return ordersWithId;
         },
+        async getCustomerOrderbyID(parent, args, context, info) {
+            if (context.user === undefined || context.user === null) {
+                throw new ReactionError(
+                    "access-denied",
+                    "Unauthorized access. Please Login First"
+                );
+            }
+            const { Orders } = context.collections;
+            const { ID } = args;
+            const CustomerOrderResp = await Orders.findOne({ _id: ID });
+            // console.log(CustomerOrderResp)
+            return CustomerOrderResp;
+        }
     },
 };
