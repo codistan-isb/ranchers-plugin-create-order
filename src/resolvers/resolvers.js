@@ -552,25 +552,32 @@ export default {
                 const filteredOrders = orders.filter(
                     (order) => order.riderID === LoginUserID
                 );
-                // console.log("Filter Order: ", filteredOrders);
+                console.log("Filter Order: ", filteredOrders);
                 // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
                 const kitchenOrderIDResp = await Orders.find({
                     _id: filteredOrders[0].OrderID,
                 })
                     .sort({ createdAt: -1 })
                     .toArray();
-                // console.log("kitchenOrderID: ", kitchenOrderIDResp[0].kitchenOrderID);
-                // if (kitchenOrderIDResp) {
-
-                // }
-                const ordersWithId = filteredOrders.map((order) => ({
-                    id: order._id,
-                    ...order,
-                    kitchenOrderID: kitchenOrderIDResp?.kitchenOrderIDResp[0]?.kitchenOrderID
-                }));
+                console.log("kitchenOrderID: ", kitchenOrderIDResp);
+                if (kitchenOrderIDResp[0]) {
+                    const ordersWithId = filteredOrders.map((order) => ({
+                        id: order._id,
+                        ...order,
+                        kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID
+                    }));
+                    return ordersWithId;
+                }
+                else {
+                    const ordersWithId = filteredOrders.map((order) => ({
+                        id: order._id,
+                        ...order,
+                    }));
+                    return ordersWithId;
+                }
                 // const OrderWithkitchenOrderID =
                 // console.log("Order with ID: ", ordersWithId);
-                return ordersWithId;
+
             } else {
                 return null;
             }
