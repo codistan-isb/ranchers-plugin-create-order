@@ -130,11 +130,6 @@ input NewRiderOrderInput {
   oldRiderID: String
 }
 
-extend type Payment implements Node {
-  tax: String
-
-  totalAmount: String
-}
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): Order
   updateRiderOrder(
