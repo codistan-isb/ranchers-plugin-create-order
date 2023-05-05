@@ -1,4 +1,5 @@
 import ObjectID from "mongodb";
+import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
 // import updateOrderStatus from "../utils/updateOrderStatus.js";
 import ReactionError from "@reactioncommerce/reaction-error";
 export default {
@@ -301,23 +302,27 @@ export default {
                 { $set: update },
                 options
             );
-            if (response) {
-                // const updateOrders = { $set: { 'workflow.status': OrderStatus } };
-                // const options = { new: true };
-                // const updatedOrder = await Orders.findOneAndUpdate({ _id: AllOrdersArray[0].OrderID }, updateOrders, options);
-                // console.log("updated Order:- ", updatedOrder)
+
+            console.log("response", response);
+            console.log(response.value);
+            if (response.value !== null) {
+                const updatedOrderResp = await RiderOrder.findOne({ _id: response.value._id });
+                console.log(updatedOrderResp);
+                // return updatedOrderResp;
+                return {
+                    id: updatedOrderResp._id,
+                    ...updatedOrderResp
+                    // startTime:updatedOrderResp.startTime,
+                    // endTime: updatedOrderResp.endTime,
+                    // OrderStatus: updatedOrderResp.OrderStatus,
+                    // OrderID: updatedOrderResp.OrderID,
+                    // riderID: updatedOrderResp.riderID,
+                    // rejectionReason: updatedOrderResp.rejectionReason,
+                };
+            } else {
+                return null
             }
-            // console.log("response", response);
-            // console.log(response.value);
-            return {
-                id: response.value._id,
-                startTime: response.value.startTime,
-                endTime: response.value.endTime,
-                OrderStatus: response.value.OrderStatus,
-                OrderID: response.value.OrderID,
-                riderID: response.value.riderID,
-                rejectionReason: response.value.rejectionReason,
-            };
+
         },
         async updateUserCurrentStatus(parent, args, context, info) {
             // console.log(context.user);
@@ -785,7 +790,8 @@ export default {
             }
             const { Orders } = context.collections;
             const { ID } = args;
-            const CustomerOrderResp = await Orders.findOne({ _id: ID });
+            // console.log(decodeOpaqueId(ID).id)
+            const CustomerOrderResp = await Orders.findOne({ _id: decodeOpaqueId(ID).id });
             // console.log(CustomerOrderResp)
             return CustomerOrderResp;
         }
