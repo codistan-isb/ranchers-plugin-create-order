@@ -41,17 +41,27 @@ export default {
             }
         },
         async customerInfo(parent, args, context, info) {
-            const { Orders } = context.collections;
-            const orderInfoResponse = await Orders.find({
-                _id: parent.OrderID,
-            }).toArray();
-            if (orderInfoResponse) {
-                return orderInfoResponse[0].shipping[0].address
+            console.log("parent ", parent.shipping[0].address)
+            if (parent._id) {
+                return parent.shipping[0].address
+            }
+            else if (parent.OrderID) {
+                const { Orders } = context.collections;
+                const orderInfoResponse = await Orders.findOne({
+                    _id: parent.OrderID,
+                });
+                console.log("orderInfoResponse: ", orderInfoResponse)
+                if (orderInfoResponse) {
+                    return orderInfoResponse.shipping[0].address
+                    // return orderInfoResponse[0].shipping[0].address
+                }
+                else {
+                    return null;
+                }
             }
             else {
-                return null
+                return null;
             }
-
         },
         async customerOrderTime(parent, args, context, info) {
             // console.log("Parent ", parent.OrderID);
