@@ -52,6 +52,34 @@ export default {
                 return null
             }
 
+        },
+        async customerOrderTime(parent, args, context, info) {
+            // console.log("Parent ", parent.OrderID);
+            const { Orders } = context.collections
+            const customerOrderTimeResp = await Orders.findOne({ _id: parent.OrderID });
+            // console.log("Customer Resp ", customerOrderTimeResp.createdAt)
+            if (customerOrderTimeResp) {
+                return {
+                    "customerOrderTime": customerOrderTimeResp.createdAt
+                }
+            }
+            else {
+                return null
+            }
+        },
+        async branchTimePickup(parent, args, context, info) {
+            // console.log("branch riderID ", parent.riderID);
+            const { RiderOrder } = context.collections;
+            const branchTimePickupResp = await RiderOrder.findOne({ riderID: parent.riderID });
+            // console.log("branchTimePickupResp ", branchTimePickupResp)
+            if (branchTimePickupResp) {
+                return {
+                    "branchOrderTime": branchTimePickupResp.createdAt
+                }
+            }
+            else {
+                return null;
+            }
         }
     },
     OrderReport: {
@@ -557,31 +585,35 @@ export default {
                 const filteredOrders = orders.filter(
                     (order) => order.riderID === LoginUserID
                 );
-                console.log("Filter Order: ", filteredOrders);
+                // console.log("Filter Order: ", filteredOrders);
                 // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
-                const kitchenOrderIDResp = await Orders.find({
-                    _id: filteredOrders[0].OrderID,
-                })
-                    .sort({ createdAt: -1 })
-                    .toArray();
-                console.log("kitchenOrderID: ", kitchenOrderIDResp);
-                if (kitchenOrderIDResp[0]) {
-                    const ordersWithId = filteredOrders.map((order) => ({
-                        id: order._id,
-                        ...order,
-                        kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID
-                    }));
-                    return ordersWithId;
+                if (filteredOrders[0]) {
+                    const kitchenOrderIDResp = await Orders.find({
+                        _id: filteredOrders[0].OrderID,
+                    }).sort({ createdAt: -1 }).toArray();
+                    // console.log("kitchenOrderID: ", kitchenOrderIDResp);
+                    if (kitchenOrderIDResp[0]) {
+                        const ordersWithId = filteredOrders.map((order) => ({
+                            id: order._id,
+                            ...order,
+                            kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID
+                        }));
+                        return ordersWithId;
+                    }
+                    else {
+                        const ordersWithId = filteredOrders.map((order) => ({
+                            id: order._id,
+                            ...order,
+                        }));
+                        return ordersWithId;
+                    }
+                    // const OrderWithkitchenOrderID =
+                    // console.log("Order with ID: ", ordersWithId);
                 }
                 else {
-                    const ordersWithId = filteredOrders.map((order) => ({
-                        id: order._id,
-                        ...order,
-                    }));
-                    return ordersWithId;
+                    return null
                 }
-                // const OrderWithkitchenOrderID =
-                // console.log("Order with ID: ", ordersWithId);
+
 
             } else {
                 return null;

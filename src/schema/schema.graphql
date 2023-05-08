@@ -13,6 +13,8 @@ extend type Order {
   riderInfo: Account
   customerInfo: customerInfoPayload
   rejectionReason: String
+  customerOrderTime: customerOrderTimePayload
+  branchTimePickup: branchTimePickupPayload
 }
 type OrderReport {
   riderID: String
@@ -40,6 +42,12 @@ type customerInfoPayload {
   country: String
   postal: String
   region: String
+}
+type customerOrderTimePayload {
+  customerOrderTime: DateTime
+}
+type branchTimePickupPayload {
+  branchOrderTime: DateTime
 }
 # type BranchOrderReport {
 #   b_id: ID
