@@ -41,16 +41,13 @@ export default {
             }
         },
         async customerInfo(parent, args, context, info) {
-            console.log("parent ", parent.shipping[0].address)
-            if (parent._id) {
-                return parent.shipping[0].address
-            }
-            else if (parent.OrderID) {
+            // console.log("par/ent ", parent);
+            if (parent.OrderID) {
                 const { Orders } = context.collections;
                 const orderInfoResponse = await Orders.findOne({
                     _id: parent.OrderID,
                 });
-                console.log("orderInfoResponse: ", orderInfoResponse)
+                // console.log("orderI/nfoResponse: ", orderInfoResponse)
                 if (orderInfoResponse) {
                     return orderInfoResponse.shipping[0].address
                     // return orderInfoResponse[0].shipping[0].address
@@ -60,7 +57,12 @@ export default {
                 }
             }
             else {
-                return null;
+                if (parent._id) {
+                    return parent.shipping[0].address
+                }
+                else {
+                    return null
+                }
             }
         },
         async customerOrderTime(parent, args, context, info) {
