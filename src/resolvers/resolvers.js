@@ -10,11 +10,11 @@ export default {
             // console.log("BranchID:- ", BranchID)
             if (BranchID) {
                 const { BranchData } = context.collections;
-                const branchDataResponse = await BranchData.find({
+                const branchDataResponse = await BranchData.findOne({
                     _id: ObjectID.ObjectId(BranchID),
-                }).toArray();
-                // console.log("Branch Data : ", branchDataResponse[0])
-                return branchDataResponse[0];
+                });
+                // console.log("Branch Data : ", branchDataResponse)
+                return branchDataResponse;
             } else {
                 return [];
             }
@@ -80,18 +80,39 @@ export default {
             }
         },
         async branchTimePickup(parent, args, context, info) {
+            // console.log("branch data", parent);
             // console.log("branch riderID ", parent.riderID);
             const { RiderOrder } = context.collections;
-            const branchTimePickupResp = await RiderOrder.findOne({ riderID: parent.riderID });
-            // console.log("branchTimePickupResp ", branchTimePickupResp)
-            if (branchTimePickupResp) {
-                return {
-                    "branchOrderTime": branchTimePickupResp.createdAt
+
+            if (parent.riderID) {
+                const branchTimePickupResp = await RiderOrder.findOne({ riderID: parent.riderID });
+                // console.log("branchTimePickupResp ", branchTimePickupResp)
+                if (branchTimePickupResp) {
+                    return {
+                        "branchOrderTime": branchTimePickupResp.createdAt
+                    }
+                }
+                else {
+                    return null;
                 }
             }
             else {
-                return null;
+                // console.log(parent._id)
+                const branchTimePickupResp = await RiderOrder.findOne({ OrderID: parent._id });
+
+
+                if (branchTimePickupResp) {
+                    console.log("Data ", branchTimePickupResp);
+                    console.log("Data TIme ", branchTimePickupResp.createdAt)
+                    return {
+                        "branchOrderTime": branchTimePickupResp.createdAt
+                    }
+                }
+                else {
+                    return null;
+                }
             }
+
         },
         async kitchenOrderIDInfo(parent, args, context, info) {
             // console.log("Parent ", parent.OrderID);
@@ -795,7 +816,6 @@ export default {
         },
         async getKitchenReport(parent, args, context, info) {
             const { startDate, endDate, branchID, OrderStatus } = args;
-
             if (context.user === undefined || context.user === null) {
                 throw new ReactionError(
                     "access-denied",
