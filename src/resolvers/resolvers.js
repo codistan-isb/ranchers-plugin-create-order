@@ -80,6 +80,20 @@ export default {
             else {
                 return null;
             }
+        },
+        async kitchenOrderIDInfo(parent, args, context, info) {
+            // console.log("Parent ", parent.OrderID);
+            const { Orders } = context.collections
+            const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
+            // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
+            if (kitchenOrderIDResp) {
+                return {
+                    "kitchenOrderID": kitchenOrderIDResp.kitchenOrderID
+                };
+            }
+            else {
+                return null;
+            }
         }
     },
     OrderReport: {

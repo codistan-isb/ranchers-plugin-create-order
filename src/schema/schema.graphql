@@ -15,6 +15,7 @@ extend type Order {
   rejectionReason: String
   customerOrderTime: customerOrderTimePayload
   branchTimePickup: branchTimePickupPayload
+  kitchenOrderIDInfo: kitchenOrderIDPayload
 }
 type OrderReport {
   riderID: String
@@ -48,6 +49,9 @@ type customerOrderTimePayload {
 }
 type branchTimePickupPayload {
   branchOrderTime: DateTime
+}
+type kitchenOrderIDPayload {
+  kitchenOrderID: String
 }
 # type BranchOrderReport {
 #   b_id: ID
