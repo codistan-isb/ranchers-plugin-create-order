@@ -24,6 +24,7 @@ export default {
             const { RiderOrder, Accounts } = context.collections;
             const { id } = parent;
             // console.log("OrderID:- ", id);
+            let OrderIDArray = []
             if (id) {
                 const RiderOrderResponse = await RiderOrder.find({
                     OrderID: id,
@@ -724,6 +725,7 @@ export default {
                         branches: "$branches",
                         OrderStatus: "$OrderStatus",
                         username: "$Rider.username",
+                        rejectionReason: "$rejectionReason",
                         startTime: {
                             $cond: {
                                 if: { $ne: ["$startTime", ""] },
@@ -765,7 +767,7 @@ export default {
                     },
                 },
             ]).toArray();
-            // console.log("FInal Order Report :- ", report);
+            console.log("FInal Order Report :- ", report);
             return report;
         },
         async getRiderOrdersByLoginRider(parent, args, context, info) {

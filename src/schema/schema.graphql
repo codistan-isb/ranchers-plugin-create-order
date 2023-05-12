@@ -30,6 +30,7 @@ type OrderReport {
   OrderID: String
   "branch Info Displayed"
   branchInfo: Branch
+  rejectionReason: String
 }
 extend type Address {
   Latitude: Float
