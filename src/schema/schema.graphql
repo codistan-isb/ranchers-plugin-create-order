@@ -161,8 +161,8 @@ type Mutation {
     startTime: String
     endTime: String
     OrderStatus: OrderStatusValue
-    OrderID: String
-    riderID: String
+    OrderID: String!
+    riderID: String!
     rejectionReason: String
   ): Order
   updateUserCurrentStatus(status: UserStatus!): UserCurrentStatus
@@ -182,6 +182,7 @@ type Query {
     OrderID: String
     fromDate: DateTime
     toDate: DateTime
+    deliveryTime: Float
   ): [OrderReport]
   getRiderOrdersByLoginRider(
     LoginRiderID: String! # startDate: String # endDate: String

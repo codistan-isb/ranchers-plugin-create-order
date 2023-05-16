@@ -24,7 +24,7 @@ export default {
             const { RiderOrder, Accounts } = context.collections;
             const { id } = parent;
             // console.log("OrderID:- ", id);
-            let OrderIDArray = []
+            let OrderIDArray = [];
             if (id) {
                 const RiderOrderResponse = await RiderOrder.find({
                     OrderID: id,
@@ -50,34 +50,32 @@ export default {
                 });
                 // console.log("orderI/nfoResponse: ", orderInfoResponse)
                 if (orderInfoResponse) {
-                    return orderInfoResponse.shipping[0].address
+                    return orderInfoResponse.shipping[0].address;
                     // return orderInfoResponse[0].shipping[0].address
-                }
-                else {
+                } else {
                     return null;
                 }
-            }
-            else {
+            } else {
                 if (parent._id) {
-                    return parent.shipping[0].address
-                }
-                else {
-                    return null
+                    return parent.shipping[0].address;
+                } else {
+                    return null;
                 }
             }
         },
         async customerOrderTime(parent, args, context, info) {
             // console.log("Parent ", parent.OrderID);
-            const { Orders } = context.collections
-            const customerOrderTimeResp = await Orders.findOne({ _id: parent.OrderID });
+            const { Orders } = context.collections;
+            const customerOrderTimeResp = await Orders.findOne({
+                _id: parent.OrderID,
+            });
             // console.log("Customer Resp ", customerOrderTimeResp.createdAt)
             if (customerOrderTimeResp) {
                 return {
-                    "customerOrderTime": customerOrderTimeResp.createdAt
-                }
-            }
-            else {
-                return null
+                    customerOrderTime: customerOrderTimeResp.createdAt,
+                };
+            } else {
+                return null;
             }
         },
         async branchTimePickup(parent, args, context, info) {
@@ -86,46 +84,44 @@ export default {
             const { RiderOrder } = context.collections;
 
             if (parent.riderID) {
-                const branchTimePickupResp = await RiderOrder.findOne({ riderID: parent.riderID });
+                const branchTimePickupResp = await RiderOrder.findOne({
+                    riderID: parent.riderID,
+                });
                 // console.log("branchTimePickupResp ", branchTimePickupResp)
                 if (branchTimePickupResp) {
                     return {
-                        "branchOrderTime": branchTimePickupResp.createdAt
-                    }
-                }
-                else {
+                        branchOrderTime: branchTimePickupResp.createdAt,
+                    };
+                } else {
                     return null;
                 }
-            }
-            else {
+            } else {
                 // console.log(parent._id)
-                const branchTimePickupResp = await RiderOrder.findOne({ OrderID: parent._id });
-
+                const branchTimePickupResp = await RiderOrder.findOne({
+                    OrderID: parent._id,
+                });
 
                 if (branchTimePickupResp) {
                     console.log("Data ", branchTimePickupResp);
-                    console.log("Data TIme ", branchTimePickupResp.createdAt)
+                    console.log("Data TIme ", branchTimePickupResp.createdAt);
                     return {
-                        "branchOrderTime": branchTimePickupResp.createdAt
-                    }
-                }
-                else {
+                        branchOrderTime: branchTimePickupResp.createdAt,
+                    };
+                } else {
                     return null;
                 }
             }
-
         },
         async kitchenOrderIDInfo(parent, args, context, info) {
             // console.log("Parent ", parent.OrderID);
-            const { Orders } = context.collections
+            const { Orders } = context.collections;
             const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
             // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
             if (kitchenOrderIDResp) {
                 return {
-                    "kitchenOrderID": kitchenOrderIDResp.kitchenOrderID
+                    kitchenOrderID: kitchenOrderIDResp.kitchenOrderID,
                 };
-            }
-            else {
+            } else {
                 return null;
             }
         },
@@ -133,19 +129,19 @@ export default {
             // console.log("Parent ", parent.id);
             const { RiderOrder } = context.collections;
             if (parent.id) {
-                const riderOrderInfoResp = await RiderOrder.findOne({ OrderID: parent.id });
+                const riderOrderInfoResp = await RiderOrder.findOne({
+                    OrderID: parent.id,
+                });
                 console.log("riderOrderInfoResp ", riderOrderInfoResp);
                 if (riderOrderInfoResp) {
                     return riderOrderInfoResp;
-                }
-                else {
+                } else {
                     return null;
                 }
-            }
-            else {
+            } else {
                 return null;
             }
-        }
+        },
     },
     OrderReport: {
         async branchInfo(parent, args, context, info) {
@@ -225,25 +221,28 @@ export default {
                                 branches: RiderIDForAssign[0].branches,
                                 OrderID: RiderIDForAssign[0].OrderID,
                                 OrderStatus: RiderIDForAssign[0].OrderStatus,
-                                startTime: RiderIDForAssign[0].startTime
-                            }
+                                startTime: RiderIDForAssign[0].startTime,
+                            },
                         },
                         { new: true }
                     );
                     // console.log("insertedOrders1:- ", insertedOrders1);
                     if (insertedOrders1) {
-                        return insertedOrders1.value
-                    }
-                    else {
+                        return insertedOrders1.value;
+                    } else {
                         // console.log("else part uper")
                         try {
-                            const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
+                            const insertedOrders = await RiderOrder.insertMany(
+                                RiderIDForAssign
+                            );
                             // console.log("here");
                             // console.log("inserted Data:- ", insertedOrders[0])
                             // console.log(AllOrdersArray);
                             // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
                             if (insertedOrders) {
-                                const updateOrders = { $set: { "workflow.status": "pickedUp" } };
+                                const updateOrders = {
+                                    $set: { "workflow.status": "pickedUp" },
+                                };
                                 const options = { new: true };
                                 const updatedOrder = await Orders.findOneAndUpdate(
                                     { _id: AllOrdersArray[0].OrderID },
@@ -263,15 +262,13 @@ export default {
                             throw err;
                         }
                     }
-                }
-                else {
+                } else {
                     throw new ReactionError(
                         "duplicate",
                         "One or more orders already exist for the same branch and day"
                     );
                 }
-            }
-            else {
+            } else {
                 // console.log("else 2 part")
                 try {
                     const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
@@ -353,7 +350,7 @@ export default {
                 );
             }
             const CurrentRiderID = context.user.id;
-
+            console.log(OrderID)
             const { RiderOrder, Orders } = context.collections;
             const filter = { OrderID: OrderID };
             const update = {};
@@ -365,6 +362,21 @@ export default {
             }
             if (endTime) {
                 update.endTime = endTime;
+                const getStartTimeResp = await RiderOrder.findOne({ OrderID: OrderID })
+                console.log(getStartTimeResp.startTime);
+                if (getStartTimeResp) {
+                    // const deliveryTime = 0.00;
+                    const startFinalTime = new Date(getStartTimeResp.startTime);
+                    const endFinalTime = new Date(endTime);
+                    const timeDiff = endFinalTime.getTime() - startFinalTime.getTime();
+                    // timeDiff is in milliseconds, convert to seconds
+                    const minutes = timeDiff / 60000;
+                    // console.log("minutes ", minutes.toFixed(2));
+                    // deliveryTime = minutes
+                    // console.log("minutes ", typeof (parseFloat(minutes)));
+                    update.deliveryTime = parseFloat(minutes.toFixed(2));
+                }
+
             }
             if (OrderStatus) {
                 update.OrderStatus = OrderStatus;
@@ -397,14 +409,16 @@ export default {
             );
 
             console.log("response", response);
-            console.log(response.value);
+            // console.log(response.value);
             if (response.value !== null) {
-                const updatedOrderResp = await RiderOrder.findOne({ _id: response.value._id });
+                const updatedOrderResp = await RiderOrder.findOne({
+                    _id: response.value._id,
+                });
                 console.log(updatedOrderResp);
                 // return updatedOrderResp;
                 return {
                     id: updatedOrderResp._id,
-                    ...updatedOrderResp
+                    ...updatedOrderResp,
                     // startTime:updatedOrderResp.startTime,
                     // endTime: updatedOrderResp.endTime,
                     // OrderStatus: updatedOrderResp.OrderStatus,
@@ -413,9 +427,8 @@ export default {
                     // rejectionReason: updatedOrderResp.rejectionReason,
                 };
             } else {
-                return null
+                return null;
             }
-
         },
         async updateUserCurrentStatus(parent, args, context, info) {
             // console.log(context.user);
@@ -655,17 +668,18 @@ export default {
                 if (filteredOrders[0]) {
                     const kitchenOrderIDResp = await Orders.find({
                         _id: filteredOrders[0].OrderID,
-                    }).sort({ createdAt: -1 }).toArray();
+                    })
+                        .sort({ createdAt: -1 })
+                        .toArray();
                     // console.log("kitchenOrderID: ", kitchenOrderIDResp);
                     if (kitchenOrderIDResp[0]) {
                         const ordersWithId = filteredOrders.map((order) => ({
                             id: order._id,
                             ...order,
-                            kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID
+                            kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID,
                         }));
                         return ordersWithId;
-                    }
-                    else {
+                    } else {
                         const ordersWithId = filteredOrders.map((order) => ({
                             id: order._id,
                             ...order,
@@ -674,12 +688,9 @@ export default {
                     }
                     // const OrderWithkitchenOrderID =
                     // console.log("Order with ID: ", ordersWithId);
+                } else {
+                    return null;
                 }
-                else {
-                    return null
-                }
-
-
             } else {
                 return null;
             }
@@ -694,8 +705,8 @@ export default {
             }
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
-            const DateNow = new Date()
-            console.log("DateNow ", DateNow);
+            const DateNow = new Date();
+            // console.log("DateNow ", DateNow);
 
             // const { branches } = args;
             let match = {};
@@ -723,7 +734,13 @@ export default {
             if (args.toDate && args.toDate !== undefined) {
                 match.createdAt = { $lte: new Date(args.toDate) };
             }
+            if (args.deliveryTime) {
+                match.deliveryTime = { $gte: args.deliveryTime };
+            }
             console.log("match ", match);
+            // const testValue = await RiderOrder.find({ deliveryTime: { $gte: args.deliveryTime } }).toArray();
+            // console.log("Test value is ", testValue)
+
             const report = await RiderOrder.aggregate([
                 {
                     $match: match,
@@ -764,20 +781,26 @@ export default {
                                 else: null,
                             },
                         },
-                        // startTime: { $toDate: "$startTime" },
-                        // endTime: { $toDate: "$endTime" },
+                        deliveryTime: "$deliveryTime",
                         OrderID: "$OrderID",
                     },
                 },
                 {
                     $addFields: {
-                        deliveryTime: {
-                            $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
-                        },
+                        // deliveryTime: {
+                        //     $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+                        // },
                         startTime: { $toDate: "$startTime" },
                         endTime: { $toDate: "$endTime" },
                     },
                 },
+                // {
+                //     $match: {
+                //         $expr: {
+                //             $gte: ["$deliveryTime", args.deliveryTime]
+                //         }
+                //     }
+                // },
                 // {
                 //     $addFields: {
                 //         deliveryTime: {
@@ -897,9 +920,11 @@ export default {
             const { Orders } = context.collections;
             const { ID } = args;
             // console.log(decodeOpaqueId(ID).id)
-            const CustomerOrderResp = await Orders.findOne({ _id: decodeOpaqueId(ID).id });
+            const CustomerOrderResp = await Orders.findOne({
+                _id: decodeOpaqueId(ID).id,
+            });
             // console.log(CustomerOrderResp)
             return CustomerOrderResp;
-        }
+        },
     },
 };
