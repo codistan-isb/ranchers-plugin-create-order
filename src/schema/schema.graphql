@@ -16,6 +16,17 @@ extend type Order {
   customerOrderTime: customerOrderTimePayload
   branchTimePickup: branchTimePickupPayload
   kitchenOrderIDInfo: kitchenOrderIDPayload
+  riderOrderInfo: riderOrderInfoPayload
+}
+type riderOrderInfoPayload {
+  _id: ID
+  startTime: DateTime
+  OrderStatus: String
+  OrderID: String
+  branches: String
+  riderID: String
+  createdAt: DateTime
+  endTime: DateTime
 }
 type OrderReport {
   riderID: String
@@ -169,6 +180,8 @@ type Query {
     endTime: DateTime
     riderID: String
     OrderID: String
+    fromDate: DateTime
+    toDate: DateTime
   ): [OrderReport]
   getRiderOrdersByLoginRider(
     LoginRiderID: String! # startDate: String # endDate: String

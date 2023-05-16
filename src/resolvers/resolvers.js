@@ -128,6 +128,23 @@ export default {
             else {
                 return null;
             }
+        },
+        async riderOrderInfo(parent, args, context, info) {
+            // console.log("Parent ", parent.id);
+            const { RiderOrder } = context.collections;
+            if (parent.id) {
+                const riderOrderInfoResp = await RiderOrder.findOne({ OrderID: parent.id });
+                console.log("riderOrderInfoResp ", riderOrderInfoResp);
+                if (riderOrderInfoResp) {
+                    return riderOrderInfoResp;
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
         }
     },
     OrderReport: {
@@ -677,7 +694,8 @@ export default {
             }
             const { RiderOrder, Users } = context.collections;
             const { id } = context.user;
-            // console.log(id);
+            const DateNow = new Date()
+            console.log("DateNow ", DateNow);
 
             // const { branches } = args;
             let match = {};
@@ -699,7 +717,13 @@ export default {
                 // console.log(args.endDate);
                 match.endTime = { $lte: new Date(args.endDate) };
             }
-            // console.log(match);
+            if (args.fromDate && args.fromDate !== undefined) {
+                match.createdAt = { $gte: new Date(args.fromDate) };
+            }
+            if (args.toDate && args.toDate !== undefined) {
+                match.createdAt = { $lte: new Date(args.toDate) };
+            }
+            console.log("match ", match);
             const report = await RiderOrder.aggregate([
                 {
                     $match: match,
@@ -717,7 +741,7 @@ export default {
                 },
                 {
                     $project: {
-                        riderID: "$riderID",
+                        riderID: "$Rider._id",
                         riderName: {
                             $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
                         },
@@ -824,6 +848,7 @@ export default {
                     "Unauthorized access. Please Login First"
                 );
             }
+            // console.log("context.user.UserRole ", context.user.UserRole)
             if (
                 context.user.UserRole !== "admin" &&
                 (!context.user.branches ||
@@ -854,6 +879,7 @@ export default {
             const ordersResp = await Orders.find(query)
                 .sort({ createdAt: -1 })
                 .toArray();
+            // console.log("ordersResp ", ordersResp)
             const ordersWithId = ordersResp.map((order) => ({
                 id: order._id,
                 ...order,
