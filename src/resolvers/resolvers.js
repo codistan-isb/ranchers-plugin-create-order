@@ -458,7 +458,7 @@ export default {
           options
         );
         console.log("updatedOrder ", updatedOrder.value.accountId)
-        console.log("OrderStatus", OrderStatus)
+        console.log("OrderStatus ", OrderStatus)
         if (updatedOrder) {
           const message = `Your order has been ${OrderStatus}`;
           const appType = "customer";
@@ -515,7 +515,7 @@ export default {
         const updatedOrderResp = await RiderOrder.findOne({
           _id: response.value._id,
         });
-        console.log("updatedOrderResp", updatedOrderResp);
+        console.log("updated Order Resp", updatedOrderResp);
         // return updatedOrderResp;
         return {
           id: updatedOrderResp._id,
@@ -840,8 +840,14 @@ export default {
       if (args.fromDate && args.fromDate !== undefined) {
         match.createdAt = { $gte: new Date(args.fromDate) };
       }
+      // if (args.toDate && args.toDate !== undefined) {
+      //   match.createdAt = { $lte: new Date(args.toDate) };
+      // }
       if (args.toDate && args.toDate !== undefined) {
-        match.createdAt = { $lte: new Date(args.toDate) };
+        match.createdAt = {
+          ...match.createdAt,
+          $lte: new Date(args.toDate)
+        };
       }
       if (args.deliveryTime) {
         match.deliveryTime = { $gte: args.deliveryTime };
