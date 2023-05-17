@@ -159,6 +159,28 @@ export default {
                 return [];
             }
         },
+        async customerInfo(parent, args, context, info) {
+            // console.log("par/ent ", parent);
+            if (parent.OrderID) {
+                const { Orders } = context.collections;
+                const orderInfoResponse = await Orders.findOne({
+                    _id: parent.OrderID,
+                });
+                // console.log("orderI/nfoResponse: ", orderInfoResponse)
+                if (orderInfoResponse) {
+                    return orderInfoResponse.shipping[0].address;
+                    // return orderInfoResponse[0].shipping[0].address
+                } else {
+                    return null;
+                }
+            } else {
+                if (parent._id) {
+                    return parent.shipping[0].address;
+                } else {
+                    return null;
+                }
+            }
+        },
     },
     Mutation: {
         async createRiderOrder(parent, { orders }, context, info) {
@@ -871,7 +893,7 @@ export default {
                     "Unauthorized access. Please Login First"
                 );
             }
-            // console.log("context.user.UserRole ", context.user.UserRole)
+            console.log("context.user.UserRole ", context.user)
             if (
                 context.user.UserRole !== "admin" &&
                 (!context.user.branches ||
