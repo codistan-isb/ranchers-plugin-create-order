@@ -184,7 +184,7 @@ export default {
   },
   Mutation: {
     async createRiderOrder(parent, { orders }, context, info) {
-      // console.log(orders);
+      console.log(orders[0].OrderID);
       // console.log(context.user);
       // Get the start and end of today
 
@@ -212,8 +212,10 @@ export default {
           createdAt: now,
         };
       });
-
-      // console.log("RiderIDForAssign", RiderIDForAssign);
+      const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
+      console.log(CustomerOrder);
+      const CustomerAccountID = CustomerOrder?.accountId
+      console.log("CustomerOrder", CustomerAccountID);
 
       const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
       // console.log("Status of Rider : ", riderStatus);
@@ -252,6 +254,7 @@ export default {
           console.log("insertedOrders1:- ", insertedOrders1);
           const message = "Order has been assigned";
           const appType = "rider";
+          const appType1 = "customer";
           const id = RiderIDForAssign[0].riderID;
           const paymentIntentClientSecret =
             await context.mutations.oneSignalCreateNotification(context, {
@@ -261,6 +264,14 @@ export default {
               id,
             });
           console.log("context Mutation: ", paymentIntentClientSecret);
+          const paymentIntentClientSecret1 =
+            await context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id: CustomerAccountID,
+              appType: appType1,
+              userId: CustomerAccountID,
+            });
+          console.log("context Mutation: ", paymentIntentClientSecret1);
           if (insertedOrders1) {
             return insertedOrders1.value;
           } else {
@@ -275,8 +286,10 @@ export default {
               // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
               if (insertedOrders) {
                 const message = "Order has been assigned";
+                const customerMessage = "Your order is picked";
                 const appType = "rider";
                 const id = RiderIDForAssign[0].riderID;
+                const appType1 = "customer";
                 const paymentIntentClientSecret =
                   await context.mutations.oneSignalCreateNotification(context, {
                     message,
@@ -285,6 +298,14 @@ export default {
                     id,
                   });
                 console.log("context Mutation: ", paymentIntentClientSecret);
+                const paymentIntentClientSecret1 =
+                  await context.mutations.oneSignalCreateNotification(context, {
+                    message: customerMessage,
+                    id: CustomerAccountID,
+                    appType: appType1,
+                    userId: CustomerAccountID,
+                  });
+                console.log("context Mutation: ", paymentIntentClientSecret1);
                 const updateOrders = {
                   $set: { "workflow.status": "pickedUp" },
                 };
@@ -324,9 +345,11 @@ export default {
           console.log("RiderIDForAssign ", RiderIDForAssign[0]);
           if (insertedOrders) {
             const message = "Order has been assigned";
+            const customerMessage = "Your order is picked";
             const appType = "rider";
             const id = RiderIDForAssign[0].riderID;
             const userId = RiderIDForAssign[0].riderID;
+            const appType1 = "customer";
             const paymentIntentClientSecret =
               await context.mutations.oneSignalCreateNotification(context, {
                 message,
@@ -335,6 +358,14 @@ export default {
                 userId,
               });
             console.log("context Mutation: ", paymentIntentClientSecret);
+            const paymentIntentClientSecret1 =
+              await context.mutations.oneSignalCreateNotification(context, {
+                message: customerMessage,
+                id: CustomerAccountID,
+                appType: appType1,
+                userId: CustomerAccountID,
+              });
+            console.log("context Mutation: ", paymentIntentClientSecret1);
             const updateOrders = { $set: { "workflow.status": "pickedUp" } };
             const options = { new: true };
             const updatedOrder = await Orders.findOneAndUpdate(
@@ -411,6 +442,10 @@ export default {
       console.log(OrderID);
       const { RiderOrder, Orders } = context.collections;
       const filter = { OrderID: OrderID };
+      const CustomerOrder = await Orders.findOne({ _id: OrderID });
+      console.log(CustomerOrder);
+      const CustomerAccountID = CustomerOrder?.accountId
+      // console.log("CustomerOrder", CustomerAccountID);
       const update = {};
       if (rejectionReason) {
         update.rejectionReason = rejectionReason;
@@ -438,6 +473,7 @@ export default {
       if (OrderStatus) {
         const message = `Order is ${OrderStatus}`;
         const appType = "admin";
+        const appTypecustomer = 'customer';
         const id = CurrentRiderID;
         const userId = CurrentRiderID;
         const paymentIntentClientSecret =
@@ -448,7 +484,14 @@ export default {
             userId,
           });
         console.log("context Mutation: ", paymentIntentClientSecret);
-
+        const paymentIntentClientSecret1 =
+          await context.mutations.oneSignalCreateNotification(context, {
+            message,
+            id: CustomerAccountID,
+            appType: appTypecustomer,
+            userId: CustomerAccountID,
+          });
+        console.log(" Customer Order context Mutation: ", paymentIntentClientSecret1);
         update.OrderStatus = OrderStatus;
         const updateOrders = { $set: { "workflow.status": OrderStatus } };
         const options = { new: true };
@@ -457,8 +500,8 @@ export default {
           updateOrders,
           options
         );
-        console.log("updatedOrder ", updatedOrder.value.accountId)
-        console.log("OrderStatus ", OrderStatus)
+        console.log("updatedOrder ", updatedOrder.value.accountId);
+        console.log("OrderStatus ", OrderStatus);
         if (updatedOrder) {
           const message = `Your order has been ${OrderStatus}`;
           const appType = "customer";
@@ -774,32 +817,42 @@ export default {
         );
         console.log("Filter Order: ", filteredOrders);
         // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
-        if (filteredOrders[0]) {
-          const kitchenOrderIDResp = await Orders.find({
-            _id: filteredOrders[0].OrderID,
-          })
-            .sort({ createdAt: -1 })
-            .toArray();
-          console.log("kitchenOrderID: ", kitchenOrderIDResp);
-          if (kitchenOrderIDResp[0]) {
-            const ordersWithId = filteredOrders.map((order) => ({
-              id: order._id,
-              ...order,
-              kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID,
-            }));
-            return ordersWithId;
-          } else {
-            const ordersWithId = filteredOrders.map((order) => ({
-              id: order._id,
-              ...order,
-            }));
-            return ordersWithId;
-          }
-          // const OrderWithkitchenOrderID =
-          // console.log("Order with ID: ", ordersWithId);
-        } else {
-          return null;
+        if (filteredOrders) {
+          const ordersWithId = filteredOrders.map((order) => ({
+            id: order._id,
+            ...order,
+          }));
+          return ordersWithId;
         }
+        else {
+          return null
+        }
+        // if (filteredOrders[0]) {
+        //   const kitchenOrderIDResp = await Orders.find({
+        //     _id: filteredOrders[0].OrderID,
+        //   })
+        //     .sort({ createdAt: -1 })
+        //     .toArray();
+        //   console.log("kitchenOrderID: ", kitchenOrderIDResp);
+        //   if (kitchenOrderIDResp[0]) {
+        //     const ordersWithId = filteredOrders.map((order) => ({
+        //       id: order._id,
+        //       ...order,
+        //       kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID,
+        //     }));
+        //     return ordersWithId;
+        //   } else {
+        //     const ordersWithId = filteredOrders.map((order) => ({
+        //       id: order._id,
+        //       ...order,
+        //     }));
+        //     return ordersWithId;
+        //   }
+        //   // const OrderWithkitchenOrderID =
+        //   // console.log("Order with ID: ", ordersWithId);
+        // } else {
+        //   return null;
+        // }
       } else {
         return null;
       }
