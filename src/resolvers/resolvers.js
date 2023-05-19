@@ -185,7 +185,7 @@ export default {
   Mutation: {
     async createRiderOrder(parent, { orders }, context, info) {
       console.log(orders[0].OrderID);
-      // console.log(context.user);
+      console.log("context.user", context.user);
       // Get the start and end of today
 
       const now = new Date();
@@ -203,7 +203,6 @@ export default {
       const AllOrdersArray = orders;
       const { RiderOrder, Accounts, Orders } = context.collections;
       const CurrentRiderID = context.user.id;
-
       const RiderIDForAssign = orders.map((order) => {
         const riderId = order.riderID ? order.riderID : CurrentRiderID;
         return {
@@ -214,8 +213,12 @@ export default {
       });
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
       console.log(CustomerOrder);
-      const CustomerAccountID = CustomerOrder?.accountId;
-      console.log("CustomerOrder", CustomerAccountID);
+      let CustomerAccountID = "";
+      if (CustomerOrder) {
+        CustomerAccountID = CustomerOrder?.accountId;
+        console.log("CustomerAccountID", CustomerAccountID);
+      }
+
 
       const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
       // console.log("Status of Rider : ", riderStatus);
@@ -263,15 +266,17 @@ export default {
               appType,
               id,
             });
-          console.log("context Mutation: ", paymentIntentClientSecret);
-          const paymentIntentClientSecret1 =
-            await context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id: CustomerAccountID,
-              appType: appType1,
-              userId: CustomerAccountID,
-            });
-          console.log("context Mutation: ", paymentIntentClientSecret1);
+          console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
+          if (CustomerAccountID) {
+            const paymentIntentClientSecret1 =
+              await context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id: CustomerAccountID,
+                appType: appType1,
+                userId: CustomerAccountID,
+              });
+            console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
+          }
           if (insertedOrders1) {
             return insertedOrders1.value;
           } else {
@@ -298,14 +303,16 @@ export default {
                     id,
                   });
                 console.log("context Mutation: ", paymentIntentClientSecret);
-                const paymentIntentClientSecret1 =
-                  await context.mutations.oneSignalCreateNotification(context, {
-                    message: customerMessage,
-                    id: CustomerAccountID,
-                    appType: appType1,
-                    userId: CustomerAccountID,
-                  });
-                console.log("context Mutation: ", paymentIntentClientSecret1);
+                if (CustomerAccountID) {
+                  const paymentIntentClientSecret1 =
+                    await context.mutations.oneSignalCreateNotification(context, {
+                      message: customerMessage,
+                      id: CustomerAccountID,
+                      appType: appType1,
+                      userId: CustomerAccountID,
+                    });
+                  console.log("context Mutation: ", paymentIntentClientSecret1);
+                }
                 const updateOrders = {
                   $set: { "workflow.status": "pickedUp" },
                 };
@@ -358,14 +365,17 @@ export default {
                 userId,
               });
             console.log("context Mutation: ", paymentIntentClientSecret);
-            const paymentIntentClientSecret1 =
-              await context.mutations.oneSignalCreateNotification(context, {
-                message: customerMessage,
-                id: CustomerAccountID,
-                appType: appType1,
-                userId: CustomerAccountID,
-              });
-            console.log("context Mutation: ", paymentIntentClientSecret1);
+            if (CustomerAccountID) {
+              const paymentIntentClientSecret1 =
+                await context.mutations.oneSignalCreateNotification(context, {
+                  message: customerMessage,
+                  id: CustomerAccountID,
+                  appType: appType1,
+                  userId: CustomerAccountID,
+                });
+              console.log("context Mutation: ", paymentIntentClientSecret1);
+            }
+
             const updateOrders = { $set: { "workflow.status": "pickedUp" } };
             const options = { new: true };
             const updatedOrder = await Orders.findOneAndUpdate(
@@ -444,7 +454,10 @@ export default {
       const filter = { OrderID: OrderID };
       const CustomerOrder = await Orders.findOne({ _id: OrderID });
       console.log(CustomerOrder);
-      const CustomerAccountID = CustomerOrder?.accountId;
+      let CustomerAccountID = "";
+      if (CustomerOrder) {
+        CustomerAccountID = CustomerOrder?.accountId;
+      }
       // console.log("CustomerOrder", CustomerAccountID);
       const update = {};
       if (rejectionReason) {
@@ -456,7 +469,7 @@ export default {
       if (endTime) {
         update.endTime = endTime;
         const getStartTimeResp = await RiderOrder.findOne({ OrderID: OrderID });
-        console.log(getStartTimeResp.startTime);
+        // console.log(getStartTimeResp.startTime);
         if (getStartTimeResp) {
           // const deliveryTime = 0.00;
           const startFinalTime = new Date(getStartTimeResp.startTime);
@@ -471,7 +484,7 @@ export default {
         }
       }
       if (OrderStatus) {
-        const message = "";
+        let message = "";
         if (OrderStatus === "canceled") {
           message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
         } else {
@@ -489,17 +502,20 @@ export default {
             userId,
           });
         console.log("context Mutation: ", paymentIntentClientSecret);
-        const paymentIntentClientSecret1 =
-          await context.mutations.oneSignalCreateNotification(context, {
-            message,
-            id: CustomerAccountID,
-            appType: appTypecustomer,
-            userId: CustomerAccountID,
-          });
-        console.log(
-          " Customer Order context Mutation: ",
-          paymentIntentClientSecret1
-        );
+        if (CustomerAccountID) {
+          const paymentIntentClientSecret1 =
+            await context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id: CustomerAccountID,
+              appType: appTypecustomer,
+              userId: CustomerAccountID,
+            });
+          console.log(
+            " Customer Order context Mutation: ",
+            paymentIntentClientSecret1
+          );
+        }
+
         update.OrderStatus = OrderStatus;
         const updateOrders = { $set: { "workflow.status": OrderStatus } };
         const options = { new: true };
@@ -560,24 +576,30 @@ export default {
         options
       );
 
-      console.log("response", response);
+      console.log("response from updated order", response);
       // console.log(response.value);
-      if (response.value !== null) {
+      if (response) {
         const updatedOrderResp = await RiderOrder.findOne({
-          _id: response.value._id,
+          OrderID: OrderID,
         });
         console.log("updated Order Resp", updatedOrderResp);
         // return updatedOrderResp;
-        return {
-          id: updatedOrderResp._id,
-          ...updatedOrderResp,
-          // startTime:updatedOrderResp.startTime,
-          // endTime: updatedOrderResp.endTime,
-          // OrderStatus: updatedOrderResp.OrderStatus,
-          // OrderID: updatedOrderResp.OrderID,
-          // riderID: updatedOrderResp.riderID,
-          // rejectionReason: updatedOrderResp.rejectionReason,
-        };
+        if (updatedOrderResp) {
+          return {
+            id: updatedOrderResp._id,
+            ...updatedOrderResp,
+            // startTime:updatedOrderResp.startTime,
+            // endTime: updatedOrderResp.endTime,
+            // OrderStatus: updatedOrderResp.OrderStatus,
+            // OrderID: updatedOrderResp.OrderID,
+            // riderID: updatedOrderResp.riderID,
+            // rejectionReason: updatedOrderResp.rejectionReason,
+          };
+        }
+        else {
+          return null
+        }
+
       } else {
         return null;
       }
@@ -634,13 +656,13 @@ export default {
 
       const { userID, branches } = args;
       const CurrentUserID = context.user.id;
-      const { Accounts } = context.collections;
+      const { Accounts, users } = context.collections;
       const filter = { _id: userID };
       const update = { $push: { branches: branches } };
       const options = { new: true };
       // console.log(branches);
       const userAccount = await Accounts.findOne(filter);
-      // console.log(userAccount);
+      console.log(userAccount);
       if (
         userAccount.branches &&
         userAccount.branches.includes(args.branches)
@@ -659,7 +681,13 @@ export default {
           update,
           options
         );
-        // console.log(updatedAccount);
+        console.log("updatedAccount", updatedAccount);
+        const updatedUserAccount = await users.findOneAndUpdate(
+          filter,
+          update,
+          options
+        );
+        console.log("updatedUserAccount", updatedUserAccount);
         const updatedUser = await Accounts.findOne({ _id: userID });
         // console.log("updatedUser--->", updatedUser);
         return updatedUser;
@@ -1046,17 +1074,20 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      console.log("context.user.UserRole ", context.user);
-      if (
-        context.user.UserRole !== "admin" &&
-        (!context.user.branches ||
-          (context.user.branches && !context.user.branches.includes(branchID)))
-      ) {
-        throw new ReactionError(
-          "conflict",
-          "Only admins or authorized branch users can access orders report"
-        );
+      console.log("context.user :  ", context.user);
+      if (context.user) {
+
       }
+      // if (
+      //   context.user.UserRole !== "admin" &&
+      //   (!context.user.branches ||
+      //     (context.user.branches && context.user.branches.includes(branchID)))
+      // ) {
+      //   throw new ReactionError(
+      //     "conflict",
+      //     "Only admins or authorized branch users can access orders report"
+      //   );
+      // }
       const { BranchData, Orders } = context.collections;
       const query = {};
       if (branchID) {
