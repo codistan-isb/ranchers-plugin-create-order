@@ -184,8 +184,8 @@ export default {
   },
   Mutation: {
     async createRiderOrder(parent, { orders }, context, info) {
-      console.log(orders[0].OrderID);
-      console.log("context.user", context.user);
+      // console.log(orders[0].OrderID);
+      // console.log("context.user", context.user);
       // Get the start and end of today
 
       const now = new Date();
@@ -212,11 +212,11 @@ export default {
         };
       });
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
-      console.log(CustomerOrder);
+      // console.log(CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
-        console.log("CustomerAccountID", CustomerAccountID);
+        // console.log("CustomerAccountID", CustomerAccountID);
       }
 
 
@@ -254,7 +254,7 @@ export default {
             },
             { new: true }
           );
-          console.log("insertedOrders1:- ", insertedOrders1);
+          // console.log("insertedOrders1:- ", insertedOrders1);
           const message = "Order has been assigned";
           const appType = "rider";
           const appType1 = "customer";
@@ -264,9 +264,9 @@ export default {
               message,
               id,
               appType,
-              id,
+              userId: id,
             });
-          console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
+          // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
           if (CustomerAccountID) {
             const paymentIntentClientSecret1 =
               await context.mutations.oneSignalCreateNotification(context, {
@@ -276,7 +276,7 @@ export default {
                 userId: CustomerAccountID,
                 orderID: OrderID
               });
-            console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
+            // console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
           }
           if (insertedOrders1) {
             return insertedOrders1.value;
@@ -572,7 +572,7 @@ export default {
       if (OrderID) {
         update.OrderID = OrderID;
       }
-      console.log("Update ", update);
+      // console.log("Update ", update);
       const options = { new: true };
       const response = await RiderOrder.findOneAndUpdate(
         filter,
@@ -580,7 +580,7 @@ export default {
         options
       );
 
-      console.log("response from updated order", response);
+      // console.log("response from updated order", response);
       // console.log(response.value);
       if (response) {
         const updatedOrderResp = await RiderOrder.findOne({
@@ -848,14 +848,14 @@ export default {
       })
         .sort({ createdAt: -1 })
         .toArray();
-      console.log("orders ", orders);
+      // console.log("orders ", orders);
 
       if (orders) {
         // Current Login User Order
         const filteredOrders = orders.filter(
           (order) => order.riderID === LoginUserID
         );
-        console.log("Filter Order: ", filteredOrders);
+        // console.log("Filter Order: ", filteredOrders);
         // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
         if (filteredOrders) {
           const ordersWithId = filteredOrders.map((order) => ({
@@ -944,7 +944,7 @@ export default {
       if (args.deliveryTime) {
         match.deliveryTime = { $gte: args.deliveryTime };
       }
-      console.log("match ", match);
+      // console.log("match ", match);
       // const testValue = await RiderOrder.find({ deliveryTime: { $gte: args.deliveryTime } }).toArray();
       // console.log("Test value is ", testValue)
 
@@ -1021,7 +1021,7 @@ export default {
           },
         },
       ]).toArray();
-      console.log("FInal Order Report :- ", report);
+      // console.log("FInal Order Report :- ", report);
       return report;
     },
     async getRiderOrdersByLoginRider(parent, args, context, info) {
@@ -1078,7 +1078,7 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      console.log("context.user :  ", context.user);
+      // console.log("context.user :  ", context.user);
       if (context.user) {
 
       }
