@@ -528,8 +528,8 @@ export default {
           updateOrders,
           options
         );
-        console.log("updatedOrder ", updatedOrder.value.accountId);
-        console.log("OrderStatus ", OrderStatus);
+        // console.log("updatedOrder ", updatedOrder.value.accountId);
+        // console.log("OrderStatus ", OrderStatus);
         if (updatedOrder) {
           // const message = `Your order has been ${OrderStatus}`;
           // const appType = "customer";
