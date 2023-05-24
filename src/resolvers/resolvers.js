@@ -205,15 +205,15 @@ export default {
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
-        // console.log("CustomerAccountID", CustomerAccountID);
-        const RiderIDForAssign = orders.map((order) => {
-          const riderId = order.riderID ? order.riderID : CurrentRiderID;
-          return {
-            ...order,
-            riderID: riderId,
-            createdAt: now,
-          };
-        });
+      }// console.log("CustomerAccountID", CustomerAccountID);
+      const RiderIDForAssign = orders.map((order) => {
+        const riderId = order.riderID ? order.riderID : CurrentRiderID;
+        return {
+          ...order,
+          riderID: riderId,
+          createdAt: now,
+        };
+      });
       const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
       // console.log("Status of Rider : ", riderStatus);
       if (riderStatus && riderStatus.currentStatus === "offline") {
@@ -307,17 +307,18 @@ export default {
                       orderID: OrderID
                     });
                   console.log("context Mutation: ", paymentIntentClientSecret1);
+
+                  const updateOrders = {
+                    $set: { "workflow.status": "pickedUp" },
+                  };
+                  const options = { new: true };
+                  const updatedOrder = await Orders.findOneAndUpdate(
+                    { _id: AllOrdersArray[0].OrderID },
+                    updateOrders,
+                    options
+                  );
+                  console.log("updated Order:- ", updatedOrder);
                 }
-                const updateOrders = {
-                  $set: { "workflow.status": "pickedUp" },
-                };
-                const options = { new: true };
-                const updatedOrder = await Orders.findOneAndUpdate(
-                  { _id: AllOrdersArray[0].OrderID },
-                  updateOrders,
-                  options
-                );
-                console.log("updated Order:- ", updatedOrder);
               }
               // (AllOrdersArray[0].OrderID, "pickedUp", Orders);
               return insertedOrders.ops;
@@ -370,16 +371,16 @@ export default {
                   orderID: OrderID
                 });
               console.log("context Mutation: ", paymentIntentClientSecret1);
-            }
 
-            const updateOrders = { $set: { "workflow.status": "pickedUp" } };
-            const options = { new: true };
-            const updatedOrder = await Orders.findOneAndUpdate(
-              { _id: AllOrdersArray[0].OrderID },
-              updateOrders,
-              options
-            );
-            // console.log("updated Order:- ", updatedOrder);
+              const updateOrders = { $set: { "workflow.status": "pickedUp" } };
+              const options = { new: true };
+              const updatedOrder = await Orders.findOneAndUpdate(
+                { _id: AllOrdersArray[0].OrderID },
+                updateOrders,
+                options
+              );
+              // console.log("updated Order:- ", updatedOrder);
+            }
           }
           // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
           return insertedOrders.ops[0];
@@ -392,11 +393,11 @@ export default {
           throw err;
         }
       }
-    }
-    else{
-      // console.log("Else pate")
-      return orders[0];
-    }
+      // }
+      // else{
+      //   // console.log("Else pate")
+      //   return orders[0];
+      // }
       // const existingOrders = await RiderOrder.find({
       //     OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
       //     branches: { $in: RiderIDForAssign.map((o) => o.branches) },
