@@ -102,8 +102,8 @@ export default {
         });
 
         if (branchTimePickupResp) {
-          console.log("Data ", branchTimePickupResp);
-          console.log("Data TIme ", branchTimePickupResp.createdAt);
+          // console.log("Data ", branchTimePickupResp);
+          // console.log("Data TIme ", branchTimePickupResp.createdAt);
           return {
             branchOrderTime: branchTimePickupResp.createdAt,
           };
@@ -132,7 +132,7 @@ export default {
         const riderOrderInfoResp = await RiderOrder.findOne({
           OrderID: parent.id,
         });
-        console.log("riderOrderInfoResp ", riderOrderInfoResp);
+        // console.log("riderOrderInfoResp ", riderOrderInfoResp);
         if (riderOrderInfoResp) {
           return riderOrderInfoResp;
         } else {
@@ -252,6 +252,7 @@ export default {
           const appType = "rider";
           const appType1 = "customer";
           const id = RiderIDForAssign[0].riderID;
+          let OrderIDs = RiderIDForAssign[0].OrderID
           const paymentIntentClientSecret =
             await context.mutations.oneSignalCreateNotification(context, {
               message,
@@ -267,7 +268,7 @@ export default {
                 id: CustomerAccountID,
                 appType: appType1,
                 userId: CustomerAccountID,
-                orderID: OrderID
+                orderID: OrderIDs
               });
             // console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
           }
@@ -289,6 +290,7 @@ export default {
                 const appType = "rider";
                 const id = RiderIDForAssign[0].riderID;
                 const appType1 = "customer";
+                let OrderIDs = RiderIDForAssign[0].OrderID
                 const paymentIntentClientSecret =
                   await context.mutations.oneSignalCreateNotification(context, {
                     message,
@@ -296,7 +298,7 @@ export default {
                     appType,
                     id,
                   });
-                console.log("context Mutation: ", paymentIntentClientSecret);
+                // console.log("context Mutation: ", paymentIntentClientSecret);
                 if (CustomerAccountID) {
                   const paymentIntentClientSecret1 =
                     await context.mutations.oneSignalCreateNotification(context, {
@@ -304,9 +306,9 @@ export default {
                       id: CustomerAccountID,
                       appType: appType1,
                       userId: CustomerAccountID,
-                      orderID: OrderID
+                      orderID: OrderIDs
                     });
-                  console.log("context Mutation: ", paymentIntentClientSecret1);
+                  // console.log("context Mutation: ", paymentIntentClientSecret1);
 
                   const updateOrders = {
                     $set: { "workflow.status": "pickedUp" },
@@ -317,7 +319,7 @@ export default {
                     updateOrders,
                     options
                   );
-                  console.log("updated Order:- ", updatedOrder);
+                  // console.log("updated Order:- ", updatedOrder);
                 }
               }
               // (AllOrdersArray[0].OrderID, "pickedUp", Orders);
@@ -345,7 +347,7 @@ export default {
           // console.log("inserted Data:- ", insertedOrders)
           // console.log(AllOrdersArray);
           // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
-          console.log("RiderIDForAssign ", RiderIDForAssign[0]);
+          // console.log("RiderIDForAssign ", RiderIDForAssign[0]);
           if (insertedOrders) {
             const message = "Order has been assigned";
             const customerMessage = "Your order is picked";
@@ -353,6 +355,7 @@ export default {
             const id = RiderIDForAssign[0].riderID;
             const userId = RiderIDForAssign[0].riderID;
             const appType1 = "customer";
+            let OrderIDs = RiderIDForAssign[0].OrderID
             const paymentIntentClientSecret =
               await context.mutations.oneSignalCreateNotification(context, {
                 message,
@@ -360,7 +363,7 @@ export default {
                 appType,
                 userId,
               });
-            console.log("context Mutation: ", paymentIntentClientSecret);
+            // console.log("context Mutation: ", paymentIntentClientSecret);
             if (CustomerAccountID) {
               const paymentIntentClientSecret1 =
                 await context.mutations.oneSignalCreateNotification(context, {
@@ -368,9 +371,9 @@ export default {
                   id: CustomerAccountID,
                   appType: appType1,
                   userId: CustomerAccountID,
-                  orderID: OrderID
+                  orderID: OrderIDs
                 });
-              console.log("context Mutation: ", paymentIntentClientSecret1);
+              // console.log("context Mutation: ", paymentIntentClientSecret1);
 
               const updateOrders = { $set: { "workflow.status": "pickedUp" } };
               const options = { new: true };
@@ -454,7 +457,7 @@ export default {
       const { RiderOrder, Orders } = context.collections;
       const filter = { OrderID: OrderID };
       const CustomerOrder = await Orders.findOne({ _id: OrderID });
-      console.log(CustomerOrder);
+      // console.log(CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
@@ -502,7 +505,7 @@ export default {
             appType,
             userId,
           });
-        console.log("context Mutation: ", paymentIntentClientSecret);
+        // console.log("context Mutation: ", paymentIntentClientSecret);
         if (CustomerAccountID) {
           const paymentIntentClientSecret1 =
             await context.mutations.oneSignalCreateNotification(context, {
@@ -512,10 +515,10 @@ export default {
               userId: CustomerAccountID,
               orderID: OrderID
             });
-          console.log(
-            " Customer Order context Mutation: ",
-            paymentIntentClientSecret1
-          );
+          // console.log(
+          //   " Customer Order context Mutation: ",
+          //   paymentIntentClientSecret1
+          // );
         }
 
         update.OrderStatus = OrderStatus;
@@ -563,7 +566,7 @@ export default {
             userId,
             // orderID,
           });
-        console.log("context Mutation: ", paymentIntentClientSecret);
+        // console.log("context Mutation: ", paymentIntentClientSecret);
         // const UpdatedBranchDataResp = await BranchData.updateOne({ _id: branch._id }, { $set: updatedBranch });
         // console.log(UpdatedBranchDataResp)
       }
@@ -584,7 +587,7 @@ export default {
         const updatedOrderResp = await RiderOrder.findOne({
           OrderID: OrderID,
         });
-        console.log("updated Order Resp", updatedOrderResp);
+        // console.log("updated Order Resp", updatedOrderResp);
         // return updatedOrderResp;
         if (updatedOrderResp) {
           return {
@@ -664,7 +667,7 @@ export default {
       const options = { new: true };
       // console.log(branches);
       const userAccount = await Accounts.findOne(filter);
-      console.log(userAccount);
+      // console.log(userAccount);
       if (
         userAccount.branches &&
         userAccount.branches.includes(args.branches)
@@ -683,13 +686,13 @@ export default {
           update,
           options
         );
-        console.log("updatedAccount", updatedAccount);
+        // console.log("updatedAccount", updatedAccount);
         const updatedUserAccount = await users.findOneAndUpdate(
           filter,
           update,
           options
         );
-        console.log("updatedUserAccount", updatedUserAccount);
+        // console.log("updatedUserAccount", updatedUserAccount);
         const updatedUser = await Accounts.findOne({ _id: userID });
         // console.log("updatedUser--->", updatedUser);
         return updatedUser;
@@ -750,15 +753,15 @@ export default {
 
           // throw new ReactionError("Failed", `Failed to update branch value to user: ${userID}`);
         } else {
-          console.log("Updated Account");
+          // console.log("Updated Account");
           const updateUserResult = await users.updateOne(
             { _id: userID },
             { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
           );
-          console.log("Updated Account", updateUserResult);
+          // console.log("Updated Account", updateUserResult);
         }
         const updatedUser = await Accounts.findOne({ _id: userID });
-        console.log("updatedUser--->", updatedUser);
+        // console.log("updatedUser--->", updatedUser);
 
         return updatedUser;
       } else {
