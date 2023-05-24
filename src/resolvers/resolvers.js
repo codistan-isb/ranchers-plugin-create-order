@@ -201,7 +201,7 @@ export default {
       const CurrentRiderID = context.user.id;
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
 
-      console.log("CustomerOrder ", CustomerOrder);
+      // console.log("CustomerOrder ", CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
@@ -394,7 +394,7 @@ export default {
       }
     }
     else{
-      console.log("Else pate")
+      // console.log("Else pate")
       return orders[0];
     }
       // const existingOrders = await RiderOrder.find({
