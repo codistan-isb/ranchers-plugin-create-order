@@ -184,10 +184,6 @@ export default {
   },
   Mutation: {
     async createRiderOrder(parent, { orders }, context, info) {
-      // console.log(orders[0].OrderID);
-      // console.log("context.user", context.user);
-      // Get the start and end of today
-
       const now = new Date();
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -203,26 +199,23 @@ export default {
       const AllOrdersArray = orders;
       const { RiderOrder, Accounts, Orders } = context.collections;
       const CurrentRiderID = context.user.id;
-      const RiderIDForAssign = orders.map((order) => {
-        const riderId = order.riderID ? order.riderID : CurrentRiderID;
-        return {
-          ...order,
-          riderID: riderId,
-          createdAt: now,
-        };
-      });
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
-      // console.log(CustomerOrder);
+
+      console.log("CustomerOrder ", CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
         // console.log("CustomerAccountID", CustomerAccountID);
-      }
-
-
+        const RiderIDForAssign = orders.map((order) => {
+          const riderId = order.riderID ? order.riderID : CurrentRiderID;
+          return {
+            ...order,
+            riderID: riderId,
+            createdAt: now,
+          };
+        });
       const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
       // console.log("Status of Rider : ", riderStatus);
-
       if (riderStatus && riderStatus.currentStatus === "offline") {
         throw new ReactionError(
           "not-found",
@@ -399,7 +392,11 @@ export default {
           throw err;
         }
       }
-
+    }
+    else{
+      console.log("Else pate")
+      return orders[0];
+    }
       // const existingOrders = await RiderOrder.find({
       //     OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
       //     branches: { $in: RiderIDForAssign.map((o) => o.branches) },
