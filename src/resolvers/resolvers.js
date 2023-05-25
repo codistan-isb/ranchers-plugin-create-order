@@ -522,7 +522,18 @@ export default {
         }
 
         update.OrderStatus = OrderStatus;
-        const updateOrders = { $set: { "workflow.status": OrderStatus } };
+        let updateOrders = {}
+        if (rejectionReason) {
+          updateOrders = {
+            $set: {
+              "workflow.status": OrderStatus,
+              rejectionReason: rejectionReason
+            }
+          };
+        }
+        else {
+          updateOrders = { $set: { "workflow.status": OrderStatus } };
+        }
         const options = { new: true };
         const updatedOrder = await Orders.findOneAndUpdate(
           { _id: OrderID },
@@ -817,7 +828,7 @@ export default {
       })
         .sort({ createdAt: -1 })
         .toArray();
-      // console.log(ordersresp);
+      // console.log("ordersresp ", ordersresp);
 
       // replace null createdAt with empty string
       ordersresp.forEach((order) => {

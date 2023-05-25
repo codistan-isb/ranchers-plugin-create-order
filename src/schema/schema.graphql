@@ -17,6 +17,7 @@ extend type Order {
   branchTimePickup: branchTimePickupPayload
   kitchenOrderIDInfo: kitchenOrderIDPayload
   riderOrderInfo: riderOrderInfoPayload
+  # customerOrderInfo:customerOrderInfoPayload
 }
 type riderOrderInfoPayload {
   _id: ID
@@ -28,6 +29,9 @@ type riderOrderInfoPayload {
   createdAt: DateTime
   endTime: DateTime
 }
+# type customerOrderInfoPayload{
+
+# }
 type OrderReport {
   riderID: String
   riderName: String
