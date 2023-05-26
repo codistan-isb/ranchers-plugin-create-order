@@ -3,10 +3,12 @@ extend type Order {
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue
+  deliveryTime:Float
   OrderID: String
   username: String
   branches: String
   riderID: String
+  deliveryTime:Float
   "branch Info Displayed"
   branchInfo: Branch
   Notes: String
@@ -19,6 +21,7 @@ extend type Order {
   riderOrderInfo: riderOrderInfoPayload
   # customerOrderInfo:customerOrderInfoPayload
 }
+
 type riderOrderInfoPayload {
   _id: ID
   startTime: DateTime

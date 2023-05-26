@@ -832,6 +832,7 @@ export default {
 
       // replace null createdAt with empty string
       ordersresp.forEach((order) => {
+        console.log(order)
         if (order.createdAt === null || order.createdAt === undefined) {
           order.createdAt = new Date(0);
         }
