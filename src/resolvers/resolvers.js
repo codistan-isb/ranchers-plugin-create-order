@@ -58,7 +58,7 @@ export default {
       }
     },
     async customerInfo(parent, args, context, info) {
-      // console.log("par/ent ", parent);
+      // console.log("parent ", parent);
       if (parent.OrderID) {
         const { Orders } = context.collections;
         const orderInfoResponse = await Orders.findOne({
@@ -97,13 +97,21 @@ export default {
       }
     },
     async branchTimePickup(parent, args, context, info) {
-      // console.log("branch data", parent);
+      // console.log("parent data", parent);
+      // console.log("parent data with OrderID", parent.OrderID);
       // console.log("branch riderID ", parent.riderID);
       const { RiderOrder } = context.collections;
 
       if (parent.riderID) {
+        // const branchTimePickupResp = await RiderOrder.findOne({
+        //   riderID: parent.riderID,
+        //   where: {
+        //     OrderID: parent.OrderID,
+        //   },
+        // });
         const branchTimePickupResp = await RiderOrder.findOne({
           riderID: parent.riderID,
+          OrderID: parent.OrderID,
         });
         // console.log("branchTimePickupResp ", branchTimePickupResp)
         if (branchTimePickupResp) {
