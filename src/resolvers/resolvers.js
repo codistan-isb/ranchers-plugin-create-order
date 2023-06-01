@@ -2,6 +2,22 @@ import ObjectID from "mongodb";
 import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
 // import updateOrderStatus from "../utils/updateOrderStatus.js";
 import ReactionError from "@reactioncommerce/reaction-error";
+// import escpos from 'escpos';
+// import { escpos } from 'escpos';
+// import { network } from 'escpos-network';
+// import { network } from 'escpos-network';
+// import { Printer } from 'escpos';
+// import { createRequire } from "module";
+// const require = createRequire(import.meta.url);
+// const packageJson = require('./package.json');
+// const escpos = require('escpos');
+// const network = require('escpos-network');
+// const escpos = require('escpos');
+// import escpos from 'escpos';
+// import network from 'escpos-network';
+// const network = require("escpos-network")
+
+
 export default {
   Order: {
     async branchInfo(parent, args, context, info) {
@@ -73,6 +89,8 @@ export default {
       if (customerOrderTimeResp) {
         return {
           customerOrderTime: customerOrderTimeResp.createdAt,
+          Latitude: customerOrderTimeResp.Latitude,
+          Longitude: customerOrderTimeResp.Longitude
         };
       } else {
         return null;
@@ -489,6 +507,30 @@ export default {
       }
       if (OrderStatus) {
         let message = "";
+        if (OrderStatus === "confirmed") {
+
+          // const printerIP = '192.168.18.40';
+          // const port = 9100;
+          // console.log("Order is Confirmed");
+          // const printer = new escpos.Printer(new network.Printer(printerIP, port));
+          // console.log("printer ", printer)
+          // printer.open((error) => {
+          //   if (error) {
+          //     console.error(error);
+          //   } else {
+          //     console.log('Connected to printer');
+
+          //     // Set the printer settings and print data
+          //     printer
+          //       .font('a')
+          //       .align('ct')
+          //       .size(1, 1)
+          //       .text('Hello, world!')
+          //       .cut()
+          //       .close();
+          //   }
+          // });
+        }
         if (OrderStatus === "canceled") {
           message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
         } else {
@@ -520,7 +562,6 @@ export default {
           //   paymentIntentClientSecret1
           // );
         }
-
         update.OrderStatus = OrderStatus;
         let updateOrders = {}
         if (rejectionReason) {
@@ -567,6 +608,7 @@ export default {
         };
         const message = "Order is Ready";
         const appType = "admin";
+        const appTypecustomer = "customer";
         const id = userId;
         // const orderID = orderId;
         const paymentIntentClientSecret =
@@ -577,6 +619,20 @@ export default {
             userId,
             // orderID,
           });
+        if (CustomerAccountID) {
+          const paymentIntentClientSecret1 =
+            await context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id: CustomerAccountID,
+              appType: appTypecustomer,
+              userId: CustomerAccountID,
+              orderID: OrderID
+            });
+          // console.log(
+          //   " Customer Order context Mutation: ",
+          //   paymentIntentClientSecret1
+          // );
+        }
         // console.log("context Mutation: ", paymentIntentClientSecret);
         // const UpdatedBranchDataResp = await BranchData.updateOne({ _id: branch._id }, { $set: updatedBranch });
         // console.log(UpdatedBranchDataResp)
