@@ -139,7 +139,7 @@ export default {
       }
     },
     async kitchenOrderIDInfo(parent, args, context, info) {
-      // console.log("Parent ", parent.OrderID);
+      console.log("Parent ", parent.OrderID);
       const { Orders } = context.collections;
       const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
       // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
@@ -206,6 +206,22 @@ export default {
           return null;
         }
       }
+    },
+    async kitchenOrderIDInfo(parent, args, context, info) {
+      // console.log("Parent ", parent.OrderID);
+      const { Orders } = context.collections;
+      if (parent.OrderID) {
+        const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
+        // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
+        if (kitchenOrderIDResp) {
+          return {
+            kitchenOrderID: kitchenOrderIDResp.kitchenOrderID,
+          };
+        } else {
+          return null;
+        }
+      }
+
     },
   },
   Mutation: {
@@ -515,30 +531,30 @@ export default {
       }
       if (OrderStatus) {
         let message = "";
-        if (OrderStatus === "confirmed") {
+        // if (OrderStatus === "confirmed") {
 
-          // const printerIP = '192.168.18.40';
-          // const port = 9100;
-          // console.log("Order is Confirmed");
-          // const printer = new escpos.Printer(new network.Printer(printerIP, port));
-          // console.log("printer ", printer)
-          // printer.open((error) => {
-          //   if (error) {
-          //     console.error(error);
-          //   } else {
-          //     console.log('Connected to printer');
+        //   // const printerIP = '192.168.18.40';
+        //   // const port = 9100;
+        //   // console.log("Order is Confirmed");
+        //   // const printer = new escpos.Printer(new network.Printer(printerIP, port));
+        //   // console.log("printer ", printer)
+        //   // printer.open((error) => {
+        //   //   if (error) {
+        //   //     console.error(error);
+        //   //   } else {
+        //   //     console.log('Connected to printer');
 
-          //     // Set the printer settings and print data
-          //     printer
-          //       .font('a')
-          //       .align('ct')
-          //       .size(1, 1)
-          //       .text('Hello, world!')
-          //       .cut()
-          //       .close();
-          //   }
-          // });
-        }
+        //   //     // Set the printer settings and print data
+        //   //     printer
+        //   //       .font('a')
+        //   //       .align('ct')
+        //   //       .size(1, 1)
+        //   //       .text('Hello, world!')
+        //   //       .cut()
+        //   //       .close();
+        //   //   }
+        //   // });
+        // }
         if (OrderStatus === "canceled") {
           message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
         } else {
@@ -896,7 +912,7 @@ export default {
 
       // replace null createdAt with empty string
       ordersresp.forEach((order) => {
-        console.log(order)
+        // console.log(order)
         if (order.createdAt === null || order.createdAt === undefined) {
           order.createdAt = new Date(0);
         }
