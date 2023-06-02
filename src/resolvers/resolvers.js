@@ -1,6 +1,8 @@
 import ObjectID from "mongodb";
 import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
 // import updateOrderStatus from "../utils/updateOrderStatus.js";
+import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
+import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import ReactionError from "@reactioncommerce/reaction-error";
 // import escpos from 'escpos';
 // import { escpos } from 'escpos';
@@ -222,6 +224,31 @@ export default {
         }
       }
 
+    },
+    async riderInfo(parent, args, context, info) {
+      console.log("parent", parent.riderID);
+      const { RiderOrder, Accounts } = context.collections;
+      const { riderID } = parent;
+      const RiderInfoResp = await Accounts.findOne({ _id: riderID });
+      console.log("Rider Info Resp : ", RiderInfoResp);
+      return RiderInfoResp;
+      // console.log("OrderID:- ", id);
+      // if (riderID) {
+
+      //   const RiderOrderResponse = await RiderOrder.find({
+      //     OrderID: id,
+      //   }).toArray();
+      //   if (RiderOrderResponse[0] !== undefined) {
+      //     // console.log("rider ID Data : ", RiderOrderResponse[0].riderID);
+      //     const RiderDataResponse = await Accounts.find({
+      //       _id: RiderOrderResponse[0].riderID,
+      //     }).toArray();
+      //     console.log("RiderDataResponse Data : ", RiderDataResponse[0]);
+      //     return RiderDataResponse[0];
+      //   }
+      // } else {
+      //   return [];
+      // }
     },
   },
   Mutation: {
@@ -1001,7 +1028,7 @@ export default {
       const { id } = context.user;
       const DateNow = new Date();
       // console.log("DateNow ", DateNow);
-
+      const { ...connectionArgs } = args
       // const { branches } = args;
       let match = {};
       if (args.riderID) {
@@ -1038,84 +1065,92 @@ export default {
         match.deliveryTime = { $gte: args.deliveryTime };
       }
       // console.log("match ", match);
-      // const testValue = await RiderOrder.find({ deliveryTime: { $gte: args.deliveryTime } }).toArray();
-      // console.log("Test value is ", testValue)
 
-      const report = await RiderOrder.aggregate([
-        {
-          $match: match,
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "riderID",
-            foreignField: "_id",
-            as: "Rider",
-          },
-        },
-        {
-          $unwind: "$Rider",
-        },
-        {
-          $project: {
-            riderID: "$Rider._id",
-            riderName: {
-              $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
-            },
-            branchCity: "$Rider.branchCity",
-            branches: "$branches",
-            OrderStatus: "$OrderStatus",
-            username: "$Rider.username",
-            rejectionReason: "$rejectionReason",
-            startTime: {
-              $cond: {
-                if: { $ne: ["$startTime", ""] },
-                then: { $toDate: "$startTime" },
-                else: null,
-              },
-            },
-            endTime: {
-              $cond: {
-                if: { $ne: ["$endTime", ""] },
-                then: { $toDate: "$endTime" },
-                else: null,
-              },
-            },
-            deliveryTime: "$deliveryTime",
-            OrderID: "$OrderID",
-          },
-        },
-        {
-          $addFields: {
-            // deliveryTime: {
-            //     $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
-            // },
-            startTime: { $toDate: "$startTime" },
-            endTime: { $toDate: "$endTime" },
-          },
-        },
-        // {
-        //     $match: {
-        //         $expr: {
-        //             $gte: ["$deliveryTime", args.deliveryTime]
-        //         }
-        //     }
-        // },
-        // {
-        //     $addFields: {
-        //         deliveryTime: {
-        //             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
-        //         },
-        //     },
-        // },
-        {
-          $sort: {
-            startTime: -1,
-          },
-        },
-      ]).toArray();
+      const report = RiderOrder.find(match)
+
+      // const report = await RiderOrder.aggregate([
+      //   {
+      //     $match: match,
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: "users",
+      //       localField: "riderID",
+      //       foreignField: "_id",
+      //       as: "Rider",
+      //     },
+      //   },
+      //   {
+      //     $unwind: "$Rider",
+      //   },
+      //   {
+      //     $project: {
+      //       riderID: "$Rider._id",
+      //       riderName: {
+      //         $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
+      //       },
+      //       branchCity: "$Rider.branchCity",
+      //       branches: "$branches",
+      //       OrderStatus: "$OrderStatus",
+      //       username: "$Rider.username",
+      //       rejectionReason: "$rejectionReason",
+      //       startTime: {
+      //         $cond: {
+      //           if: { $ne: ["$startTime", ""] },
+      //           then: { $toDate: "$startTime" },
+      //           else: null,
+      //         },
+      //       },
+      //       endTime: {
+      //         $cond: {
+      //           if: { $ne: ["$endTime", ""] },
+      //           then: { $toDate: "$endTime" },
+      //           else: null,
+      //         },
+      //       },
+      //       deliveryTime: "$deliveryTime",
+      //       OrderID: "$OrderID",
+      //     },
+      //   },
+      //   {
+      //     $addFields: {
+      //       // deliveryTime: {
+      //       //     $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+      //       // },
+      //       startTime: { $toDate: "$startTime" },
+      //       endTime: { $toDate: "$endTime" },
+      //     },
+      //   },
+      //   // {
+      //   //     $match: {
+      //   //         $expr: {
+      //   //             $gte: ["$deliveryTime", args.deliveryTime]
+      //   //         }
+      //   //     }
+      //   // },
+      //   // {
+      //   //     $addFields: {
+      //   //         deliveryTime: {
+      //   //             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+      //   //         },
+      //   //     },
+      //   // },
+      //   // {
+      //   //   $sort: {
+      //   //     startTime: -1,
+      //   //   },
+      //   // },
+      // ]).toArray();
       // console.log("FInal Order Report :- ", report);
-      return report;
+      // return report;
+      return getPaginatedResponse(report, connectionArgs, {
+        includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+        includeHasPreviousPage: wasFieldRequested(
+          "pageInfo.hasPreviousPage",
+          info
+        ),
+        includeTotalCount: wasFieldRequested("totalCount", info),
+      });
     },
     async getRiderOrdersByLoginRider(parent, args, context, info) {
       // console.log(context.user);
