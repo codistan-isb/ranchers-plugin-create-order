@@ -37,7 +37,7 @@ type riderOrderInfoPayload {
 # type customerOrderInfoPayload{
 
 # }
-type OrderReport implements Node {
+type OrderReport {
   _id: ID!
   riderID: String
   riderName: String
@@ -49,32 +49,32 @@ type OrderReport implements Node {
   endTime: DateTime
   username: String
   OrderID: String
-  "branch Info Displayed"
+  # "branch Info Displayed"implements Node
   branchInfo: Branch
   rejectionReason: String
   customerInfo: customerInfoPayload
   kitchenOrderIDInfo: kitchenOrderIDPayload
   riderInfo: Account
 }
-type OrderReportEdge implements NodeEdge {
-  "The cursor that represents this node in the paginated results"
-  cursor: ConnectionCursor!
-  "The Order Report"
-  node: OrderReport
-}
-type OrderReportConnection {
-  "The list of nodes that match the query, wrapped in an edge to provide a cursor string for each"
-  edges: [OrderReportEdge]
-  """
-  You can request the `nodes` directly to avoid the extra wrapping that `NodeEdge` has,
-  if you know you will not need to paginate the results.
-  """
-  nodes: [OrderReport]
-  "Information to help a client request the next or previous page"
-  pageInfo: PageInfo!
-  "The total number of nodes that match your query"
-  totalCount: Int!
-}
+# type OrderReportEdge implements NodeEdge {
+#   "The cursor that represents this node in the paginated results"
+#   cursor: ConnectionCursor!
+#   "The Order Report"
+#   node: OrderReport
+# }
+# type OrderReportConnection {
+#   "The list of nodes that match the query, wrapped in an edge to provide a cursor string for each"
+#   edges: [OrderReportEdge]
+#   """
+#   You can request the `nodes` directly to avoid the extra wrapping that `NodeEdge` has,
+#   if you know you will not need to paginate the results.
+#   """
+#   nodes: [OrderReport]
+#   "Information to help a client request the next or previous page"
+#   pageInfo: PageInfo!
+#   "The total number of nodes that match your query"
+#   totalCount: Int!
+# }
 extend type Address {
   Latitude: Float
   Longitude: Float
@@ -204,11 +204,11 @@ type Mutation {
   updateAccountAdmin(userID: ID!, branches: String!): UserBranchData!
   addBranchNotes(orderId: ID!, Notes: String!): Order
 }
-enum OrderReportSortBy {
-  startTime
-  createdAt
-  updatedAt
-}
+# enum OrderReportSortBy {
+#   startTime
+#   createdAt
+#   updatedAt
+# }
 type Query {
   getOrderById(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
@@ -221,22 +221,33 @@ type Query {
     fromDate: DateTime
     toDate: DateTime
     deliveryTime: Float
-    # searchQuery: String
-    "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
-    after: ConnectionCursor
-    "Return only results that come before this cursor. Use this with `last` to specify the number of results to return."
-    before: ConnectionCursor
-    "Return at most this many results. This parameter may be used with either `after` or `offset` parameters."
-    first: ConnectionLimitInt
-    "Return at most this many results. This parameter may be used with the `before` parameter."
-    last: ConnectionLimitInt
-    "Return only results that come after the Nth result. This parameter may be used with the `first` parameter."
-    offset: Int
-    "Return results sorted in this order"
-    sortOrder: SortOrder = desc
-    "By default, groups are sorted by when they were created, oldest first. Set this to sort by one of the other allowed fields"
-    sortBy: OrderReportSortBy = startTime
-  ): OrderReportConnection!
+  ): OrderReport
+  # generateOrderReport(
+  #   branches: String
+  #   startTime: DateTime
+  #   endTime: DateTime
+  #   riderID: String
+  #   OrderID: String
+  #   fromDate: DateTime
+  #   toDate: DateTime
+  #   deliveryTime: Float
+  # searchQuery: String
+  "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
+  # after: ConnectionCursor
+  # "Return only results that come before this cursor. Use this with `last` to specify the number of results to return."
+  # before: ConnectionCursor
+  # "Return at most this many results. This parameter may be used with either `after` or `offset` parameters."
+  # first: ConnectionLimitInt
+  # "Return at most this many results. This parameter may be used with the `before` parameter."
+  # last: ConnectionLimitInt
+  # "Return only results that come after the Nth result. This parameter may be used with the `first` parameter."
+  # offset: Int
+  # "Return results sorted in this order"
+  # sortOrder: SortOrder = desc
+  # "By default, groups are sorted by when they were created, oldest first. Set this to sort by one of the other allowed fields"
+  # sortBy: OrderReportSortBy = startTime  #  OrderReportConnection!
+
+  # ): OrderReport
   getRiderOrdersByLoginRider(
     LoginRiderID: String! # startDate: String # endDate: String
   ): [RiderOrderDetail]
