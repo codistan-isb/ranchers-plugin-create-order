@@ -221,7 +221,7 @@ type Query {
     fromDate: DateTime
     toDate: DateTime
     deliveryTime: Float
-  ): OrderReport
+  ): [OrderReport]
   # generateOrderReport(
   #   branches: String
   #   startTime: DateTime

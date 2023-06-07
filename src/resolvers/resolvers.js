@@ -181,7 +181,7 @@ export default {
         const branchDataResponse = await BranchData.find({
           _id: ObjectID.ObjectId(BranchID),
         }).toArray();
-        // console.log("Branch Data : ", branchDataResponse[0]);
+        console.log("Branch Data : ", branchDataResponse[0]);
         return branchDataResponse[0];
       } else {
         return [];
@@ -1017,7 +1017,7 @@ export default {
       }
     },
     async generateOrderReport(parent, args, context, info) {
-      // console.log(context.user);
+      console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -1028,7 +1028,7 @@ export default {
       const { id } = context.user;
       const DateNow = new Date();
       // console.log("DateNow ", DateNow);
-      const { ...connectionArgs } = args
+      // const { ...connectionArgs } = args
       // const { branches } = args;
       let match = {};
       if (args.riderID) {
@@ -1064,93 +1064,93 @@ export default {
       if (args.deliveryTime) {
         match.deliveryTime = { $gte: args.deliveryTime };
       }
-      // console.log("match ", match);
+      console.log("match ", match);
 
-      const report = RiderOrder.find(match)
-
-      // const report = await RiderOrder.aggregate([
-      //   {
-      //     $match: match,
-      //   },
-      //   {
-      //     $lookup: {
-      //       from: "users",
-      //       localField: "riderID",
-      //       foreignField: "_id",
-      //       as: "Rider",
-      //     },
-      //   },
-      //   {
-      //     $unwind: "$Rider",
-      //   },
-      //   {
-      //     $project: {
-      //       riderID: "$Rider._id",
-      //       riderName: {
-      //         $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
-      //       },
-      //       branchCity: "$Rider.branchCity",
-      //       branches: "$branches",
-      //       OrderStatus: "$OrderStatus",
-      //       username: "$Rider.username",
-      //       rejectionReason: "$rejectionReason",
-      //       startTime: {
-      //         $cond: {
-      //           if: { $ne: ["$startTime", ""] },
-      //           then: { $toDate: "$startTime" },
-      //           else: null,
-      //         },
-      //       },
-      //       endTime: {
-      //         $cond: {
-      //           if: { $ne: ["$endTime", ""] },
-      //           then: { $toDate: "$endTime" },
-      //           else: null,
-      //         },
-      //       },
-      //       deliveryTime: "$deliveryTime",
-      //       OrderID: "$OrderID",
-      //     },
-      //   },
-      //   {
-      //     $addFields: {
-      //       // deliveryTime: {
-      //       //     $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
-      //       // },
-      //       startTime: { $toDate: "$startTime" },
-      //       endTime: { $toDate: "$endTime" },
-      //     },
-      //   },
-      //   // {
-      //   //     $match: {
-      //   //         $expr: {
-      //   //             $gte: ["$deliveryTime", args.deliveryTime]
-      //   //         }
-      //   //     }
-      //   // },
-      //   // {
-      //   //     $addFields: {
-      //   //         deliveryTime: {
-      //   //             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
-      //   //         },
-      //   //     },
-      //   // },
-      //   // {
-      //   //   $sort: {
-      //   //     startTime: -1,
-      //   //   },
-      //   // },
-      // ]).toArray();
-      // console.log("FInal Order Report :- ", report);
-      // return report;
-      return getPaginatedResponse(report, connectionArgs, {
-        includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
-        includeHasPreviousPage: wasFieldRequested(
-          "pageInfo.hasPreviousPage",
-          info
-        ),
-        includeTotalCount: wasFieldRequested("totalCount", info),
-      });
+      // const report = RiderOrder.find(match)
+      // console.log(report)
+      const report = await RiderOrder.aggregate([
+        {
+          $match: match,
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "riderID",
+            foreignField: "_id",
+            as: "Rider",
+          },
+        },
+        {
+          $unwind: "$Rider",
+        },
+        {
+          $project: {
+            riderID: "$Rider._id",
+            riderName: {
+              $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
+            },
+            branchCity: "$Rider.branchCity",
+            branches: "$branches",
+            OrderStatus: "$OrderStatus",
+            username: "$Rider.username",
+            rejectionReason: "$rejectionReason",
+            startTime: {
+              $cond: {
+                if: { $ne: ["$startTime", ""] },
+                then: { $toDate: "$startTime" },
+                else: null,
+              },
+            },
+            endTime: {
+              $cond: {
+                if: { $ne: ["$endTime", ""] },
+                then: { $toDate: "$endTime" },
+                else: null,
+              },
+            },
+            deliveryTime: "$deliveryTime",
+            OrderID: "$OrderID",
+          },
+        },
+        {
+          $addFields: {
+            // deliveryTime: {
+            //     $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+            // },
+            startTime: { $toDate: "$startTime" },
+            endTime: { $toDate: "$endTime" },
+          },
+        },
+        // {
+        //     $match: {
+        //         $expr: {
+        //             $gte: ["$deliveryTime", args.deliveryTime]
+        //         }
+        //     }
+        // },
+        // {
+        //     $addFields: {
+        //         deliveryTime: {
+        //             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+        //         },
+        //     },
+        // },
+        // {
+        //   $sort: {
+        //     startTime: -1,
+        //   },
+        // },
+      ]).toArray();
+      console.log("FInal Order Report :- ", report);
+      return report;
+      // return getPaginatedResponse(report, connectionArgs, {
+      //   includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+      //   includeHasPreviousPage: wasFieldRequested(
+      //     "pageInfo.hasPreviousPage",
+      //     info
+      //   ),
+      //   includeTotalCount: wasFieldRequested("totalCount", info),
+      // });
     },
     async getRiderOrdersByLoginRider(parent, args, context, info) {
       // console.log(context.user);
