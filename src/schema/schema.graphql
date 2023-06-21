@@ -117,7 +117,7 @@ type UserCurrentStatus {
   UserRole: UserRoleValue
   username: String
   branchCity: String
-  branches: String
+  branches: [String]
 }
 enum OrderStatusValue {
   "Preparing your meal"

@@ -19,7 +19,6 @@ import ReactionError from "@reactioncommerce/reaction-error";
 // import network from 'escpos-network';
 // const network = require("escpos-network")
 
-
 export default {
   Order: {
     async branchInfo(parent, args, context, info) {
@@ -92,7 +91,7 @@ export default {
         return {
           customerOrderTime: customerOrderTimeResp.createdAt,
           Latitude: customerOrderTimeResp.Latitude,
-          Longitude: customerOrderTimeResp.Longitude
+          Longitude: customerOrderTimeResp.Longitude,
         };
       } else {
         return null;
@@ -213,7 +212,9 @@ export default {
       // console.log("Parent ", parent.OrderID);
       const { Orders } = context.collections;
       if (parent.OrderID) {
-        const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
+        const kitchenOrderIDResp = await Orders.findOne({
+          _id: parent.OrderID,
+        });
         // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
         if (kitchenOrderIDResp) {
           return {
@@ -223,7 +224,6 @@ export default {
           return null;
         }
       }
-
     },
     async riderInfo(parent, args, context, info) {
       console.log("parent", parent.riderID);
@@ -274,7 +274,7 @@ export default {
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
-      }// console.log("CustomerAccountID", CustomerAccountID);
+      } // console.log("CustomerAccountID", CustomerAccountID);
       const RiderIDForAssign = orders.map((order) => {
         const riderId = order.riderID ? order.riderID : CurrentRiderID;
         return {
@@ -321,7 +321,7 @@ export default {
           const appType = "rider";
           const appType1 = "customer";
           const id = RiderIDForAssign[0].riderID;
-          let OrderIDs = RiderIDForAssign[0].OrderID
+          let OrderIDs = RiderIDForAssign[0].OrderID;
           const paymentIntentClientSecret =
             await context.mutations.oneSignalCreateNotification(context, {
               message,
@@ -337,7 +337,7 @@ export default {
                 id: CustomerAccountID,
                 appType: appType1,
                 userId: CustomerAccountID,
-                orderID: OrderIDs
+                orderID: OrderIDs,
               });
             // console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
           }
@@ -359,7 +359,7 @@ export default {
                 const appType = "rider";
                 const id = RiderIDForAssign[0].riderID;
                 const appType1 = "customer";
-                let OrderIDs = RiderIDForAssign[0].OrderID
+                let OrderIDs = RiderIDForAssign[0].OrderID;
                 const paymentIntentClientSecret =
                   await context.mutations.oneSignalCreateNotification(context, {
                     message,
@@ -370,13 +370,16 @@ export default {
                 // console.log("context Mutation: ", paymentIntentClientSecret);
                 if (CustomerAccountID) {
                   const paymentIntentClientSecret1 =
-                    await context.mutations.oneSignalCreateNotification(context, {
-                      message: customerMessage,
-                      id: CustomerAccountID,
-                      appType: appType1,
-                      userId: CustomerAccountID,
-                      orderID: OrderIDs
-                    });
+                    await context.mutations.oneSignalCreateNotification(
+                      context,
+                      {
+                        message: customerMessage,
+                        id: CustomerAccountID,
+                        appType: appType1,
+                        userId: CustomerAccountID,
+                        orderID: OrderIDs,
+                      }
+                    );
                   // console.log("context Mutation: ", paymentIntentClientSecret1);
 
                   const updateOrders = {
@@ -424,7 +427,7 @@ export default {
             const id = RiderIDForAssign[0].riderID;
             const userId = RiderIDForAssign[0].riderID;
             const appType1 = "customer";
-            let OrderIDs = RiderIDForAssign[0].OrderID
+            let OrderIDs = RiderIDForAssign[0].OrderID;
             const paymentIntentClientSecret =
               await context.mutations.oneSignalCreateNotification(context, {
                 message,
@@ -440,7 +443,7 @@ export default {
                   id: CustomerAccountID,
                   appType: appType1,
                   userId: CustomerAccountID,
-                  orderID: OrderIDs
+                  orderID: OrderIDs,
                 });
               // console.log("context Mutation: ", paymentIntentClientSecret1);
 
@@ -533,6 +536,7 @@ export default {
       }
       // console.log("CustomerOrder", CustomerAccountID);
       const update = {};
+
       if (rejectionReason) {
         update.rejectionReason = rejectionReason;
       }
@@ -606,7 +610,7 @@ export default {
               id: CustomerAccountID,
               appType: appTypecustomer,
               userId: CustomerAccountID,
-              orderID: OrderID
+              orderID: OrderID,
             });
           // console.log(
           //   " Customer Order context Mutation: ",
@@ -614,16 +618,15 @@ export default {
           // );
         }
         update.OrderStatus = OrderStatus;
-        let updateOrders = {}
+        let updateOrders = {};
         if (rejectionReason) {
           updateOrders = {
             $set: {
               "workflow.status": OrderStatus,
-              rejectionReason: rejectionReason
-            }
+              rejectionReason: rejectionReason,
+            },
           };
-        }
-        else {
+        } else {
           updateOrders = { $set: { "workflow.status": OrderStatus } };
         }
         const options = { new: true };
@@ -677,7 +680,7 @@ export default {
               id: CustomerAccountID,
               appType: appTypecustomer,
               userId: CustomerAccountID,
-              orderID: OrderID
+              orderID: OrderID,
             });
           // console.log(
           //   " Customer Order context Mutation: ",
@@ -718,11 +721,9 @@ export default {
             // riderID: updatedOrderResp.riderID,
             // rejectionReason: updatedOrderResp.rejectionReason,
           };
+        } else {
+          return null;
         }
-        else {
-          return null
-        }
-
       } else {
         return null;
       }
@@ -737,8 +738,9 @@ export default {
       }
       const { Accounts } = context.collections;
       // console.log(args.status);
-      // console.log(context.user.id);
+      // console.log(context.user);
       const currentStatus = args.status;
+      const now = new Date();
       const userID = context.user.id;
       if (!userID) {
         throw new ReactionError(
@@ -746,12 +748,17 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
+      // const accountUser = await Accounts.findOne({
+      //   _id: userID,
+      // });
+      // console.log("accountUser ", accountUser);
       const updatedUser = await Accounts.findOneAndUpdate(
         { _id: userID },
-        { $set: { currentStatus } },
+        { $set: { currentStatus, updatedAt: new Date() } },
+        // { $set: { currentStatus } },
         { returnOriginal: false }
       );
-      // console.log(updatedUser.value);
+      // console.log(updatedUser);
       if (!updatedUser) {
         throw new ReactionError(
           "not-found",
@@ -1017,7 +1024,7 @@ export default {
       }
     },
     async generateOrderReport(parent, args, context, info) {
-      console.log(context.user);
+      // console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -1064,7 +1071,7 @@ export default {
       if (args.deliveryTime) {
         match.deliveryTime = { $gte: args.deliveryTime };
       }
-      console.log("match ", match);
+      // console.log("match ", match);
 
       // const report = RiderOrder.find(match)
       // console.log(report)
@@ -1141,7 +1148,7 @@ export default {
         //   },
         // },
       ]).toArray();
-      console.log("FInal Order Report :- ", report);
+      // console.log("FInal Order Report :- ", report);
       return report;
       // return getPaginatedResponse(report, connectionArgs, {
       //   includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
@@ -1208,7 +1215,6 @@ export default {
       }
       // console.log("context.user :  ", context.user);
       if (context.user) {
-
       }
       // if (
       //   context.user.UserRole !== "admin" &&
