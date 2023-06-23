@@ -55,6 +55,11 @@ type OrderReport {
   customerInfo: customerInfoPayload
   kitchenOrderIDInfo: kitchenOrderIDPayload
   riderInfo: Account
+  orderDetailTime: orderDetailTimePayload
+}
+type orderDetailTimePayload {
+  prepTime: Int
+  deliveryTime: Float
 }
 # type OrderReportEdge implements NodeEdge {
 #   "The cursor that represents this node in the paginated results"
@@ -222,6 +227,7 @@ type Query {
     toDate: DateTime
     deliveryTime: Float
   ): [OrderReport]
+
   # generateOrderReport(
   #   branches: String
   #   startTime: DateTime

@@ -1,8 +1,8 @@
 import ObjectID from "mongodb";
 import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
 // import updateOrderStatus from "../utils/updateOrderStatus.js";
-import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
-import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
+// import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
+// import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import ReactionError from "@reactioncommerce/reaction-error";
 // import escpos from 'escpos';
 // import { escpos } from 'escpos';
@@ -249,6 +249,23 @@ export default {
       // } else {
       //   return [];
       // }
+    },
+    async orderDetailTime(parent, args, context, info) {
+      // console.log("parent ", parent);
+      const { Orders } = context.collections;
+      const { OrderID } = parent;
+      if (OrderID) {
+        const orderDetailResp = await Orders.findOne({ _id: OrderID });
+        // console.log("Order Info ", orderDetailResp);
+        if (orderDetailResp) {
+          return {
+            prepTime: orderDetailResp?.prepTime || null,
+            deliveryTime: orderDetailResp?.deliveryTime || null,
+          };
+        } else {
+          return null;
+        }
+      }
     },
   },
   Mutation: {
@@ -562,30 +579,6 @@ export default {
       }
       if (OrderStatus) {
         let message = "";
-        // if (OrderStatus === "confirmed") {
-
-        //   // const printerIP = '192.168.18.40';
-        //   // const port = 9100;
-        //   // console.log("Order is Confirmed");
-        //   // const printer = new escpos.Printer(new network.Printer(printerIP, port));
-        //   // console.log("printer ", printer)
-        //   // printer.open((error) => {
-        //   //   if (error) {
-        //   //     console.error(error);
-        //   //   } else {
-        //   //     console.log('Connected to printer');
-
-        //   //     // Set the printer settings and print data
-        //   //     printer
-        //   //       .font('a')
-        //   //       .align('ct')
-        //   //       .size(1, 1)
-        //   //       .text('Hello, world!')
-        //   //       .cut()
-        //   //       .close();
-        //   //   }
-        //   // });
-        // }
         if (OrderStatus === "canceled") {
           message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
         } else {
