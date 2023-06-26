@@ -259,7 +259,7 @@ export default {
         // console.log("Order Info ", orderDetailResp);
         if (orderDetailResp) {
           return {
-            prepTime: orderDetailResp?.prepTime || null,
+            prepTime: orderDetailResp?.prepTime || 20,
             deliveryTime: orderDetailResp?.deliveryTime || null,
           };
         } else {
