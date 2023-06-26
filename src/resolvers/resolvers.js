@@ -925,27 +925,18 @@ export default {
       if (id === null || id === undefined) {
         id = context.user.id;
       }
-      const currentDate = new Date().toISOString().substr(0, 10); // get current date in ISO format (yyyy-mm-dd)
-
-      const ordersresp = await RiderOrder.find({
+      const today = new Date(); // Get current date
+      today.setHours(0, 0, 0, 0);
+      const ordersResp = await RiderOrder.find({
         riderID: id,
-        $or: [
-          { startTime: { $gte: currentDate } }, // include orders that start on or after the current date
-        ],
+        createdAt: { $gte: today },
       })
         .sort({ createdAt: -1 })
         .toArray();
-      // console.log("ordersresp ", ordersresp);
+      // console.log("ordersResp ", ordersResp);
 
-      // replace null createdAt with empty string
-      ordersresp.forEach((order) => {
-        // console.log(order)
-        if (order.createdAt === null || order.createdAt === undefined) {
-          order.createdAt = new Date(0);
-        }
-      });
-      if (ordersresp) {
-        return ordersresp;
+      if (ordersResp) {
+        return ordersResp;
       } else {
         return null;
       }
