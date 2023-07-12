@@ -1,23 +1,6 @@
 import ObjectID from "mongodb";
 import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
-// import updateOrderStatus from "../utils/updateOrderStatus.js";
-// import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
-// import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import ReactionError from "@reactioncommerce/reaction-error";
-// import escpos from 'escpos';
-// import { escpos } from 'escpos';
-// import { network } from 'escpos-network';
-// import { network } from 'escpos-network';
-// import { Printer } from 'escpos';
-// import { createRequire } from "module";
-// const require = createRequire(import.meta.url);
-// const packageJson = require('./package.json');
-// const escpos = require('escpos');
-// const network = require('escpos-network');
-// const escpos = require('escpos');
-// import escpos from 'escpos';
-// import network from 'escpos-network';
-// const network = require("escpos-network")
 
 export default {
   Order: {
@@ -39,7 +22,7 @@ export default {
     async riderInfo(parent, args, context, info) {
       // console.log("parent", parent);
       const { RiderOrder, Accounts } = context.collections;
-      const { id } = parent;
+      const id = parent.id || parent._id;
       // console.log("OrderID:- ", id);
       let OrderIDArray = [];
       if (id) {
@@ -226,11 +209,12 @@ export default {
       }
     },
     async riderInfo(parent, args, context, info) {
-      console.log("parent", parent.riderID);
+      console.log("parent.riderID", parent.riderID);
+      console.log("parent", parent);
       const { RiderOrder, Accounts } = context.collections;
       const { riderID } = parent;
       const RiderInfoResp = await Accounts.findOne({ _id: riderID });
-      console.log("Rider Info Resp : ", RiderInfoResp);
+      // console.log("Rider Info Resp : ", RiderInfoResp);
       return RiderInfoResp;
       // console.log("OrderID:- ", id);
       // if (riderID) {
@@ -1057,83 +1041,84 @@ export default {
       }
       // console.log("match ", match);
 
-      // const report = RiderOrder.find(match)
-      // console.log(report)
-      const report = await RiderOrder.aggregate([
-        {
-          $match: match,
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "riderID",
-            foreignField: "_id",
-            as: "Rider",
-          },
-        },
-        {
-          $unwind: "$Rider",
-        },
-        {
-          $project: {
-            riderID: "$Rider._id",
-            riderName: {
-              $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
-            },
-            branchCity: "$Rider.branchCity",
-            branches: "$branches",
-            OrderStatus: "$OrderStatus",
-            username: "$Rider.username",
-            rejectionReason: "$rejectionReason",
-            startTime: {
-              $cond: {
-                if: { $ne: ["$startTime", ""] },
-                then: { $toDate: "$startTime" },
-                else: null,
-              },
-            },
-            endTime: {
-              $cond: {
-                if: { $ne: ["$endTime", ""] },
-                then: { $toDate: "$endTime" },
-                else: null,
-              },
-            },
-            deliveryTime: "$deliveryTime",
-            OrderID: "$OrderID",
-          },
-        },
-        {
-          $addFields: {
-            // deliveryTime: {
-            //     $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
-            // },
-            startTime: { $toDate: "$startTime" },
-            endTime: { $toDate: "$endTime" },
-          },
-        },
-        // {
-        //     $match: {
-        //         $expr: {
-        //             $gte: ["$deliveryTime", args.deliveryTime]
-        //         }
-        //     }
-        // },
-        // {
-        //     $addFields: {
-        //         deliveryTime: {
-        //             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
-        //         },
-        //     },
-        // },
-        // {
-        //   $sort: {
-        //     startTime: -1,
-        //   },
-        // },
-      ]).toArray();
-      // console.log("FInal Order Report :- ", report);
+      const report = await RiderOrder.find(match).toArray();
+      console.log(report);
       return report;
+      // const report = await RiderOrder.aggregate([
+      //   {
+      //     $match: match,
+      //   },
+      //   {
+      //     $lookup: {
+      //       from: "users",
+      //       localField: "riderID",
+      //       foreignField: "_id",
+      //       as: "Rider",
+      //     },
+      //   },
+      //   {
+      //     $unwind: "$Rider",
+      //   },
+      //   {
+      //     $project: {
+      //       riderID: "$Rider._id",
+      //       riderName: {
+      //         $concat: ["$Rider.firstName", " ", "$Rider.lastName"],
+      //       },
+      //       branchCity: "$Rider.branchCity",
+      //       branches: "$branches",
+      //       OrderStatus: "$OrderStatus",
+      //       username: "$Rider.username",
+      //       rejectionReason: "$rejectionReason",
+      //       startTime: {
+      //         $cond: {
+      //           if: { $ne: ["$startTime", ""] },
+      //           then: { $toDate: "$startTime" },
+      //           else: null,
+      //         },
+      //       },
+      //       endTime: {
+      //         $cond: {
+      //           if: { $ne: ["$endTime", ""] },
+      //           then: { $toDate: "$endTime" },
+      //           else: null,
+      //         },
+      //       },
+      //       deliveryTime: "$deliveryTime",
+      //       OrderID: "$OrderID",
+      //     },
+      //   },
+      //   {
+      //     $addFields: {
+      //       // deliveryTime: {
+      //       //     $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+      //       // },
+      //       startTime: { $toDate: "$startTime" },
+      //       endTime: { $toDate: "$endTime" },
+      //     },
+      //   },
+      //   // {
+      //   //     $match: {
+      //   //         $expr: {
+      //   //             $gte: ["$deliveryTime", args.deliveryTime]
+      //   //         }
+      //   //     }
+      //   // },
+      //   // {
+      //   //     $addFields: {
+      //   //         deliveryTime: {
+      //   //             $divide: [{ $subtract: ["$endTime", "$startTime"] }, 60000],
+      //   //         },
+      //   //     },
+      //   // },
+      //   // {
+      //   //   $sort: {
+      //   //     startTime: -1,
+      //   //   },
+      //   // },
+      // ]).toArray();
+      // console.log("FInal Order Report :- ", report);
+      // return report;
       // return getPaginatedResponse(report, connectionArgs, {
       //   includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
       //   includeHasPreviousPage: wasFieldRequested(
@@ -1198,8 +1183,8 @@ export default {
         );
       }
       // console.log("context.user :  ", context.user);
-      if (context.user) {
-      }
+      // if (context.user) {
+      // }
       // if (
       //   context.user.UserRole !== "admin" &&
       //   (!context.user.branches ||
@@ -1231,12 +1216,12 @@ export default {
         .sort({ createdAt: -1 })
         .toArray();
       // console.log("ordersResp ", ordersResp);
-      const ordersWithId = ordersResp.map((order) => ({
-        id: order._id,
-        ...order,
-      }));
+      // const ordersWithId = ordersResp.map((order) => ({
+      //   id: order._id,
+      //   ...order,
+      // }));
       // console.log("ordersWithId:- ", ordersWithId);
-      return ordersWithId;
+      return ordersResp;
     },
     async getCustomerOrderbyID(parent, args, context, info) {
       if (context.user === undefined || context.user === null) {
@@ -1247,11 +1232,11 @@ export default {
       }
       const { Orders } = context.collections;
       const { ID } = args;
-      // console.log(decodeOpaqueId(ID).id)
+      console.log(decodeOpaqueId(ID).id);
       const CustomerOrderResp = await Orders.findOne({
         _id: decodeOpaqueId(ID).id,
       });
-      // console.log(CustomerOrderResp)
+      console.log("CustomerOrderResp", CustomerOrderResp);
       return CustomerOrderResp;
     },
   },

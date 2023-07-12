@@ -1,5 +1,6 @@
 extend type Order {
-  id: ID!
+  _id: ID
+  id: ID
   startTime: String
   endTime: String
   OrderStatus: OrderStatusValue
@@ -38,15 +39,15 @@ type riderOrderInfoPayload {
 
 # }
 type OrderReport {
-  _id: ID!
+  _id: ID
   riderID: String
   riderName: String
   branchCity: String
   branches: String
   OrderStatus: OrderStatusValue
   deliveryTime: String
-  startTime: DateTime
-  endTime: DateTime
+  startTime: String
+  endTime: String
   username: String
   OrderID: String
   # "branch Info Displayed"implements Node
@@ -219,8 +220,8 @@ type Query {
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
   generateOrderReport(
     branches: String
-    startTime: DateTime
-    endTime: DateTime
+    startTime: String
+    endTime: String
     riderID: String
     OrderID: String
     fromDate: DateTime
