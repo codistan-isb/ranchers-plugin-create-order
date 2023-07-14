@@ -254,6 +254,7 @@ export default {
   },
   Mutation: {
     async createRiderOrder(parent, { orders }, context, info) {
+      console.log("orders ", orders);
       const now = new Date();
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -271,7 +272,7 @@ export default {
       const CurrentRiderID = context.user.id;
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
 
-      // console.log("CustomerOrder ", CustomerOrder);
+      console.log("CustomerOrder ", CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
@@ -449,13 +450,13 @@ export default {
               // console.log("context Mutation: ", paymentIntentClientSecret1);
 
               const updateOrders = { $set: { "workflow.status": "pickedUp" } };
-              const options = { new: true };
+              const options = { new: false };
               const updatedOrder = await Orders.findOneAndUpdate(
                 { _id: AllOrdersArray[0].OrderID },
                 updateOrders,
                 options
               );
-              // console.log("updated Order:- ", updatedOrder);
+              console.log("updated Order:- ", updatedOrder);
             }
           }
           // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
@@ -1216,12 +1217,12 @@ export default {
         .sort({ createdAt: -1 })
         .toArray();
       // console.log("ordersResp ", ordersResp);
-      // const ordersWithId = ordersResp.map((order) => ({
-      //   id: order._id,
-      //   ...order,
-      // }));
-      // console.log("ordersWithId:- ", ordersWithId);
-      return ordersResp;
+      const ordersWithId = ordersResp.map((order) => ({
+        id: order._id,
+        ...order,
+      }));
+      console.log("ordersWithId:- ", ordersWithId);
+      return ordersWithId;
     },
     async getCustomerOrderbyID(parent, args, context, info) {
       if (context.user === undefined || context.user === null) {
