@@ -268,10 +268,10 @@ export default {
       todayEnd.setHours(23, 59, 59, 999);
       // console.log("Hello");
       const AllOrdersArray = orders;
-      const { RiderOrder, Accounts, Orders } = context.collections;
+      const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
+        context.collections;
       const CurrentRiderID = context.user.id;
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
-
       console.log("CustomerOrder ", CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
@@ -318,6 +318,13 @@ export default {
             },
             { new: true }
           );
+          const createdOrderIDs = {
+            OrderID: RiderIDForAssign[0].OrderID,
+            RiderID: RiderIDForAssign[0].riderID,
+            branches: RiderIDForAssign[0].branches,
+            createdAt: new Date(),
+          };
+          await RiderOrderHistory.insertOne(createdOrderIDs);
           // console.log("insertedOrders1:- ", insertedOrders1);
           const message = "Order has been assigned";
           const appType = "rider";
@@ -351,6 +358,7 @@ export default {
               const insertedOrders = await RiderOrder.insertMany(
                 RiderIDForAssign
               );
+
               // console.log("here");
               // console.log("inserted Data:- ", insertedOrders[0])
               // console.log(AllOrdersArray);
@@ -417,6 +425,13 @@ export default {
         // console.log("else 2 part")
         try {
           const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
+          const createdOrderIDs = {
+            OrderID: RiderIDForAssign[0].OrderID,
+            RiderID: RiderIDForAssign[0].riderID,
+            branches: RiderIDForAssign[0].branches,
+            createdAt: new Date(),
+          };
+          await RiderOrderHistory.insertOne(createdOrderIDs);
           // console.log(insertedOrders.insertedIds);
           // console.log("inserted Data:- ", insertedOrders)
           // console.log(AllOrdersArray);
