@@ -541,6 +541,7 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
+      const now = new Date();
       const CurrentRiderID = context.user.id;
       // console.log(OrderID);
       const { RiderOrder, Orders } = context.collections;
@@ -558,10 +559,10 @@ export default {
         update.rejectionReason = rejectionReason;
       }
       if (startTime) {
-        update.startTime = startTime;
+        update.startTime = now;
       }
       if (endTime) {
-        update.endTime = endTime;
+        update.endTime = now;
         const getStartTimeResp = await RiderOrder.findOne({ OrderID: OrderID });
         // console.log(getStartTimeResp.startTime);
         if (getStartTimeResp) {
