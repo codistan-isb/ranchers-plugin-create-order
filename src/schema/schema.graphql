@@ -194,6 +194,10 @@ input NewRiderOrderInput {
   riderID: String
   oldRiderID: String
 }
+input transferOrderInput {
+  orderID: String!
+  branchId: String!
+}
 
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): Order
@@ -210,6 +214,7 @@ type Mutation {
   assignBranchtoUser(userID: ID!, branches: String!): UserBranchData!
   updateAccountAdmin(userID: ID!, branches: String!): UserBranchData!
   addBranchNotes(orderId: ID!, Notes: String!): Order
+  transferOrder(input: transferOrderInput): Order
 }
 # enum OrderReportSortBy {
 #   startTime

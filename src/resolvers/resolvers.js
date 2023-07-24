@@ -1,6 +1,7 @@
 import ObjectID from "mongodb";
 import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
 import ReactionError from "@reactioncommerce/reaction-error";
+import { decodeOrderOpaqueId } from "../xforms/id.js";
 
 export default {
   Order: {
@@ -20,7 +21,7 @@ export default {
       }
     },
     async riderInfo(parent, args, context, info) {
-      // console.log("parent", parent);
+      console.log("parent", parent);
       const { RiderOrder, Accounts } = context.collections;
       const id = parent.id || parent._id;
       // console.log("OrderID:- ", id);
@@ -214,7 +215,7 @@ export default {
       const { RiderOrder, Accounts } = context.collections;
       const { riderID } = parent;
       const RiderInfoResp = await Accounts.findOne({ _id: riderID });
-      // console.log("Rider Info Resp : ", RiderInfoResp);
+      console.log("Rider Info Resp : ", RiderInfoResp);
       return RiderInfoResp;
       // console.log("OrderID:- ", id);
       // if (riderID) {
@@ -845,23 +846,37 @@ export default {
         const { users, Accounts } = context.collections;
         const { userID, branches } = args;
         const newBranchValue = branches;
+        let updateAccountResult;
+        let newBranchValueRIder = [];
+        newBranchValueRIder.push(branches);
+
         // console.log(newBranchValue);
         const checkAccountResponse = await Accounts.findOne({ _id: userID });
-        // console.log(checkAccountResponse);
+        console.log("checkAccountResponse: ", checkAccountResponse);
         // Check if the new branch already exists in the branches array
         if (
           checkAccountResponse.branches &&
           checkAccountResponse.branches.includes(newBranchValue)
         ) {
           throw new ReactionError("duplicate", "branch already assigned");
-
           // throw new ReactionError("Duplicate Error", "branch already assigned");
         }
-        // If the new value doesn't exist, update the branches array and return the new value
-        const updateAccountResult = await Accounts.updateOne(
-          { _id: userID },
-          { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
-        );
+        console.log("newBranchValue", newBranchValue);
+        if (checkAccountResponse?.UserRole === "rider") {
+          updateAccountResult = await Accounts.updateOne(
+            { _id: userID },
+            { $set: { branches: newBranchValueRIder } } // $addToSet only adds the value if it doesn't already exist
+          );
+          const updateUserResult = await users.updateOne(
+            { _id: userID },
+            { $set: { branches: newBranchValueRIder } } // $addToSet only adds the value if it doesn't already exist
+          );
+        } else {
+          updateAccountResult = await Accounts.updateOne(
+            { _id: userID },
+            { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
+          );
+        }
         // console.log(updateAccountResult);
         if (updateAccountResult.modifiedCount !== 1) {
           if (!updatedAccount)
@@ -910,6 +925,67 @@ export default {
           "server-error",
           "Something went wrong , please try later"
         );
+      }
+    },
+    async transferOrder(parent, { input }, context, info) {
+      console.log("args ", input);
+      const { orderID, branchId } = input;
+      const { Orders, Accounts, BranchData } = context.collections;
+      if (
+        context.user === undefined ||
+        context.user === null ||
+        context.user === ""
+      ) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+      const modifier = {
+        $set: {
+          updatedAt: new Date(),
+        },
+      };
+      modifier.$set.branchID = branchId;
+      const { modifiedCount, value: updatedOrder } =
+        await Orders.findOneAndUpdate(
+          { _id: decodeOrderOpaqueId(orderID) },
+          modifier,
+          {
+            returnOriginal: false,
+          }
+        );
+      // const dispatcherId= await Accounts.findOne{""}
+      const account = await Accounts.findOne({ branches: { $in: [branchId] } });
+      console.log("account ", account);
+      const branchData = await BranchData.findOne({
+        _id: ObjectID.ObjectId(branchId),
+      });
+      // console.log("branchData ", branchData);
+
+      const message = `Order has been assigned to ${branchData?.name} and order id is ${orderID}`;
+      const appType = "admin";
+      const id = account?._id;
+      // let OrderIDs = orderID;
+      const paymentIntentClientSecret =
+        await context.mutations.oneSignalCreateNotification(context, {
+          message,
+          id,
+          appType,
+          userId: id,
+          // orderID: OrderIDs,
+        });
+      // await context.mutations.oneSignalCreateNotification(context, {
+      //   message,
+      //   id,
+      //   appType: appType1,
+      //   userId: id,
+      // });
+      // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
+      if (updatedOrder) {
+        return updatedOrder;
+      } else {
+        throw new ReactionError("not-found", "Order not found");
       }
     },
   },
