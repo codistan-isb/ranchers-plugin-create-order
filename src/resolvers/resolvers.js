@@ -963,7 +963,7 @@ export default {
       });
       // console.log("branchData ", branchData);
 
-      const message = `Order has been assigned to ${branchData?.name} and order id is ${orderID}`;
+      const message = `Order has been assigned to ${branchData?.name} branch and order id is ${orderID}`;
       const appType = "admin";
       const id = account?._id;
       // let OrderIDs = orderID;
