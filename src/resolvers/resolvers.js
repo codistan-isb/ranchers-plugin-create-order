@@ -542,7 +542,9 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const now = new Date();
+      console.log("start ", startTime);
+      console.log("end ", endTime);
+      // const now = new Date();
       const CurrentRiderID = context.user.id;
       // console.log(OrderID);
       const { RiderOrder, Orders } = context.collections;
@@ -560,10 +562,10 @@ export default {
         update.rejectionReason = rejectionReason;
       }
       if (startTime) {
-        update.startTime = new Date(startTime);
+        update.startTime = startTime;
       }
       if (endTime) {
-        update.endTime = new Date(startTime);
+        update.endTime = endTime;
         const getStartTimeResp = await RiderOrder.findOne({ OrderID: OrderID });
         // console.log(getStartTimeResp.startTime);
         if (getStartTimeResp) {
@@ -619,10 +621,13 @@ export default {
             $set: {
               "workflow.status": OrderStatus,
               rejectionReason: rejectionReason,
+              updatedAt: new Date(),
             },
           };
         } else {
-          updateOrders = { $set: { "workflow.status": OrderStatus } };
+          updateOrders = {
+            $set: { "workflow.status": OrderStatus, updatedAt: new Date() },
+          };
         }
         const options = { new: true };
         const updatedOrder = await Orders.findOneAndUpdate(
@@ -631,24 +636,6 @@ export default {
           options
         );
         // console.log("updatedOrder ", updatedOrder.value.accountId);
-        // console.log("OrderStatus ", OrderStatus);
-        if (updatedOrder) {
-          // const message = `Your order has been ${OrderStatus}`;
-          // const appType = "customer";
-          // const id = updatedOrder.value.accountId;
-          // const orderID = OrderID;
-          // const userId = updatedOrder.value.accountId;
-          // const paymentIntentClientSecret =
-          //   await context.mutations.oneSignalCreateNotification(context, {
-          //     message,
-          //     id,
-          //     appType,
-          //     userId,
-          //     orderID,
-          //   });
-          // console.log("context Mutation: ", paymentIntentClientSecret);
-        }
-        // console.log("updated Order:- ", updatedOrder);
       }
       if (OrderStatus === "ready") {
         const updatedBranch = {
@@ -703,7 +690,7 @@ export default {
         const updatedOrderResp = await RiderOrder.findOne({
           OrderID: OrderID,
         });
-        // console.log("updated Order Resp", updatedOrderResp);
+        console.log("updated Order Resp", updatedOrderResp);
         // return updatedOrderResp;
         if (updatedOrderResp) {
           return {
@@ -735,7 +722,7 @@ export default {
       // console.log(args.status);
       // console.log(context.user);
       const currentStatus = args.status;
-      const now = new Date();
+      // const now = new Date();
       const userID = context.user.id;
       if (!userID) {
         throw new ReactionError(

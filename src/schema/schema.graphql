@@ -1,15 +1,15 @@
 extend type Order {
   _id: ID
   id: ID
-  startTime: String
-  endTime: String
+  startTime: DateTime
+  endTime: DateTime
   OrderStatus: OrderStatusValue
   deliveryTime: Float
   OrderID: String
   username: String
   branches: String
   riderID: String
-  deliveryTime: Float
+  # deliveryTime: Float
   "branch Info Displayed"
   branchInfo: Branch
   Notes: String
@@ -203,8 +203,8 @@ type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): Order
   updateRiderOrder(
     id: ID
-    startTime: String
-    endTime: String
+    startTime: DateTime
+    endTime: DateTime
     OrderStatus: OrderStatusValue
     OrderID: String!
     riderID: String!
