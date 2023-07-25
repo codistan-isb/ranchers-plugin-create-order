@@ -332,23 +332,23 @@ export default {
           const appType1 = "customer";
           const id = RiderIDForAssign[0].riderID;
           let OrderIDs = RiderIDForAssign[0].OrderID;
-          const paymentIntentClientSecret =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id,
-              appType,
-              userId: id,
-            });
+          // const paymentIntentClientSecret =
+          //   context.mutations.oneSignalCreateNotification(context, {
+          //     message,
+          //     id,
+          //     appType,
+          //     userId: id,
+          //   });
           // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
           if (CustomerAccountID) {
-            const paymentIntentClientSecret1 =
-              context.mutations.oneSignalCreateNotification(context, {
-                message,
-                id: CustomerAccountID,
-                appType: appType1,
-                userId: CustomerAccountID,
-                orderID: OrderIDs,
-              });
+            // const paymentIntentClientSecret1 =
+            //   context.mutations.oneSignalCreateNotification(context, {
+            //     message,
+            //     id: CustomerAccountID,
+            //     appType: appType1,
+            //     userId: CustomerAccountID,
+            //     orderID: OrderIDs,
+            //   });
             // console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
           }
           if (insertedOrders1) {
@@ -371,23 +371,23 @@ export default {
                 const id = RiderIDForAssign[0].riderID;
                 const appType1 = "customer";
                 let OrderIDs = RiderIDForAssign[0].OrderID;
-                const paymentIntentClientSecret =
-                  context.mutations.oneSignalCreateNotification(context, {
-                    message,
-                    id,
-                    appType,
-                    id,
-                  });
+                // const paymentIntentClientSecret =
+                //   context.mutations.oneSignalCreateNotification(context, {
+                //     message,
+                //     id,
+                //     appType,
+                //     id,
+                //   });
                 // console.log("context Mutation: ", paymentIntentClientSecret);
                 if (CustomerAccountID) {
-                  const paymentIntentClientSecret1 =
-                    context.mutations.oneSignalCreateNotification(context, {
-                      message: customerMessage,
-                      id: CustomerAccountID,
-                      appType: appType1,
-                      userId: CustomerAccountID,
-                      orderID: OrderIDs,
-                    });
+                  // const paymentIntentClientSecret1 =
+                  //   context.mutations.oneSignalCreateNotification(context, {
+                  //     message: customerMessage,
+                  //     id: CustomerAccountID,
+                  //     appType: appType1,
+                  //     userId: CustomerAccountID,
+                  //     orderID: OrderIDs,
+                  //   });
                   // console.log("context Mutation: ", paymentIntentClientSecret1);
 
                   const updateOrders = {
@@ -443,23 +443,23 @@ export default {
             const userId = RiderIDForAssign[0].riderID;
             const appType1 = "customer";
             let OrderIDs = RiderIDForAssign[0].OrderID;
-            const paymentIntentClientSecret =
-              context.mutations.oneSignalCreateNotification(context, {
-                message,
-                id,
-                appType,
-                userId,
-              });
+            // const paymentIntentClientSecret =
+            //   context.mutations.oneSignalCreateNotification(context, {
+            //     message,
+            //     id,
+            //     appType,
+            //     userId,
+            //   });
             // console.log("context Mutation: ", paymentIntentClientSecret);
             if (CustomerAccountID) {
-              const paymentIntentClientSecret1 =
-                context.mutations.oneSignalCreateNotification(context, {
-                  message: customerMessage,
-                  id: CustomerAccountID,
-                  appType: appType1,
-                  userId: CustomerAccountID,
-                  orderID: OrderIDs,
-                });
+              // const paymentIntentClientSecret1 =
+              //   context.mutations.oneSignalCreateNotification(context, {
+              //     message: customerMessage,
+              //     id: CustomerAccountID,
+              //     appType: appType1,
+              //     userId: CustomerAccountID,
+              //     orderID: OrderIDs,
+              //   });
               // console.log("context Mutation: ", paymentIntentClientSecret1);
 
               const updateOrders = { $set: { "workflow.status": "pickedUp" } };
@@ -590,22 +590,22 @@ export default {
         const id = CurrentRiderID;
         const userId = CurrentRiderID;
         // const paymentIntentClientSecret =
-        context.mutations.oneSignalCreateNotification(context, {
-          message,
-          id,
-          appType,
-          userId,
-        });
+        // context.mutations.oneSignalCreateNotification(context, {
+        //   message,
+        //   id,
+        //   appType,
+        //   userId,
+        // });
         // console.log("context Mutation: ", paymentIntentClientSecret);
         if (CustomerAccountID) {
-          const paymentIntentClientSecret1 =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id: CustomerAccountID,
-              appType: appTypeCustomer,
-              userId: CustomerAccountID,
-              orderID: OrderID,
-            });
+          // const paymentIntentClientSecret1 =
+          //   context.mutations.oneSignalCreateNotification(context, {
+          //     message,
+          //     id: CustomerAccountID,
+          //     appType: appTypeCustomer,
+          //     userId: CustomerAccountID,
+          //     orderID: OrderID,
+          //   });
           // console.log(
           //   " Customer Order context Mutation: ",
           //   paymentIntentClientSecret1
@@ -644,23 +644,23 @@ export default {
         const appTypecustomer = "customer";
         const id = userId;
         // const orderID = orderId;
-        const paymentIntentClientSecret =
-          context.mutations.oneSignalCreateNotification(context, {
-            message,
-            id,
-            appType,
-            userId,
-            // orderID,
-          });
+        // const paymentIntentClientSecret =
+        //   context.mutations.oneSignalCreateNotification(context, {
+        //     message,
+        //     id,
+        //     appType,
+        //     userId,
+        //     // orderID,
+        //   });
         if (CustomerAccountID) {
-          const paymentIntentClientSecret1 =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id: CustomerAccountID,
-              appType: appTypecustomer,
-              userId: CustomerAccountID,
-              orderID: OrderID,
-            });
+          // const paymentIntentClientSecret1 =
+          //   context.mutations.oneSignalCreateNotification(context, {
+          //     message,
+          //     id: CustomerAccountID,
+          //     appType: appTypecustomer,
+          //     userId: CustomerAccountID,
+          //     orderID: OrderID,
+          //   });
           // console.log(
           //   " Customer Order context Mutation: ",
           //   paymentIntentClientSecret1
@@ -952,20 +952,20 @@ export default {
       const appType1 = "admin";
       const id = account?._id;
       let OrderIDs = orderID;
-      const paymentIntentClientSecret =
-        context.mutations.oneSignalCreateNotification(context, {
-          message,
-          id,
-          appType,
-          userId: id,
-          orderID: OrderIDs,
-        });
-      context.mutations.oneSignalCreateNotification(context, {
-        message,
-        id,
-        appType: appType1,
-        userId: id,
-      });
+      // const paymentIntentClientSecret =
+      //   context.mutations.oneSignalCreateNotification(context, {
+      //     message,
+      //     id,
+      //     appType,
+      //     userId: id,
+      //     orderID: OrderIDs,
+      //   });
+      // context.mutations.oneSignalCreateNotification(context, {
+      //   message,
+      //   id,
+      //   appType: appType1,
+      //   userId: id,
+      // });
       // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
       if (updatedOrder) {
         return updatedOrder;
