@@ -47,8 +47,8 @@ type OrderReport {
   branches: String
   OrderStatus: OrderStatusValue
   deliveryTime: String
-  startTime: String
-  endTime: String
+  startTime: DateTime
+  endTime: DateTime
   username: String
   OrderID: String
   # "branch Info Displayed"implements Node
