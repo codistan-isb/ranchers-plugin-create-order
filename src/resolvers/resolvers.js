@@ -587,7 +587,7 @@ export default {
           message = `Order is ${OrderStatus}`;
         }
         const appType = "admin";
-        const appTypecustomer = "customer";
+        const appTypeCustomer = "customer";
         const id = CurrentRiderID;
         const userId = CurrentRiderID;
         // const paymentIntentClientSecret =
@@ -603,7 +603,7 @@ export default {
             await context.mutations.oneSignalCreateNotification(context, {
               message,
               id: CustomerAccountID,
-              appType: appTypecustomer,
+              appType: appTypeCustomer,
               userId: CustomerAccountID,
               orderID: OrderID,
             });
