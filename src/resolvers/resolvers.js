@@ -535,7 +535,7 @@ export default {
       context,
       info
     ) {
-      // console.log(context.user);
+      console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -560,10 +560,10 @@ export default {
         update.rejectionReason = rejectionReason;
       }
       if (startTime) {
-        update.startTime = now;
+        update.startTime = new Date(startTime);
       }
       if (endTime) {
-        update.endTime = now;
+        update.endTime = new Date(startTime);
         const getStartTimeResp = await RiderOrder.findOne({ OrderID: OrderID });
         // console.log(getStartTimeResp.startTime);
         if (getStartTimeResp) {
@@ -590,13 +590,13 @@ export default {
         const appTypecustomer = "customer";
         const id = CurrentRiderID;
         const userId = CurrentRiderID;
-        const paymentIntentClientSecret =
-          await context.mutations.oneSignalCreateNotification(context, {
-            message,
-            id,
-            appType,
-            userId,
-          });
+        // const paymentIntentClientSecret =
+        //   await context.mutations.oneSignalCreateNotification(context, {
+        //     message,
+        //     id,
+        //     appType,
+        //     userId,
+        //   });
         // console.log("context Mutation: ", paymentIntentClientSecret);
         if (CustomerAccountID) {
           const paymentIntentClientSecret1 =
@@ -689,7 +689,7 @@ export default {
       if (OrderID) {
         update.OrderID = OrderID;
       }
-      // console.log("Update ", update);
+      console.log("Update ", update);
       const options = { new: true };
       const response = await RiderOrder.findOneAndUpdate(
         filter,
