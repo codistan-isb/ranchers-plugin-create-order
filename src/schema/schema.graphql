@@ -51,6 +51,7 @@ type OrderReport {
   endTime: DateTime
   username: String
   OrderID: String
+  orderInfo: Order
   # "branch Info Displayed"implements Node
   branchInfo: Branch
   rejectionReason: String

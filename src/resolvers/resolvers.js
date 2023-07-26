@@ -21,7 +21,7 @@ export default {
       }
     },
     async riderInfo(parent, args, context, info) {
-      console.log("parent", parent);
+      // console.log("parent", parent);
       const { RiderOrder, Accounts } = context.collections;
       const id = parent.id || parent._id;
       // console.log("OrderID:- ", id);
@@ -124,7 +124,7 @@ export default {
       }
     },
     async kitchenOrderIDInfo(parent, args, context, info) {
-      console.log("Parent ", parent.OrderID);
+      // console.log("Parent ", parent.OrderID);
       const { Orders } = context.collections;
       const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
       // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
@@ -164,7 +164,7 @@ export default {
         const branchDataResponse = await BranchData.find({
           _id: ObjectID.ObjectId(BranchID),
         }).toArray();
-        console.log("Branch Data : ", branchDataResponse[0]);
+        // console.log("Branch Data : ", branchDataResponse[0]);
         return branchDataResponse[0];
       } else {
         return [];
@@ -210,12 +210,12 @@ export default {
       }
     },
     async riderInfo(parent, args, context, info) {
-      console.log("parent.riderID", parent.riderID);
-      console.log("parent", parent);
+      // console.log("parent.riderID", parent.riderID);
+      // console.log("parent", parent);
       const { RiderOrder, Accounts } = context.collections;
       const { riderID } = parent;
       const RiderInfoResp = await Accounts.findOne({ _id: riderID });
-      console.log("Rider Info Resp : ", RiderInfoResp);
+      // console.log("Rider Info Resp : ", RiderInfoResp);
       return RiderInfoResp;
       // console.log("OrderID:- ", id);
       // if (riderID) {
@@ -247,6 +247,20 @@ export default {
             prepTime: orderDetailResp?.prepTime || 20,
             deliveryTime: orderDetailResp?.deliveryTime || null,
           };
+        } else {
+          return null;
+        }
+      }
+    },
+    async orderInfo(parent, args, context, info) {
+      const { Orders } = context.collections;
+      // console.log("parent of order report ", parent);
+      if (parent?.OrderID) {
+        const orderInfoResp = await Orders.findOne({
+          _id: parent?.OrderID,
+        });
+        if (orderInfoResp) {
+          return orderInfoResp;
         } else {
           return null;
         }
@@ -332,23 +346,23 @@ export default {
           const appType1 = "customer";
           const id = RiderIDForAssign[0].riderID;
           let OrderIDs = RiderIDForAssign[0].OrderID;
-          // const paymentIntentClientSecret =
-          //   context.mutations.oneSignalCreateNotification(context, {
-          //     message,
-          //     id,
-          //     appType,
-          //     userId: id,
-          //   });
+          const paymentIntentClientSecret =
+            context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id,
+              appType,
+              userId: id,
+            });
           // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
           if (CustomerAccountID) {
-            // const paymentIntentClientSecret1 =
-            //   context.mutations.oneSignalCreateNotification(context, {
-            //     message,
-            //     id: CustomerAccountID,
-            //     appType: appType1,
-            //     userId: CustomerAccountID,
-            //     orderID: OrderIDs,
-            //   });
+            const paymentIntentClientSecret1 =
+              context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id: CustomerAccountID,
+                appType: appType1,
+                userId: CustomerAccountID,
+                orderID: OrderIDs,
+              });
             // console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
           }
           if (insertedOrders1) {
@@ -371,23 +385,23 @@ export default {
                 const id = RiderIDForAssign[0].riderID;
                 const appType1 = "customer";
                 let OrderIDs = RiderIDForAssign[0].OrderID;
-                // const paymentIntentClientSecret =
-                //   context.mutations.oneSignalCreateNotification(context, {
-                //     message,
-                //     id,
-                //     appType,
-                //     id,
-                //   });
+                const paymentIntentClientSecret =
+                  context.mutations.oneSignalCreateNotification(context, {
+                    message,
+                    id,
+                    appType,
+                    id,
+                  });
                 // console.log("context Mutation: ", paymentIntentClientSecret);
                 if (CustomerAccountID) {
-                  // const paymentIntentClientSecret1 =
-                  //   context.mutations.oneSignalCreateNotification(context, {
-                  //     message: customerMessage,
-                  //     id: CustomerAccountID,
-                  //     appType: appType1,
-                  //     userId: CustomerAccountID,
-                  //     orderID: OrderIDs,
-                  //   });
+                  const paymentIntentClientSecret1 =
+                    context.mutations.oneSignalCreateNotification(context, {
+                      message: customerMessage,
+                      id: CustomerAccountID,
+                      appType: appType1,
+                      userId: CustomerAccountID,
+                      orderID: OrderIDs,
+                    });
                   // console.log("context Mutation: ", paymentIntentClientSecret1);
 
                   const updateOrders = {
@@ -444,22 +458,22 @@ export default {
             const appType1 = "customer";
             let OrderIDs = RiderIDForAssign[0].OrderID;
             // const paymentIntentClientSecret =
-            //   context.mutations.oneSignalCreateNotification(context, {
-            //     message,
-            //     id,
-            //     appType,
-            //     userId,
-            //   });
+            context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id,
+              appType,
+              userId,
+            });
             // console.log("context Mutation: ", paymentIntentClientSecret);
             if (CustomerAccountID) {
               // const paymentIntentClientSecret1 =
-              //   context.mutations.oneSignalCreateNotification(context, {
-              //     message: customerMessage,
-              //     id: CustomerAccountID,
-              //     appType: appType1,
-              //     userId: CustomerAccountID,
-              //     orderID: OrderIDs,
-              //   });
+              context.mutations.oneSignalCreateNotification(context, {
+                message: customerMessage,
+                id: CustomerAccountID,
+                appType: appType1,
+                userId: CustomerAccountID,
+                orderID: OrderIDs,
+              });
               // console.log("context Mutation: ", paymentIntentClientSecret1);
 
               const updateOrders = { $set: { "workflow.status": "pickedUp" } };
@@ -589,23 +603,23 @@ export default {
         const appTypeCustomer = "customer";
         const id = CurrentRiderID;
         const userId = CurrentRiderID;
-        // const paymentIntentClientSecret =
-        // context.mutations.oneSignalCreateNotification(context, {
-        //   message,
-        //   id,
-        //   appType,
-        //   userId,
-        // });
+        const paymentIntentClientSecret =
+          context.mutations.oneSignalCreateNotification(context, {
+            message,
+            id,
+            appType,
+            userId,
+          });
         // console.log("context Mutation: ", paymentIntentClientSecret);
         if (CustomerAccountID) {
-          // const paymentIntentClientSecret1 =
-          //   context.mutations.oneSignalCreateNotification(context, {
-          //     message,
-          //     id: CustomerAccountID,
-          //     appType: appTypeCustomer,
-          //     userId: CustomerAccountID,
-          //     orderID: OrderID,
-          //   });
+          const paymentIntentClientSecret1 =
+            context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id: CustomerAccountID,
+              appType: appTypeCustomer,
+              userId: CustomerAccountID,
+              orderID: OrderID,
+            });
           // console.log(
           //   " Customer Order context Mutation: ",
           //   paymentIntentClientSecret1
@@ -644,23 +658,23 @@ export default {
         const appTypecustomer = "customer";
         const id = userId;
         // const orderID = orderId;
-        // const paymentIntentClientSecret =
-        //   context.mutations.oneSignalCreateNotification(context, {
-        //     message,
-        //     id,
-        //     appType,
-        //     userId,
-        //     // orderID,
-        //   });
+        const paymentIntentClientSecret =
+          context.mutations.oneSignalCreateNotification(context, {
+            message,
+            id,
+            appType,
+            userId,
+            // orderID,
+          });
         if (CustomerAccountID) {
-          // const paymentIntentClientSecret1 =
-          //   context.mutations.oneSignalCreateNotification(context, {
-          //     message,
-          //     id: CustomerAccountID,
-          //     appType: appTypecustomer,
-          //     userId: CustomerAccountID,
-          //     orderID: OrderID,
-          //   });
+          const paymentIntentClientSecret1 =
+            context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id: CustomerAccountID,
+              appType: appTypecustomer,
+              userId: CustomerAccountID,
+              orderID: OrderID,
+            });
           // console.log(
           //   " Customer Order context Mutation: ",
           //   paymentIntentClientSecret1
@@ -952,20 +966,21 @@ export default {
       const appType1 = "admin";
       const id = account?._id;
       let OrderIDs = orderID;
-      // const paymentIntentClientSecret =
-      //   context.mutations.oneSignalCreateNotification(context, {
-      //     message,
-      //     id,
-      //     appType,
-      //     userId: id,
-      //     orderID: OrderIDs,
-      //   });
-      // context.mutations.oneSignalCreateNotification(context, {
-      //   message,
-      //   id,
-      //   appType: appType1,
-      //   userId: id,
-      // });
+      const paymentIntentClientSecret =
+        context.mutations.oneSignalCreateNotification(context, {
+          message,
+          id,
+          appType,
+          userId: id,
+          orderID: OrderIDs,
+        });
+      const paymentIntentClientSecret1 =
+        context.mutations.oneSignalCreateNotification(context, {
+          message,
+          id,
+          appType: appType1,
+          userId: id,
+        });
       // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
       if (updatedOrder) {
         return updatedOrder;
@@ -1021,20 +1036,21 @@ export default {
       })
         .sort({ createdAt: -1 })
         .toArray();
-      // console.log("orders ", orders);
+      console.log("orders ", orders);
 
       if (orders) {
         // Current Login User Order
         const filteredOrders = orders.filter(
           (order) => order.riderID === LoginUserID
         );
-        // console.log("Filter Order: ", filteredOrders);
+        console.log("Filter Order: ", filteredOrders);
         // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
         if (filteredOrders) {
           const ordersWithId = filteredOrders.map((order) => ({
             id: order._id,
             ...order,
           }));
+          console.log("ordersWithId ", ordersWithId);
           return ordersWithId;
         } else {
           return null;
@@ -1298,7 +1314,7 @@ export default {
         id: order._id,
         ...order,
       }));
-      console.log("ordersWithId:- ", ordersWithId);
+      // console.log("ordersWithId:- ", ordersWithId);
       return ordersWithId;
     },
     async getCustomerOrderbyID(parent, args, context, info) {
@@ -1310,11 +1326,11 @@ export default {
       }
       const { Orders } = context.collections;
       const { ID } = args;
-      console.log(decodeOpaqueId(ID).id);
+      // console.log(decodeOpaqueId(ID).id);
       const CustomerOrderResp = await Orders.findOne({
         _id: decodeOpaqueId(ID).id,
       });
-      console.log("CustomerOrderResp", CustomerOrderResp);
+      // console.log("CustomerOrderResp", CustomerOrderResp);
       return CustomerOrderResp;
     },
   },
