@@ -180,15 +180,15 @@ type UserBranchData {
 }
 type RiderOrderDetail {
   OrderID: ID
-  startTime: String
-  endTime: String
+  startTime: DateTime
+  endTime: DateTime
   OrderStatus: OrderStatusValue
   branches: String
   username: String
 }
 input NewRiderOrderInput {
-  startTime: String
-  endTime: String
+  startTime: DateTime
+  endTime: DateTime
   OrderStatus: OrderStatusValue!
   OrderID: String
   branches: ID!
@@ -227,8 +227,8 @@ type Query {
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
   generateOrderReport(
     branches: String
-    startTime: String
-    endTime: String
+    startTime: DateTime
+    endTime: DateTime
     riderID: String
     OrderID: String
     fromDate: DateTime
