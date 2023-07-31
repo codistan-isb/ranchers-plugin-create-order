@@ -2,6 +2,8 @@ import ObjectID from "mongodb";
 import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
 import ReactionError from "@reactioncommerce/reaction-error";
 import { decodeOrderOpaqueId } from "../xforms/id.js";
+import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
+import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 
 export default {
   Order: {
@@ -483,7 +485,7 @@ export default {
                 updateOrders,
                 options
               );
-              console.log("updated Order:- ", updatedOrder);
+              // console.log("updated Order:- ", updatedOrder);
             }
           }
           // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
@@ -850,7 +852,7 @@ export default {
 
         // console.log(newBranchValue);
         const checkAccountResponse = await Accounts.findOne({ _id: userID });
-        console.log("checkAccountResponse: ", checkAccountResponse);
+        // console.log("checkAccountResponse: ", checkAccountResponse);
         // Check if the new branch already exists in the branches array
         if (
           checkAccountResponse.branches &&
@@ -859,7 +861,7 @@ export default {
           throw new ReactionError("duplicate", "branch already assigned");
           // throw new ReactionError("Duplicate Error", "branch already assigned");
         }
-        console.log("newBranchValue", newBranchValue);
+        // console.log("newBranchValue", newBranchValue);
         if (checkAccountResponse?.UserRole === "rider") {
           updateAccountResult = await Accounts.updateOne(
             { _id: userID },
@@ -990,7 +992,8 @@ export default {
     },
   },
   Query: {
-    async getOrderById(parent, { id }, context, info) {
+    // async getRiderOrderByRiderId()
+    async getRiderOrderByRiderId(parent, { id }, context, info) {
       // console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -1007,6 +1010,34 @@ export default {
       const ordersResp = await RiderOrder.find({
         riderID: id,
         createdAt: { $gte: today },
+      })
+        .sort({ createdAt: -1 })
+        .toArray();
+      console.log("ordersResp ", ordersResp);
+
+      if (ordersResp) {
+        return ordersResp;
+      } else {
+        return null;
+      }
+    },
+    async getOrderById(parent, { id }, context, info) {
+      // console.log(context.user);
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+      const { RiderOrder } = context.collections;
+      if (id === null || id === undefined) {
+        id = context.user.id;
+      }
+      const today = new Date(); // Get current date
+      today.setHours(0, 0, 0, 0);
+      const ordersResp = await RiderOrder.find({
+        riderID: id,
+        // createdAt: { $gte: today },
       })
         .sort({ createdAt: -1 })
         .toArray();
@@ -1036,21 +1067,21 @@ export default {
       })
         .sort({ createdAt: -1 })
         .toArray();
-      console.log("orders ", orders);
+      // console.log("orders ", orders);
 
       if (orders) {
         // Current Login User Order
         const filteredOrders = orders.filter(
           (order) => order.riderID === LoginUserID
         );
-        console.log("Filter Order: ", filteredOrders);
+        // console.log("Filter Order: ", filteredOrders);
         // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
         if (filteredOrders) {
           const ordersWithId = filteredOrders.map((order) => ({
             id: order._id,
             ...order,
           }));
-          console.log("ordersWithId ", ordersWithId);
+          // console.log("ordersWithId ", ordersWithId);
           return ordersWithId;
         } else {
           return null;
@@ -1097,7 +1128,7 @@ export default {
       const { id } = context.user;
       const DateNow = new Date();
       // console.log("DateNow ", DateNow);
-      // const { ...connectionArgs } = args
+      const { ...connectionArgs } = args;
       // const { branches } = args;
       let match = {};
       if (args.riderID) {
@@ -1134,10 +1165,20 @@ export default {
         match.deliveryTime = { $gte: args.deliveryTime };
       }
       // console.log("match ", match);
+      const report = await RiderOrder.find(match);
+      console.log("report ", report);
+      return getPaginatedResponse(report, connectionArgs, {
+        includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+        includeHasPreviousPage: wasFieldRequested(
+          "pageInfo.hasPreviousPage",
+          info
+        ),
+        includeTotalCount: wasFieldRequested("totalCount", info),
+      });
+      // const report = await RiderOrder.find(match).toArray();
+      // // console.log(report);
+      // return report;
 
-      const report = await RiderOrder.find(match).toArray();
-      console.log(report);
-      return report;
       // const report = await RiderOrder.aggregate([
       //   {
       //     $match: match,
