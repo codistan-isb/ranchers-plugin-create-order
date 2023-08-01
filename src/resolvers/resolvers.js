@@ -1166,7 +1166,7 @@ export default {
       }
       // console.log("match ", match);
       const report = await RiderOrder.find(match);
-      console.log("report ", report);
+      // console.log("report ", report);
       return getPaginatedResponse(report, connectionArgs, {
         includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
         includeHasPreviousPage: wasFieldRequested(

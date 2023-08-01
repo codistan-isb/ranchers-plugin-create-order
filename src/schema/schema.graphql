@@ -22,6 +22,7 @@ extend type Order {
   riderOrderInfo: riderOrderInfoPayload
   Latitude: Float
   Longitude: Float
+  riderOrderAmount: Float
   # customerOrderInfo:customerOrderInfoPayload
 }
 
@@ -52,6 +53,7 @@ type OrderReport implements Node {
   username: String
   OrderID: String
   orderInfo: Order
+  riderOrderAmount: Float
   # "branch Info Displayed"implements Node
   branchInfo: Branch
   rejectionReason: String
@@ -194,6 +196,7 @@ input NewRiderOrderInput {
   branches: ID!
   riderID: String
   oldRiderID: String
+  riderOrderAmount: Float
 }
 input transferOrderInput {
   orderID: String!
