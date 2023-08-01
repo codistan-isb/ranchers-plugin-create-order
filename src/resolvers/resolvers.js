@@ -1374,5 +1374,50 @@ export default {
       // console.log("CustomerOrderResp", CustomerOrderResp);
       return CustomerOrderResp;
     },
+    async generateKitchenReport(parent, args, context, info) {
+      const { ...connectionArgs } = args;
+      const { startDate, endDate, branchID, OrderStatus } = args;
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+      const { BranchData, Orders } = context.collections;
+      const query = {};
+      if (branchID) {
+        query.branchID = branchID;
+      }
+      if (OrderStatus) {
+        query["workflow.status"] = args.OrderStatus;
+      }
+      if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        query.createdAt = {
+          $gte: start,
+          $lte: end,
+        };
+      }
+      // console.log("query:- ", query);
+      const ordersResp = await Orders.find(query);
+      // .sort({ createdAt: -1 })
+      // .toArray();
+      console.log("ordersResp ", ordersResp);
+      return getPaginatedResponse(ordersResp, connectionArgs, {
+        includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+        includeHasPreviousPage: wasFieldRequested(
+          "pageInfo.hasPreviousPage",
+          info
+        ),
+        includeTotalCount: wasFieldRequested("totalCount", info),
+      });
+      // const ordersWithId = ordersResp.map((order) => ({
+      //   id: order._id,
+      //   ...order,
+      // }));
+      // // console.log("ordersWithId:- ", ordersWithId);
+      // return ordersWithId;
+    },
   },
 };
