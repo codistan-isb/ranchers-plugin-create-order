@@ -1403,7 +1403,7 @@ export default {
       const ordersResp = await Orders.find(query);
       // .sort({ createdAt: -1 })
       // .toArray();
-      console.log("ordersResp ", ordersResp);
+      // console.log("ordersResp ", ordersResp);
       return getPaginatedResponse(ordersResp, connectionArgs, {
         includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
         includeHasPreviousPage: wasFieldRequested(
