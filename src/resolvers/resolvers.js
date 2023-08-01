@@ -67,12 +67,12 @@ export default {
       }
     },
     async customerOrderTime(parent, args, context, info) {
-      // console.log("Parent ", parent.OrderID);
+      console.log("Parent ", parent);
       const { Orders } = context.collections;
       const customerOrderTimeResp = await Orders.findOne({
         _id: parent.OrderID,
       });
-      // console.log("Customer Resp ", customerOrderTimeResp.createdAt)
+      console.log("Customer Resp ", customerOrderTimeResp);
       if (customerOrderTimeResp) {
         return {
           customerOrderTime: customerOrderTimeResp.createdAt,
@@ -129,7 +129,7 @@ export default {
       // console.log("Parent ", parent.OrderID);
       const { Orders } = context.collections;
       const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
-      // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
+      console.log("kitchenOrderIDResp  ", kitchenOrderIDResp);
       if (kitchenOrderIDResp) {
         return {
           kitchenOrderID: kitchenOrderIDResp.kitchenOrderID,
@@ -139,7 +139,7 @@ export default {
       }
     },
     async riderOrderInfo(parent, args, context, info) {
-      // console.log("Parent ", parent.id);
+      console.log("Parent riderOrderInfo : ", parent);
       const { RiderOrder } = context.collections;
       if (parent.id) {
         const riderOrderInfoResp = await RiderOrder.findOne({
@@ -152,7 +152,16 @@ export default {
           return null;
         }
       } else {
-        return null;
+        let id = decodeOpaqueId(parent._id);
+        const riderOrderInfoResp = await RiderOrder.findOne({
+          OrderID: parent._id,
+        });
+        console.log("riderOrderInfoResp : ", riderOrderInfoResp);
+        if (riderOrderInfoResp) {
+          return riderOrderInfoResp;
+        } else {
+          return null;
+        }
       }
     },
   },
