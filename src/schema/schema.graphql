@@ -20,13 +20,16 @@ extend type Order {
   branchTimePickup: branchTimePickupPayload
   kitchenOrderIDInfo: kitchenOrderIDPayload
   riderOrderInfo: riderOrderInfoPayload
+  orderIdResolver: orderIdResolverPayload
   Latitude: Float
   Longitude: Float
   riderOrderAmount: Float
   riderOrderNotes: String
   # customerOrderInfo:customerOrderInfoPayload
 }
-
+type orderIdResolverPayload {
+  orderId: ID
+}
 type riderOrderInfoPayload {
   _id: ID
   startTime: DateTime

@@ -164,6 +164,14 @@ export default {
         }
       }
     },
+    async orderIdResolver(parent, args, context, info) {
+      console.log("Parent orderIdResolver ", parent);
+      if (parent) {
+        return { orderId: parent?._id };
+      } else {
+        return null;
+      }
+    },
   },
   OrderReport: {
     async branchInfo(parent, args, context, info) {
