@@ -16,6 +16,11 @@ async function register(app) {
         updatedAt: { type: Date, default: Date.now },
         createdAt: { type: Date, default: Date.now },
       },
+      CronJobs: {
+        name: "CronJobs",
+        updatedAt: { type: Date, default: Date.now },
+        createdAt: { type: Date, default: Date.now },
+      },
       RiderOrderHistory: {
         name: "RiderOrderHistory",
         updatedAt: { type: Date, default: Date.now },

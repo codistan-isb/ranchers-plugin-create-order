@@ -2,7 +2,7 @@
   "name": "@codistan-isb/ranchers-plugin-create-order",
   "description": "Boilerplate plugin for the Reaction API",
   "label": "Create Order Plugin",
-  "version": "10.8.3",
+  "version": "10.8.5",
   "main": "index.js",
   "type": "module",
   "engines": {
@@ -29,6 +29,7 @@
     "@reactioncommerce/api-utils": "^1.16.9",
     "escpos": "^3.0.0-alpha.6",
     "escpos-network": "^3.0.0-alpha.5",
+    "node-cron": "^3.0.2",
     "print-js": "^1.6.0"
   },
   "devDependencies": {

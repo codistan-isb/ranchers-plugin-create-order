@@ -1,10 +1,11 @@
 import ObjectID from "mongodb";
+import Random from "@reactioncommerce/random";
 import decodeOpaqueId from "@reactioncommerce/api-utils/decodeOpaqueId.js";
 import ReactionError from "@reactioncommerce/reaction-error";
 import { decodeOrderOpaqueId } from "../xforms/id.js";
 import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
 import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
-
+import executeCronJob from "../utils/executeCronJob.js";
 export default {
   Order: {
     async branchInfo(parent, args, context, info) {
@@ -306,7 +307,7 @@ export default {
         context.collections;
       const CurrentRiderID = context.user.id;
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
-      console.log("CustomerOrder ", CustomerOrder);
+      // console.log("CustomerOrder ", CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
@@ -565,19 +566,19 @@ export default {
       context,
       info
     ) {
-      console.log(context.user);
+      // console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
           "Unauthorized access. Please Login First"
         );
       }
-      console.log("start ", startTime);
-      console.log("end ", endTime);
+      // console.log("start ", startTime);
+      // console.log("end ", endTime);
       // const now = new Date();
       const CurrentRiderID = context.user.id;
       // console.log(OrderID);
-      const { RiderOrder, Orders } = context.collections;
+      const { RiderOrder, Orders, CronJobs } = context.collections;
       const filter = { OrderID: OrderID };
       const CustomerOrder = await Orders.findOne({ _id: OrderID });
       // console.log(CustomerOrder);
@@ -617,6 +618,19 @@ export default {
           message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
         } else {
           message = `Order is ${OrderStatus}`;
+        }
+        if (OrderStatus === "delivered") {
+          let cronJobObject = {
+            _id: Random.id(),
+            userId: CustomerAccountID,
+            orderId: OrderID,
+            createdAt: new Date(),
+            type: "orderFeedback",
+            status: "delivered",
+          };
+          const cronjobResp = await CronJobs.insertOne(cronJobObject);
+          // console.log("cronjobResp ", cronjobResp);
+          const cornJobResp = executeCronJob(context);
         }
         const appType = "admin";
         const appTypeCustomer = "customer";
