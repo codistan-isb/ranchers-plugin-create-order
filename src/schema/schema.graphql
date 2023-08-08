@@ -235,17 +235,6 @@ type Query {
   getOrderById(id: ID!): [Order]
   getRiderOrderByRiderId(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
-  # generateOrderReport(
-  #   branches: String
-  #   startTime: DateTime
-  #   endTime: DateTime
-  #   riderID: String
-  #   OrderID: String
-  #   fromDate: DateTime
-  #   toDate: DateTime
-  #   deliveryTime: Float
-  # ): [OrderReport]
-
   generateOrderReport(
     branches: String
     startTime: DateTime
