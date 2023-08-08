@@ -288,6 +288,177 @@ export default {
     },
   },
   Mutation: {
+    async createRiderMultipleOrder(parent, { orders }, context, info) {
+      console.log("orders ", orders);
+      const now = new Date();
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
+        context.collections;
+      const CurrentRiderID = context?.user?.id;
+      const AllOrdersArray = orders;
+
+      const RiderIDForAssign1 = orders.map((order) => {
+        const riderId = order.riderID ? order.riderID : CurrentRiderID;
+        return {
+          ...order,
+          riderID: riderId,
+          createdAt: now,
+        };
+      });
+      // console.log("RiderIDForAssign1 ", RiderIDForAssign1);
+      const riderID = RiderIDForAssign1[0].riderID;
+
+      const existingOrders1 = await RiderOrder.find({
+        riderID: riderID,
+        OrderStatus: { $ne: "delivered" },
+      }).toArray();
+      if (existingOrders1.length >= 1) {
+        throw new ReactionError(
+          "not-allowed",
+          "Cannot assign new orders. Complete previous order first."
+        );
+      }
+      const insertedOrders = [];
+      for (const order of orders) {
+        const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
+        // console.log("CustomerOrder ", CustomerOrder);
+
+        let CustomerAccountID = "";
+        if (CustomerOrder) {
+          CustomerAccountID = CustomerOrder?.accountId;
+        }
+        // console.log("CustomerAccountID", CustomerAccountID);
+
+        const RiderIDForAssign = {
+          ...order,
+          riderID: order.riderID ? order.riderID : CurrentRiderID,
+          createdAt: now,
+        };
+        // console.log("RiderIDForAssign ", RiderIDForAssign);
+
+        const riderStatus = await Accounts.findOne({
+          _id: RiderIDForAssign.riderID,
+        });
+        // console.log("Status of Rider : ", riderStatus);
+
+        if (riderStatus && riderStatus.currentStatus === "offline") {
+          throw new ReactionError(
+            "not-found",
+            "Rider is offline, cannot create order"
+          );
+        }
+
+        const existingRiderOrder = await RiderOrder.findOne({
+          OrderID: RiderIDForAssign.OrderID,
+        });
+        // console.log("existingRiderOrder:- ", existingRiderOrder);
+
+        if (existingRiderOrder) {
+          // if (existingRiderOrder.riderID !== RiderIDForAssign.riderID) {
+          const updatedOrder = await RiderOrder.findOneAndUpdate(
+            { _id: existingRiderOrder._id },
+            {
+              $set: {
+                riderID: RiderIDForAssign.riderID,
+                branches: RiderIDForAssign.branches,
+                OrderID: RiderIDForAssign.OrderID,
+                OrderStatus: RiderIDForAssign.OrderStatus,
+                startTime: RiderIDForAssign.startTime,
+              },
+            },
+            { new: true }
+          );
+          const createdOrderIDs = {
+            OrderID: RiderIDForAssign.OrderID,
+            RiderID: RiderIDForAssign.riderID,
+            branches: RiderIDForAssign.branches,
+            createdAt: new Date(),
+          };
+          await RiderOrderHistory.insertOne(createdOrderIDs);
+
+          const message = "Order has been assigned";
+          const appType = "rider";
+          const id = RiderIDForAssign.riderID;
+          let OrderIDs = RiderIDForAssign.OrderID;
+          const paymentIntentClientSecret =
+            context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id,
+              appType,
+              userId: id,
+            });
+          if (CustomerAccountID) {
+            const paymentIntentClientSecret1 =
+              context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id: CustomerAccountID,
+                appType: "customer",
+                userId: CustomerAccountID,
+                orderID: OrderIDs,
+              });
+          }
+          if (updatedOrder) {
+            insertedOrders.push(updatedOrder.value);
+          }
+          // } else {
+          //   throw new ReactionError(
+          //     "duplicate",
+          //     "One or more orders already exist for the same branch and day"
+          //   );
+          // }
+        } else {
+          try {
+            const insertedOrder = await RiderOrder.insertOne(RiderIDForAssign);
+            const createdOrderIDs = {
+              OrderID: RiderIDForAssign.OrderID,
+              RiderID: RiderIDForAssign.riderID,
+              branches: RiderIDForAssign.branches,
+              createdAt: new Date(),
+            };
+            await RiderOrderHistory.insertOne(createdOrderIDs);
+
+            const message = "Order has been assigned";
+            const appType = "rider";
+            const id = RiderIDForAssign.riderID;
+            const paymentIntentClientSecret =
+              context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id,
+                appType,
+                userId: id,
+              });
+            if (CustomerAccountID) {
+              const paymentIntentClientSecret1 =
+                context.mutations.oneSignalCreateNotification(context, {
+                  message,
+                  id: CustomerAccountID,
+                  appType: "customer",
+                  userId: CustomerAccountID,
+                  orderID: RiderIDForAssign.OrderID,
+                });
+            }
+            insertedOrders.push(insertedOrder.ops[0]);
+          } catch (err) {
+            if (err.code === 11000) {
+              throw new ReactionError("duplicate", "Order Already Exists");
+            }
+            throw err;
+          }
+        }
+      }
+
+      return insertedOrders;
+    },
     async createRiderOrder(parent, { orders }, context, info) {
       console.log("orders ", orders);
       const now = new Date();
@@ -307,11 +478,12 @@ export default {
         context.collections;
       const CurrentRiderID = context.user.id;
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
-      // console.log("CustomerOrder ", CustomerOrder);
+      console.log("CustomerOrder ", CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
-      } // console.log("CustomerAccountID", CustomerAccountID);
+      }
+      console.log("CustomerAccountID", CustomerAccountID);
       const RiderIDForAssign = orders.map((order) => {
         const riderId = order.riderID ? order.riderID : CurrentRiderID;
         return {
@@ -320,8 +492,9 @@ export default {
           createdAt: now,
         };
       });
+      console.log("RiderIDForAssign ", RiderIDForAssign);
       const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
-      // console.log("Status of Rider : ", riderStatus);
+      console.log("Status of Rider : ", riderStatus);
       if (riderStatus && riderStatus.currentStatus === "offline") {
         throw new ReactionError(
           "not-found",
@@ -331,7 +504,7 @@ export default {
       const existingRiderOrders = await RiderOrder.find({
         OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
       }).toArray();
-      // console.log("existingRiderOrders:- ", existingRiderOrders);
+      console.log("existingRiderOrders:- ", existingRiderOrders);
       if (existingRiderOrders.length > 0) {
         if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
           // const insertedOrders1 = await RiderOrder.insertOne(RiderIDForAssign[0]);
@@ -1303,7 +1476,7 @@ export default {
         console.log("error", error);
       }
     },
-   
+
     async getRiderOrdersByLoginRider(parent, args, context, info) {
       // console.log(context.user);
       if (context.user === undefined || context.user === null) {

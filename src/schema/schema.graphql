@@ -211,6 +211,7 @@ input transferOrderInput {
 
 type Mutation {
   createRiderOrder(orders: [NewRiderOrderInput]): Order
+  createRiderMultipleOrder(orders: [NewRiderOrderInput]): [Order]
   updateRiderOrder(
     id: ID
     startTime: DateTime
