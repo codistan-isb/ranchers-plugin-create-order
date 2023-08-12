@@ -270,9 +270,14 @@ type Query {
   ): [Order]
   generateKitchenReport(
     branchID: String
+
     OrderStatus: OrderStatusValue
+
     startDate: String
+
     endDate: String
+
+    searchQuery: String
     "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
     after: ConnectionCursor
 

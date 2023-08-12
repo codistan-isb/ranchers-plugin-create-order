@@ -1382,6 +1382,7 @@ export default {
           // matchStage.push({ deliveryTime: { $gte: deliveryTime } });
           matchStage.deliveryTime = { $gte: deliveryTime };
         }
+
         if (searchQuery) {
           // Searching for matching riderIDs in Accounts collection
           const matchingRiderIDs = await collections.Accounts.distinct("_id", {
@@ -1415,7 +1416,7 @@ export default {
 
           // Searching for matching OrderIDs in Orders collection
           const matchingOrderIDs = await collections.Orders.distinct("_id", {
-            $or: [
+            $and: [
               {
                 "shipping.0.address.address1": {
                   $regex: new RegExp(searchQuery, "i"),
@@ -1462,7 +1463,7 @@ export default {
         // });
         // console.log("matchStage ", matchStage);
         // console.log("searchQuery ", searchQuery);
-        const report = await RiderOrder.find({ $and: matchStage });
+        const report = await RiderOrder.find({ $or: matchStage });
         // console.log("report ", report);
         return getPaginatedResponse(report, connectionArgs, {
           includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
@@ -1476,7 +1477,6 @@ export default {
         console.log("error", error);
       }
     },
-
     async getRiderOrdersByLoginRider(parent, args, context, info) {
       // console.log(context.user);
       if (context.user === undefined || context.user === null) {
@@ -1590,8 +1590,15 @@ export default {
       return CustomerOrderResp;
     },
     async generateKitchenReport(parent, args, context, info) {
-      const { ...connectionArgs } = args;
-      const { startDate, endDate, branchID, OrderStatus } = args;
+      let { authToken, userId, collections } = context;
+      const {
+        startDate,
+        endDate,
+        branchID,
+        OrderStatus,
+        searchQuery,
+        ...connectionArgs
+      } = args;
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -1600,11 +1607,15 @@ export default {
       }
       const { BranchData, Orders } = context.collections;
       const query = {};
+      // let matchStage = [{ _id: { $ne: null } }];
+
       if (branchID) {
         query.branchID = branchID;
+        // matchStage.push({ branchID: branchID });
       }
       if (OrderStatus) {
-        query["workflow.status"] = args.OrderStatus;
+        query["workflow.status"] = OrderStatus;
+        // matchStage.push({ "workflow.status": OrderStatus });
       }
       if (startDate && endDate) {
         const start = new Date(startDate);
@@ -1613,12 +1624,72 @@ export default {
           $gte: start,
           $lte: end,
         };
+        // matchStage.push({
+        //   createdAt: {
+        //     $gte: start,
+        //     $lte: end,
+        //   },
+        // });
       }
-      // console.log("query:- ", query);
-      const ordersResp = await Orders.find(query);
+      // if (searchQuery) {
+      //   // console.log("searchQuery ", searchQuery);
+      //   const matchingRiderIDs = await collections.Accounts.distinct("_id", {
+      //     $or: [
+      //       {
+      //         "profile.firstName": {
+      //           $regex: new RegExp(searchQuery, "i"),
+      //         },
+      //       },
+      //       {
+      //         "profile.lastName": {
+      //           $regex: new RegExp(searchQuery, "i"),
+      //         },
+      //       },
+      //       {
+      //         fullName: {
+      //           $regex: new RegExp(searchQuery, "i"),
+      //         },
+      //       },
+      //     ],
+      //   });
+      //   const matchingOrderIDs = await collections.Orders.distinct("_id", {
+      //     $and: [
+      //       {
+      //         "shipping.0.address.address1": {
+      //           $regex: new RegExp(searchQuery, "i"),
+      //         },
+      //       },
+      //       {
+      //         "shipping.0.address.city": {
+      //           $regex: new RegExp(searchQuery, "i"),
+      //         },
+      //       },
+      //     ],
+      //   });
+      //   const matchingIDs = [
+      //     ...matchingRiderIDs,
+      //     ...matchingOrderIDs,
+      //     // ...matchingBranchIDs,
+      //   ];
+      //   console.log("matchingRiderIDs ", matchingRiderIDs);
+      //   // Adding the combined IDs to the matchStage
+      //   matchStage.push({
+      //     $or: [
+      //       { riderID: { $in: matchingIDs } },
+      //       { OrderID: { $in: matchingIDs } },
+      //       // { BranchID: { $in: matchingIDs } },
+      //     ],
+      //   });
+      // }
+      console.log("query:- ", query);
+
+      // console.log("matchStage ", matchStage);
+      // console.log("searchQuery ", searchQuery);
+      // const ordersResp = await Orders.find({ $and: matchStage });
       // .sort({ createdAt: -1 })
       // .toArray();
       // console.log("ordersResp ", ordersResp);
+      const ordersResp = await Orders.find(query);
       return getPaginatedResponse(ordersResp, connectionArgs, {
         includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
         includeHasPreviousPage: wasFieldRequested(
