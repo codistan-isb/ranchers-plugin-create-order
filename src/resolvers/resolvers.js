@@ -1320,175 +1320,74 @@ export default {
         return null;
       }
     },
+
     async generateOrderReport(parent, args, context, info) {
-      try {
-        let { authToken, userId, collections } = context;
-        let { RiderOrder, Users, Orders, BranchData, Accounts } = collections;
-        if (context.user === undefined || context.user === null) {
-          throw new ReactionError(
-            "access-denied",
-            "Unauthorized access. Please Login First"
-          );
-        }
-        let {
-          searchQuery,
-          riderID,
-          branches,
-          startTime,
-          OrderID,
-          endTime,
-          fromDate,
-          toDate,
-          deliveryTime,
-          ...connectionArgs
-        } = args;
-        // console.log("new Date(startDate) ", startTime);
-        // console.log("new Date(endDate) ", endDate);
-        let query = {};
-        let matchStage = [];
-        if (riderID) {
-          query.riderID = riderID;
-          // matchStage.push({ riderID: riderID });
-        }
-        if (branches) {
-          query.branches = branches;
-
-          // matchStage.push({ branches: branches });
-        }
-        if (startTime && endTime) {
-          const start = new Date(startDate);
-          const end = new Date(endDate);
-          query.createdAt = {
-            $gte: start,
-            $lte: end,
-          };
-        }
-        // if (startTime) {
-        //   matchStage.push({ startTime: { $gte: new Date(startTime) } });
-        // }
-        if (OrderID) {
-          query.OrderID = OrderID;
-          // matchStage.push({ OrderID: OrderID });
-        }
-        if (endTime) {
-          matchStage.push({ endTime: { $lte: new Date(endTime) } });
-        }
-        // if (toDate) {
-        //   matchStage.push({ createdAt: { $lte: new Date(toDate) } });
-        //   matchStage.push({
-        //     toDate: {
-        //       ...matchStage.createdAt,
-        //       $lte: new Date(toDate),
-        //     },
-        //   });
-        // }
-        if (toDate && toDate !== undefined) {
-          query.createdAt = { $lte: new Date(toDate) };
-        }
-        if (toDate && toDate !== undefined) {
-          query.createdAt = {
-            ...query.createdAt,
-            $lte: new Date(toDate),
-          };
-        }
-        if (deliveryTime) {
-          // matchStage.push({ deliveryTime: { $gte: deliveryTime } });
-          query.deliveryTime = { $gte: deliveryTime };
-        }
-
-        // if (searchQuery) {
-        //   // Searching for matching riderIDs in Accounts collection
-        //   const matchingRiderIDs = await collections.Accounts.distinct("_id", {
-        //     $or: [
-        //       {
-        //         "profile.firstName": {
-        //           $regex: new RegExp(searchQuery, "i"),
-        //         },
-        //       },
-        //       {
-        //         "profile.lastName": {
-        //           $regex: new RegExp(searchQuery, "i"),
-        //         },
-        //       },
-        //     ],
-        //   });
-
-        //   //search based on matching branchIDs from BranchData collection
-        //   // const matchingBranchIDs = await collections.BranchData.distinct(
-        //   //   "_id",
-        //   //   {
-        //   //     $or: [
-        //   //       {
-        //   //         name: {
-        //   //           $regex: new RegExp(searchQuery, "i"),
-        //   //         },
-        //   //       },
-        //   //     ],
-        //   //   }
-        //   // );
-
-        //   // Searching for matching OrderIDs in Orders collection
-        //   const matchingOrderIDs = await collections.Orders.distinct("_id", {
-        //     $and: [
-        //       {
-        //         "shipping.0.address.address1": {
-        //           $regex: new RegExp(searchQuery, "i"),
-        //         },
-        //       },
-        //       {
-        //         "shipping.0.address.city": {
-        //           $regex: new RegExp(searchQuery, "i"),
-        //         },
-        //       },
-        //       {
-        //         kitchenOrderID: {
-        //           $regex: new RegExp(searchQuery, "i"),
-        //         },
-        //       },
-        //     ],
-        //   });
-
-        //   // Combining the matching IDs from both collections
-        //   const matchingIDs = [
-        //     ...matchingRiderIDs,
-        //     ...matchingOrderIDs,
-        //     // ...matchingBranchIDs,
-        //   ];
-
-        //   // Adding the combined IDs to the matchStage
-        //   matchStage.push({
-        //     $or: [
-        //       { riderID: { $in: matchingIDs } },
-        //       { OrderID: { $in: matchingIDs } },
-        //       // { BranchID: { $in: matchingIDs } },
-        //     ],
-        //   });
-        // }
-
-        // matchStage.push({
-        //   riderID: {
-        //     $in: await Accounts.distinct("_id", {
-        //       "profile.0.firstName": {
-        //         $regex: new RegExp(searchQuery, "i"),
-        //       },
-        //     }),
-        //   },
-        // });
-        console.log("matchStage ", query);
-        // console.log("searchQuery ", await RiderOrder.find(query).toArray());
-        const report = await RiderOrder.find(query);
-        // console.log("report ", report);
-        return getPaginatedResponse(report, connectionArgs, {
-          includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
-          includeHasPreviousPage: wasFieldRequested(
-            "pageInfo.hasPreviousPage",
-            info
-          ),
-          includeTotalCount: wasFieldRequested("totalCount", info),
-        });
-      } catch (error) {
-        console.log("error", error);
+      console.log("args ", args);
+      let { authToken, userId, collections } = context;
+      let { RiderOrder } = collections;
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
       }
+      let {
+        searchQuery,
+        riderID,
+        branches,
+        startTime,
+        OrderID,
+        endTime,
+        fromDate,
+        toDate,
+        deliveryTime,
+        ...connectionArgs
+      } = args;
+      let query = {};
+      if (riderID) {
+        query.riderID = riderID;
+      }
+      if (branches) {
+        query.branches = branches;
+      }
+
+      if (startTime) {
+        const start = new Date(startTime); // Fix variable name
+        query.startTime = {
+          $gte: start,
+        };
+      }
+      if (endTime) {
+        query.endTime = {
+          $lte: new Date(endTime),
+        };
+      }
+      if (OrderID) {
+        query.OrderID = OrderID;
+      }
+      if (toDate && toDate !== undefined) {
+        query.createdAt = {
+          ...query.createdAt, // Preserve existing filters
+          $lte: new Date(toDate),
+        };
+      }
+      if (fromDate && fromDate !== undefined) {
+        query.createdAt = {
+          ...query.createdAt, // Preserve existing filters
+          $gte: new Date(fromDate),
+        };
+      }
+      // console.log("query ", query);
+      const report = await RiderOrder.find(query);
+      // console.log("report ", report);
+      return getPaginatedResponse(report, connectionArgs, {
+        includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+        includeHasPreviousPage: wasFieldRequested(
+          "pageInfo.hasPreviousPage",
+          info
+        ),
+        includeTotalCount: wasFieldRequested("totalCount", info),
+      });
     },
     async getRiderOrdersByLoginRider(parent, args, context, info) {
       // console.log(context.user);
