@@ -1344,18 +1344,31 @@ export default {
         } = args;
         // console.log("new Date(startDate) ", startTime);
         // console.log("new Date(endDate) ", endDate);
+        let query = {};
         let matchStage = [];
         if (riderID) {
-          matchStage.push({ riderID: riderID });
+          query.riderID = riderID;
+          // matchStage.push({ riderID: riderID });
         }
         if (branches) {
-          matchStage.push({ branches: branches });
+          query.branches = branches;
+
+          // matchStage.push({ branches: branches });
         }
-        if (startTime) {
-          matchStage.push({ startTime: { $gte: new Date(startTime) } });
+        if (startTime && endTime) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          query.createdAt = {
+            $gte: start,
+            $lte: end,
+          };
         }
+        // if (startTime) {
+        //   matchStage.push({ startTime: { $gte: new Date(startTime) } });
+        // }
         if (OrderID) {
-          matchStage.push({ OrderID: OrderID });
+          query.OrderID = OrderID;
+          // matchStage.push({ OrderID: OrderID });
         }
         if (endTime) {
           matchStage.push({ endTime: { $lte: new Date(endTime) } });
@@ -1370,87 +1383,87 @@ export default {
         //   });
         // }
         if (toDate && toDate !== undefined) {
-          matchStage.createdAt = { $lte: new Date(toDate) };
+          query.createdAt = { $lte: new Date(toDate) };
         }
         if (toDate && toDate !== undefined) {
-          matchStage.createdAt = {
-            ...matchStage.createdAt,
+          query.createdAt = {
+            ...query.createdAt,
             $lte: new Date(toDate),
           };
         }
         if (deliveryTime) {
           // matchStage.push({ deliveryTime: { $gte: deliveryTime } });
-          matchStage.deliveryTime = { $gte: deliveryTime };
+          query.deliveryTime = { $gte: deliveryTime };
         }
 
-        if (searchQuery) {
-          // Searching for matching riderIDs in Accounts collection
-          const matchingRiderIDs = await collections.Accounts.distinct("_id", {
-            $or: [
-              {
-                "profile.firstName": {
-                  $regex: new RegExp(searchQuery, "i"),
-                },
-              },
-              {
-                "profile.lastName": {
-                  $regex: new RegExp(searchQuery, "i"),
-                },
-              },
-            ],
-          });
+        // if (searchQuery) {
+        //   // Searching for matching riderIDs in Accounts collection
+        //   const matchingRiderIDs = await collections.Accounts.distinct("_id", {
+        //     $or: [
+        //       {
+        //         "profile.firstName": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //       {
+        //         "profile.lastName": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //     ],
+        //   });
 
-          //search based on matching branchIDs from BranchData collection
-          // const matchingBranchIDs = await collections.BranchData.distinct(
-          //   "_id",
-          //   {
-          //     $or: [
-          //       {
-          //         name: {
-          //           $regex: new RegExp(searchQuery, "i"),
-          //         },
-          //       },
-          //     ],
-          //   }
-          // );
+        //   //search based on matching branchIDs from BranchData collection
+        //   // const matchingBranchIDs = await collections.BranchData.distinct(
+        //   //   "_id",
+        //   //   {
+        //   //     $or: [
+        //   //       {
+        //   //         name: {
+        //   //           $regex: new RegExp(searchQuery, "i"),
+        //   //         },
+        //   //       },
+        //   //     ],
+        //   //   }
+        //   // );
 
-          // Searching for matching OrderIDs in Orders collection
-          const matchingOrderIDs = await collections.Orders.distinct("_id", {
-            $and: [
-              {
-                "shipping.0.address.address1": {
-                  $regex: new RegExp(searchQuery, "i"),
-                },
-              },
-              {
-                "shipping.0.address.city": {
-                  $regex: new RegExp(searchQuery, "i"),
-                },
-              },
-              {
-                kitchenOrderID: {
-                  $regex: new RegExp(searchQuery, "i"),
-                },
-              },
-            ],
-          });
+        //   // Searching for matching OrderIDs in Orders collection
+        //   const matchingOrderIDs = await collections.Orders.distinct("_id", {
+        //     $and: [
+        //       {
+        //         "shipping.0.address.address1": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //       {
+        //         "shipping.0.address.city": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //       {
+        //         kitchenOrderID: {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //     ],
+        //   });
 
-          // Combining the matching IDs from both collections
-          const matchingIDs = [
-            ...matchingRiderIDs,
-            ...matchingOrderIDs,
-            // ...matchingBranchIDs,
-          ];
+        //   // Combining the matching IDs from both collections
+        //   const matchingIDs = [
+        //     ...matchingRiderIDs,
+        //     ...matchingOrderIDs,
+        //     // ...matchingBranchIDs,
+        //   ];
 
-          // Adding the combined IDs to the matchStage
-          matchStage.push({
-            $or: [
-              { riderID: { $in: matchingIDs } },
-              { OrderID: { $in: matchingIDs } },
-              // { BranchID: { $in: matchingIDs } },
-            ],
-          });
-        }
+        //   // Adding the combined IDs to the matchStage
+        //   matchStage.push({
+        //     $or: [
+        //       { riderID: { $in: matchingIDs } },
+        //       { OrderID: { $in: matchingIDs } },
+        //       // { BranchID: { $in: matchingIDs } },
+        //     ],
+        //   });
+        // }
 
         // matchStage.push({
         //   riderID: {
@@ -1461,9 +1474,9 @@ export default {
         //     }),
         //   },
         // });
-        // console.log("matchStage ", matchStage);
-        // console.log("searchQuery ", searchQuery);
-        const report = await RiderOrder.find({ $or: matchStage });
+        console.log("matchStage ", query);
+        console.log("searchQuery ", await RiderOrder.find(query).toArray());
+        const report = await RiderOrder.find(query);
         // console.log("report ", report);
         return getPaginatedResponse(report, connectionArgs, {
           includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
@@ -1605,7 +1618,7 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const { BranchData, Orders } = context.collections;
+      const { BranchData, Orders } = collections;
       const query = {};
       // let matchStage = [{ _id: { $ne: null } }];
 
@@ -1688,7 +1701,7 @@ export default {
       // const ordersResp = await Orders.find({ $and: matchStage });
       // .sort({ createdAt: -1 })
       // .toArray();
-      // console.log("ordersResp ", ordersResp);
+      // console.log("ordersResp ", await Orders.find(query).toArray());
       const ordersResp = await Orders.find(query);
       return getPaginatedResponse(ordersResp, connectionArgs, {
         includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
