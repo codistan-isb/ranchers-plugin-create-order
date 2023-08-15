@@ -1475,7 +1475,7 @@ export default {
         //   },
         // });
         console.log("matchStage ", query);
-        console.log("searchQuery ", await RiderOrder.find(query).toArray());
+        // console.log("searchQuery ", await RiderOrder.find(query).toArray());
         const report = await RiderOrder.find(query);
         // console.log("report ", report);
         return getPaginatedResponse(report, connectionArgs, {
