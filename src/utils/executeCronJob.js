@@ -6,19 +6,15 @@ import ObjectID from "mongodb";
 
 export default async function executeCronJob(context) {
   const { CronJobs } = context.collections;
-  //   let cronJobResp = await CronJobs.find({}).toArray();
   let cronJobResp = await CronJobs.find({
     type: "orderFeedback",
     status: "delivered",
   }).toArray();
-  // console.log("cronJobResp ", cronJobResp);
 
   cron.schedule("*/60 * * * *", () => {
     console.log("running a task every sixty minutes");
     cronJobResp.forEach(async (element) => {
-      // const appTypeCustomer = "customer";
       let message = "How was your order? Share your thoughts.";
-
       const RecordDate = element.createdAt;
       const CurrentDate = new Date();
 

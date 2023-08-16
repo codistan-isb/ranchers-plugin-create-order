@@ -26,14 +26,6 @@ async function register(app) {
         updatedAt: { type: Date, default: Date.now },
         createdAt: { type: Date, default: Date.now },
       },
-      // BranchData: {
-      //   name: "BranchData",
-      // },
-      // users: {
-      //   name: "users",
-      //   updatedAt: { type: Date, default: Date.now },
-      //   createdAt: { type: Date, default: Date.now },
-      // },
     },
     graphQL: {
       schemas: [mySchema],

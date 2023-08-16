@@ -9,25 +9,20 @@ import executeCronJob from "../utils/executeCronJob.js";
 export default {
   Order: {
     async branchInfo(parent, args, context, info) {
-      // console.log("parent", parent)
       const BranchID = parent.branchID;
-      // console.log("BranchID:- ", BranchID)
       if (BranchID) {
         const { BranchData } = context.collections;
         const branchDataResponse = await BranchData.findOne({
           _id: ObjectID.ObjectId(BranchID),
         });
-        // console.log("Branch Data : ", branchDataResponse)
         return branchDataResponse;
       } else {
         return [];
       }
     },
     async riderInfo(parent, args, context, info) {
-      // console.log("parent", parent);
       const { RiderOrder, Accounts } = context.collections;
       const id = parent.id || parent._id;
-      // console.log("OrderID:- ", id);
       let OrderIDArray = [];
       if (id) {
         const RiderOrderResponse = await RiderOrder.find({
@@ -46,16 +41,13 @@ export default {
       }
     },
     async customerInfo(parent, args, context, info) {
-      // console.log("parent ", parent);
       if (parent.OrderID) {
         const { Orders } = context.collections;
         const orderInfoResponse = await Orders.findOne({
           _id: parent.OrderID,
         });
-        // console.log("orderI/nfoResponse: ", orderInfoResponse)
         if (orderInfoResponse) {
           return orderInfoResponse.shipping[0].address;
-          // return orderInfoResponse[0].shipping[0].address
         } else {
           return null;
         }
@@ -68,12 +60,10 @@ export default {
       }
     },
     async customerOrderTime(parent, args, context, info) {
-      console.log("Parent ", parent);
       const { Orders } = context.collections;
       const customerOrderTimeResp = await Orders.findOne({
         _id: parent.OrderID,
       });
-      console.log("Customer Resp ", customerOrderTimeResp);
       if (customerOrderTimeResp) {
         return {
           customerOrderTime: customerOrderTimeResp.createdAt,
@@ -85,23 +75,13 @@ export default {
       }
     },
     async branchTimePickup(parent, args, context, info) {
-      // console.log("parent data", parent);
-      // console.log("parent data with OrderID", parent.OrderID);
-      // console.log("branch riderID ", parent.riderID);
       const { RiderOrder } = context.collections;
 
       if (parent.riderID) {
-        // const branchTimePickupResp = await RiderOrder.findOne({
-        //   riderID: parent.riderID,
-        //   where: {
-        //     OrderID: parent.OrderID,
-        //   },
-        // });
         const branchTimePickupResp = await RiderOrder.findOne({
           riderID: parent.riderID,
           OrderID: parent.OrderID,
         });
-        // console.log("branchTimePickupResp ", branchTimePickupResp)
         if (branchTimePickupResp) {
           return {
             branchOrderTime: branchTimePickupResp.createdAt,
@@ -127,10 +107,8 @@ export default {
       }
     },
     async kitchenOrderIDInfo(parent, args, context, info) {
-      // console.log("Parent ", parent.OrderID);
       const { Orders } = context.collections;
       const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
-      // console.log("kitchenOrderIDResp  ", kitchenOrderIDResp);
       if (kitchenOrderIDResp) {
         return {
           kitchenOrderID: kitchenOrderIDResp.kitchenOrderID,
@@ -140,13 +118,11 @@ export default {
       }
     },
     async riderOrderInfo(parent, args, context, info) {
-      console.log("Parent riderOrderInfo : ", parent);
       const { RiderOrder } = context.collections;
       if (parent.id) {
         const riderOrderInfoResp = await RiderOrder.findOne({
           OrderID: parent.id,
         });
-        // console.log("riderOrderInfoResp ", riderOrderInfoResp);
         if (riderOrderInfoResp) {
           return riderOrderInfoResp;
         } else {
@@ -157,7 +133,6 @@ export default {
         const riderOrderInfoResp = await RiderOrder.findOne({
           OrderID: parent._id,
         });
-        console.log("riderOrderInfoResp : ", riderOrderInfoResp);
         if (riderOrderInfoResp) {
           return riderOrderInfoResp;
         } else {
@@ -166,7 +141,6 @@ export default {
       }
     },
     async orderIdResolver(parent, args, context, info) {
-      console.log("Parent orderIdResolver ", parent);
       if (parent) {
         return { orderId: parent?._id };
       } else {
@@ -176,31 +150,25 @@ export default {
   },
   OrderReport: {
     async branchInfo(parent, args, context, info) {
-      // console.log("parent", parent);
       const BranchID = parent.branches;
-      // console.log("BranchID:- ", BranchID);
       if (BranchID) {
         const { BranchData } = context.collections;
         const branchDataResponse = await BranchData.find({
           _id: ObjectID.ObjectId(BranchID),
         }).toArray();
-        // console.log("Branch Data : ", branchDataResponse[0]);
         return branchDataResponse[0];
       } else {
         return [];
       }
     },
     async customerInfo(parent, args, context, info) {
-      // console.log("par/ent ", parent);
       if (parent.OrderID) {
         const { Orders } = context.collections;
         const orderInfoResponse = await Orders.findOne({
           _id: parent.OrderID,
         });
-        // console.log("orderI/nfoResponse: ", orderInfoResponse)
         if (orderInfoResponse) {
           return orderInfoResponse.shipping[0].address;
-          // return orderInfoResponse[0].shipping[0].address
         } else {
           return null;
         }
@@ -213,13 +181,11 @@ export default {
       }
     },
     async kitchenOrderIDInfo(parent, args, context, info) {
-      // console.log("Parent ", parent.OrderID);
       const { Orders } = context.collections;
       if (parent.OrderID) {
         const kitchenOrderIDResp = await Orders.findOne({
           _id: parent.OrderID,
         });
-        // console.log("Customer Resp ", kitchenOrderIDResp.kitchenOrderID)
         if (kitchenOrderIDResp) {
           return {
             kitchenOrderID: kitchenOrderIDResp.kitchenOrderID,
@@ -230,12 +196,9 @@ export default {
       }
     },
     async riderInfo(parent, args, context, info) {
-      // console.log("parent.riderID", parent.riderID);
-      // console.log("parent", parent);
       const { RiderOrder, Accounts } = context.collections;
       const { riderID } = parent;
       const RiderInfoResp = await Accounts.findOne({ _id: riderID });
-      // console.log("Rider Info Resp : ", RiderInfoResp);
       return RiderInfoResp;
       // console.log("OrderID:- ", id);
       // if (riderID) {
@@ -256,12 +219,10 @@ export default {
       // }
     },
     async orderDetailTime(parent, args, context, info) {
-      // console.log("parent ", parent);
       const { Orders } = context.collections;
       const { OrderID } = parent;
       if (OrderID) {
         const orderDetailResp = await Orders.findOne({ _id: OrderID });
-        // console.log("Order Info ", orderDetailResp);
         if (orderDetailResp) {
           return {
             prepTime: orderDetailResp?.prepTime || 20,
@@ -289,7 +250,6 @@ export default {
   },
   Mutation: {
     async createRiderMultipleOrder(parent, { orders }, context, info) {
-      console.log("orders ", orders);
       const now = new Date();
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -306,7 +266,6 @@ export default {
         context.collections;
       const CurrentRiderID = context?.user?.id;
       const AllOrdersArray = orders;
-
       const RiderIDForAssign1 = orders.map((order) => {
         const riderId = order.riderID ? order.riderID : CurrentRiderID;
         return {
@@ -315,9 +274,7 @@ export default {
           createdAt: now,
         };
       });
-      // console.log("RiderIDForAssign1 ", RiderIDForAssign1);
       const riderID = RiderIDForAssign1[0].riderID;
-
       const existingOrders1 = await RiderOrder.find({
         riderID: riderID,
         OrderStatus: { $ne: "delivered" },
@@ -331,20 +288,17 @@ export default {
       const insertedOrders = [];
       for (const order of orders) {
         const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
-        // console.log("CustomerOrder ", CustomerOrder);
 
         let CustomerAccountID = "";
         if (CustomerOrder) {
           CustomerAccountID = CustomerOrder?.accountId;
         }
-        // console.log("CustomerAccountID", CustomerAccountID);
 
         const RiderIDForAssign = {
           ...order,
           riderID: order.riderID ? order.riderID : CurrentRiderID,
           createdAt: now,
         };
-        // console.log("RiderIDForAssign ", RiderIDForAssign);
 
         const riderStatus = await Accounts.findOne({
           _id: RiderIDForAssign.riderID,
@@ -361,10 +315,8 @@ export default {
         const existingRiderOrder = await RiderOrder.findOne({
           OrderID: RiderIDForAssign.OrderID,
         });
-        // console.log("existingRiderOrder:- ", existingRiderOrder);
 
         if (existingRiderOrder) {
-          // if (existingRiderOrder.riderID !== RiderIDForAssign.riderID) {
           const updatedOrder = await RiderOrder.findOneAndUpdate(
             { _id: existingRiderOrder._id },
             {
@@ -410,12 +362,6 @@ export default {
           if (updatedOrder) {
             insertedOrders.push(updatedOrder.value);
           }
-          // } else {
-          //   throw new ReactionError(
-          //     "duplicate",
-          //     "One or more orders already exist for the same branch and day"
-          //   );
-          // }
         } else {
           try {
             const insertedOrder = await RiderOrder.insertOne(RiderIDForAssign);
@@ -460,7 +406,6 @@ export default {
       return insertedOrders;
     },
     async createRiderOrder(parent, { orders }, context, info) {
-      console.log("orders ", orders);
       const now = new Date();
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -472,18 +417,15 @@ export default {
       todayStart.setHours(0, 0, 0, 0);
       const todayEnd = new Date();
       todayEnd.setHours(23, 59, 59, 999);
-      // console.log("Hello");
       const AllOrdersArray = orders;
       const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
         context.collections;
       const CurrentRiderID = context.user.id;
       const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
-      console.log("CustomerOrder ", CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
       }
-      console.log("CustomerAccountID", CustomerAccountID);
       const RiderIDForAssign = orders.map((order) => {
         const riderId = order.riderID ? order.riderID : CurrentRiderID;
         return {
@@ -492,9 +434,7 @@ export default {
           createdAt: now,
         };
       });
-      console.log("RiderIDForAssign ", RiderIDForAssign);
       const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
-      console.log("Status of Rider : ", riderStatus);
       if (riderStatus && riderStatus.currentStatus === "offline") {
         throw new ReactionError(
           "not-found",
@@ -504,17 +444,11 @@ export default {
       const existingRiderOrders = await RiderOrder.find({
         OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
       }).toArray();
-      console.log("existingRiderOrders:- ", existingRiderOrders);
       if (existingRiderOrders.length > 0) {
         if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
-          // const insertedOrders1 = await RiderOrder.insertOne(RiderIDForAssign[0]);
           const update = {};
-          // if (existingRiderOrders[0].startTime) {
-          //     update.startTime = existingRiderOrders[0].startTime;
-          // }
           const insertedOrders1 = await RiderOrder.findOneAndUpdate(
             { _id: existingRiderOrders[0]._id },
-            // { $set: { riderID: RiderIDForAssign[0].riderID } },
             {
               $set: {
                 riderID: RiderIDForAssign[0].riderID,
@@ -533,7 +467,6 @@ export default {
             createdAt: new Date(),
           };
           await RiderOrderHistory.insertOne(createdOrderIDs);
-          // console.log("insertedOrders1:- ", insertedOrders1);
           const message = "Order has been assigned";
           const appType = "rider";
           const appType1 = "customer";
@@ -546,7 +479,6 @@ export default {
               appType,
               userId: id,
             });
-          // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
           if (CustomerAccountID) {
             const paymentIntentClientSecret1 =
               context.mutations.oneSignalCreateNotification(context, {
@@ -556,21 +488,14 @@ export default {
                 userId: CustomerAccountID,
                 orderID: OrderIDs,
               });
-            // console.log("context Mutation: client 1 ", paymentIntentClientSecret1);
           }
           if (insertedOrders1) {
             return insertedOrders1.value;
           } else {
-            // console.log("else part uper")
             try {
               const insertedOrders = await RiderOrder.insertMany(
                 RiderIDForAssign
               );
-
-              // console.log("here");
-              // console.log("inserted Data:- ", insertedOrders[0])
-              // console.log(AllOrdersArray);
-              // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
               if (insertedOrders) {
                 const message = "Order has been assigned";
                 const customerMessage = "Your order is picked";
@@ -585,7 +510,6 @@ export default {
                     appType,
                     id,
                   });
-                // console.log("context Mutation: ", paymentIntentClientSecret);
                 if (CustomerAccountID) {
                   const paymentIntentClientSecret1 =
                     context.mutations.oneSignalCreateNotification(context, {
@@ -595,7 +519,6 @@ export default {
                       userId: CustomerAccountID,
                       orderID: OrderIDs,
                     });
-                  // console.log("context Mutation: ", paymentIntentClientSecret1);
 
                   const updateOrders = {
                     $set: { "workflow.status": "pickedUp" },
@@ -606,10 +529,8 @@ export default {
                     updateOrders,
                     options
                   );
-                  // console.log("updated Order:- ", updatedOrder);
                 }
               }
-              // (AllOrdersArray[0].OrderID, "pickedUp", Orders);
               return insertedOrders.ops;
             } catch (err) {
               if (err.code === 11000) {
@@ -739,29 +660,21 @@ export default {
       context,
       info
     ) {
-      // console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
           "Unauthorized access. Please Login First"
         );
       }
-      // console.log("start ", startTime);
-      // console.log("end ", endTime);
-      // const now = new Date();
       const CurrentRiderID = context.user.id;
-      // console.log(OrderID);
       const { RiderOrder, Orders, CronJobs } = context.collections;
       const filter = { OrderID: OrderID };
       const CustomerOrder = await Orders.findOne({ _id: OrderID });
-      // console.log(CustomerOrder);
       let CustomerAccountID = "";
       if (CustomerOrder) {
         CustomerAccountID = CustomerOrder?.accountId;
       }
-      // console.log("CustomerOrder", CustomerAccountID);
       const update = {};
-
       if (rejectionReason) {
         update.rejectionReason = rejectionReason;
       }
@@ -771,17 +684,12 @@ export default {
       if (endTime) {
         update.endTime = endTime;
         const getStartTimeResp = await RiderOrder.findOne({ OrderID: OrderID });
-        // console.log(getStartTimeResp.startTime);
         if (getStartTimeResp) {
-          // const deliveryTime = 0.00;
           const startFinalTime = new Date(getStartTimeResp.startTime);
           const endFinalTime = new Date(endTime);
           const timeDiff = endFinalTime.getTime() - startFinalTime.getTime();
           // timeDiff is in milliseconds, convert to seconds
           const minutes = timeDiff / 60000;
-          // console.log("minutes ", minutes.toFixed(2));
-          // deliveryTime = minutes
-          // console.log("minutes ", typeof (parseFloat(minutes)));
           update.deliveryTime = parseFloat(minutes.toFixed(2));
         }
       }
@@ -802,7 +710,6 @@ export default {
             status: "delivered",
           };
           const cronjobResp = await CronJobs.insertOne(cronJobObject);
-          // console.log("cronjobResp ", cronjobResp);
           const cornJobResp = executeCronJob(context);
         }
         const appType = "admin";
@@ -816,7 +723,6 @@ export default {
             appType,
             userId,
           });
-        // console.log("context Mutation: ", paymentIntentClientSecret);
         if (CustomerAccountID) {
           const paymentIntentClientSecret1 =
             context.mutations.oneSignalCreateNotification(context, {
@@ -826,10 +732,6 @@ export default {
               userId: CustomerAccountID,
               orderID: OrderID,
             });
-          // console.log(
-          //   " Customer Order context Mutation: ",
-          //   paymentIntentClientSecret1
-          // );
         }
         update.OrderStatus = OrderStatus;
         let updateOrders = {};
@@ -852,7 +754,6 @@ export default {
           updateOrders,
           options
         );
-        // console.log("updatedOrder ", updatedOrder.value.accountId);
       }
       if (OrderStatus === "ready") {
         const updatedBranch = {
@@ -863,7 +764,6 @@ export default {
         const appType = "admin";
         const appTypecustomer = "customer";
         const id = userId;
-        // const orderID = orderId;
         const paymentIntentClientSecret =
           context.mutations.oneSignalCreateNotification(context, {
             message,
@@ -886,9 +786,6 @@ export default {
           //   paymentIntentClientSecret1
           // );
         }
-        // console.log("context Mutation: ", paymentIntentClientSecret);
-        // const UpdatedBranchDataResp = await BranchData.updateOne({ _id: branch._id }, { $set: updatedBranch });
-        // console.log(UpdatedBranchDataResp)
       }
       if (OrderID) {
         update.OrderID = OrderID;
@@ -900,25 +797,15 @@ export default {
         { $set: update },
         options
       );
-
-      // console.log("response from updated order", response);
-      // console.log(response.value);
       if (response) {
         const updatedOrderResp = await RiderOrder.findOne({
           OrderID: OrderID,
         });
         console.log("updated Order Resp", updatedOrderResp);
-        // return updatedOrderResp;
         if (updatedOrderResp) {
           return {
             id: updatedOrderResp._id,
             ...updatedOrderResp,
-            // startTime:updatedOrderResp.startTime,
-            // endTime: updatedOrderResp.endTime,
-            // OrderStatus: updatedOrderResp.OrderStatus,
-            // OrderID: updatedOrderResp.OrderID,
-            // riderID: updatedOrderResp.riderID,
-            // rejectionReason: updatedOrderResp.rejectionReason,
           };
         } else {
           return null;
@@ -928,7 +815,6 @@ export default {
       }
     },
     async updateUserCurrentStatus(parent, args, context, info) {
-      // console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -936,10 +822,7 @@ export default {
         );
       }
       const { Accounts } = context.collections;
-      // console.log(args.status);
-      // console.log(context.user);
       const currentStatus = args.status;
-      // const now = new Date();
       const userID = context.user.id;
       if (!userID) {
         throw new ReactionError(
@@ -947,17 +830,11 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      // const accountUser = await Accounts.findOne({
-      //   _id: userID,
-      // });
-      // console.log("accountUser ", accountUser);
       const updatedUser = await Accounts.findOneAndUpdate(
         { _id: userID },
         { $set: { currentStatus, updatedAt: new Date() } },
-        // { $set: { currentStatus } },
         { returnOriginal: false }
       );
-      // console.log(updatedUser);
       if (!updatedUser) {
         throw new ReactionError(
           "not-found",
@@ -968,10 +845,6 @@ export default {
       return updatedUser.value;
     },
     async assignBranchtoUser(parent, args, context, info) {
-      // console.log(args);
-      // console.log(context.collections);
-      // console.log(context.user);
-
       if (
         context.user === undefined ||
         context.user === null ||
@@ -989,9 +862,7 @@ export default {
       const filter = { _id: userID };
       const update = { $push: { branches: branches } };
       const options = { new: true };
-      // console.log(branches);
       const userAccount = await Accounts.findOne(filter);
-      // console.log(userAccount);
       if (
         userAccount.branches &&
         userAccount.branches.includes(args.branches)
@@ -1010,29 +881,21 @@ export default {
           update,
           options
         );
-        // console.log("updatedAccount", updatedAccount);
         const updatedUserAccount = await users.findOneAndUpdate(
           filter,
           update,
           options
         );
-        // console.log("updatedUserAccount", updatedUserAccount);
         const updatedUser = await Accounts.findOne({ _id: userID });
-        // console.log("updatedUser--->", updatedUser);
         return updatedUser;
       } else {
         throw new ReactionError(
           "access-denied",
           "Unauthorized access. Please Login First"
         );
-
-        // throw new ReactionError("Unauthorized access!");
       }
     },
     async updateAccountAdmin(parent, args, context, info) {
-      // console.log(args);
-      // console.log(context.user);
-      // console.log(context.user.UserRole);
       if (
         context.user === undefined ||
         context.user === null ||
@@ -1053,19 +916,14 @@ export default {
         let updateAccountResult;
         let newBranchValueRIder = [];
         newBranchValueRIder.push(branches);
-
-        // console.log(newBranchValue);
         const checkAccountResponse = await Accounts.findOne({ _id: userID });
-        // console.log("checkAccountResponse: ", checkAccountResponse);
         // Check if the new branch already exists in the branches array
         if (
           checkAccountResponse.branches &&
           checkAccountResponse.branches.includes(newBranchValue)
         ) {
           throw new ReactionError("duplicate", "branch already assigned");
-          // throw new ReactionError("Duplicate Error", "branch already assigned");
         }
-        // console.log("newBranchValue", newBranchValue);
         if (checkAccountResponse?.UserRole === "rider") {
           updateAccountResult = await Accounts.updateOne(
             { _id: userID },
@@ -1081,7 +939,6 @@ export default {
             { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
           );
         }
-        // console.log(updateAccountResult);
         if (updateAccountResult.modifiedCount !== 1) {
           if (!updatedAccount)
             throw new ReactionError(
@@ -1099,8 +956,6 @@ export default {
           // console.log("Updated Account", updateUserResult);
         }
         const updatedUser = await Accounts.findOne({ _id: userID });
-        // console.log("updatedUser--->", updatedUser);
-
         return updatedUser;
       } else {
         throw new ReactionError(
@@ -1110,10 +965,8 @@ export default {
       }
     },
     async addBranchNotes(parent, args, context, info) {
-      // console.log(args);
       const { orderId, Notes } = args;
       const { Orders } = context.collections;
-      // console.log(orderId);
       const updateOrders = { $set: { Notes: Notes } };
       const options = { new: true };
       const updatedOrderResp = await Orders.findOneAndUpdate(
@@ -1121,7 +974,6 @@ export default {
         updateOrders,
         options
       );
-      // console.log("Update Order:- ", updatedOrderResp);
       if (updatedOrderResp.value) {
         return updatedOrderResp.value;
       } else {
@@ -1132,7 +984,6 @@ export default {
       }
     },
     async transferOrder(parent, { input }, context, info) {
-      console.log("args ", input);
       const { orderID, branchId } = input;
       const { Orders, Accounts, BranchData } = context.collections;
       if (
@@ -1159,19 +1010,18 @@ export default {
             returnOriginal: false,
           }
         );
-      // const dispatcherId= await Accounts.findOne{""}
+      // console.log("updatedOrder ", updatedOrder);
       const account = await Accounts.findOne({ branches: { $in: [branchId] } });
-      console.log("account ", account);
+      // console.log("account ", account);
       const branchData = await BranchData.findOne({
         _id: ObjectID.ObjectId(branchId),
       });
-      // console.log("branchData ", branchData);
 
-      const message = `Order has been assigned to ${branchData?.name} branch and order id is ${orderID}`;
+      const message = `Order has been assigned to ${branchData?.name} branch and order id is ${updatedOrder?.kitchenOrderID}`;
       const appType = "customer";
       const appType1 = "admin";
       const id = account?._id;
-      let OrderIDs = orderID;
+      let OrderIDs = updatedOrder?.kitchenOrderI;
       const paymentIntentClientSecret =
         context.mutations.oneSignalCreateNotification(context, {
           message,
@@ -1187,7 +1037,6 @@ export default {
           appType: appType1,
           userId: id,
         });
-      // console.log("context Mutation: rider 1 ", paymentIntentClientSecret);
       if (updatedOrder) {
         return updatedOrder;
       } else {
@@ -1196,9 +1045,7 @@ export default {
     },
   },
   Query: {
-    // async getRiderOrderByRiderId()
     async getRiderOrderByRiderId(parent, { id }, context, info) {
-      // console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -1217,7 +1064,6 @@ export default {
       })
         .sort({ createdAt: -1 })
         .toArray();
-      console.log("ordersResp ", ordersResp);
 
       if (ordersResp) {
         return ordersResp;
@@ -1367,19 +1213,17 @@ export default {
       }
       if (toDate && toDate !== undefined) {
         query.createdAt = {
-          ...query.createdAt, // Preserve existing filters
+          ...query.createdAt, 
           $lte: new Date(toDate),
         };
       }
       if (fromDate && fromDate !== undefined) {
         query.createdAt = {
-          ...query.createdAt, // Preserve existing filters
+          ...query.createdAt, 
           $gte: new Date(fromDate),
         };
       }
-      // console.log("query ", query);
       const report = await RiderOrder.find(query);
-      // console.log("report ", report);
       return getPaginatedResponse(report, connectionArgs, {
         includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
         includeHasPreviousPage: wasFieldRequested(
@@ -1390,40 +1234,20 @@ export default {
       });
     },
     async getRiderOrdersByLoginRider(parent, args, context, info) {
-      // console.log(context.user);
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
           "Unauthorized access. Please Login First"
         );
       }
-      // const today = new Date().toISOString().substr(0, 10);
 
       const { startDate, endDate, riderID } = args;
       const { RiderOrder } = context.collections;
       const { id } = context.user;
-      // console.log(id);
-      // const query = {};
-      // if (riderID) {
-      //     query.riderID = riderID;
-      // }
-
-      // if (startDate && endDate) {
-      //     const start = new Date(startDate);
-      //     const end = new Date(endDate);
-      //     query.createdAt = {
-      //         $gte: start,
-      //         $lte: end,
-      //     };
-      // }
-      // console.log(query);
       const orders = await RiderOrder.find({ riderID: riderID })
         .sort({ createdAt: -1 })
         .toArray();
-      // console.log(orders);
-      // get today's date
       const today = new Date().toISOString().substring(0, 10);
-      // console.log(today);
       // filter data array to include only items with today's date in startTime
       const filteredData = orders.filter((item) => {
         if (!item.createdAt) {
@@ -1432,7 +1256,6 @@ export default {
         const itemDate = item.createdAt.substring(0, 10);
         return itemDate === today;
       });
-      // console.log(filteredData);
       return filteredData;
     },
     async getKitchenReport(parent, args, context, info) {
@@ -1443,19 +1266,6 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      // console.log("context.user :  ", context.user);
-      // if (context.user) {
-      // }
-      // if (
-      //   context.user.UserRole !== "admin" &&
-      //   (!context.user.branches ||
-      //     (context.user.branches && context.user.branches.includes(branchID)))
-      // ) {
-      //   throw new ReactionError(
-      //     "conflict",
-      //     "Only admins or authorized branch users can access orders report"
-      //   );
-      // }
       const { BranchData, Orders } = context.collections;
       const query = {};
       if (branchID) {
@@ -1472,17 +1282,13 @@ export default {
           $lte: end,
         };
       }
-      // query["workflow.status"] = { $ne: "coreOrderWorkflow/canceled" };
-      console.log("query:- ", query);
       const ordersResp = await Orders.find(query)
         .sort({ createdAt: -1 })
         .toArray();
-      // console.log("ordersResp ", ordersResp);
       const ordersWithId = ordersResp.map((order) => ({
         id: order._id,
         ...order,
       }));
-      // console.log("ordersWithId:- ", ordersWithId);
       return ordersWithId;
     },
     async getCustomerOrderbyID(parent, args, context, info) {
@@ -1494,11 +1300,9 @@ export default {
       }
       const { Orders } = context.collections;
       const { ID } = args;
-      // console.log(decodeOpaqueId(ID).id);
       const CustomerOrderResp = await Orders.findOne({
         _id: decodeOpaqueId(ID).id,
       });
-      // console.log("CustomerOrderResp", CustomerOrderResp);
       return CustomerOrderResp;
     },
     async generateKitchenReport(parent, args, context, info) {
@@ -1519,7 +1323,6 @@ export default {
       }
       const { BranchData, Orders } = collections;
       const query = {};
-      // let matchStage = [{ _id: { $ne: null } }];
 
       if (branchID) {
         query.branchID = branchID;
@@ -1593,7 +1396,7 @@ export default {
       //     ],
       //   });
       // }
-      console.log("query:- ", query);
+      // console.log("query:- ", query);
 
       // console.log("matchStage ", matchStage);
       // console.log("searchQuery ", searchQuery);
@@ -1601,6 +1404,9 @@ export default {
       // .sort({ createdAt: -1 })
       // .toArray();
       // console.log("ordersResp ", await Orders.find(query).toArray());
+    
+    
+    
       const ordersResp = await Orders.find(query);
       return getPaginatedResponse(ordersResp, connectionArgs, {
         includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
@@ -1610,12 +1416,6 @@ export default {
         ),
         includeTotalCount: wasFieldRequested("totalCount", info),
       });
-      // const ordersWithId = ordersResp.map((order) => ({
-      //   id: order._id,
-      //   ...order,
-      // }));
-      // // console.log("ordersWithId:- ", ordersWithId);
-      // return ordersWithId;
     },
   },
 };
