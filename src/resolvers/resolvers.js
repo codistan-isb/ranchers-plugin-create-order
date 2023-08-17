@@ -456,6 +456,8 @@ export default {
                 OrderID: RiderIDForAssign[0].OrderID,
                 OrderStatus: RiderIDForAssign[0].OrderStatus,
                 startTime: RiderIDForAssign[0].startTime,
+                riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
+                riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
               },
             },
             { new: true }
@@ -464,6 +466,8 @@ export default {
             OrderID: RiderIDForAssign[0].OrderID,
             RiderID: RiderIDForAssign[0].riderID,
             branches: RiderIDForAssign[0].branches,
+            riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
+            riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
             createdAt: new Date(),
           };
           await RiderOrderHistory.insertOne(createdOrderIDs);
@@ -555,6 +559,8 @@ export default {
             OrderID: RiderIDForAssign[0].OrderID,
             RiderID: RiderIDForAssign[0].riderID,
             branches: RiderIDForAssign[0].branches,
+            riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
+            riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
             createdAt: new Date(),
           };
           await RiderOrderHistory.insertOne(createdOrderIDs);
@@ -611,48 +617,7 @@ export default {
           throw err;
         }
       }
-      // }
-      // else{
-      //   // console.log("Else pate")
-      //   return orders[0];
-      // }
-      // const existingOrders = await RiderOrder.find({
-      //     OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
-      //     branches: { $in: RiderIDForAssign.map((o) => o.branches) },
-      //     createdAt: {
-      //         $gte: todayStart,
-      //         $lte: todayEnd,
-      //     },
-      // }).toArray();
-      // console.log("existingOrders :", existingOrders);
-      // if (existingOrders.length > 0) {
-      //     throw new ReactionError("duplicate", "One or more orders already exist for the same branch and day");
-      // }
-      // try {
-      //     const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
-      //     console.log(insertedOrders.insertedIds);
-      //     console.log(AllOrdersArray);
-      //     console.log("Order ID:- ", AllOrdersArray[0].OrderID);
-      //     if (insertedOrders) {
-      //         const updateOrders = { $set: { "workflow.status": "pickedUp" } };
-      //         const options = { new: true };
-      //         const updatedOrder = await Orders.findOneAndUpdate(
-      //             { _id: AllOrdersArray[0].OrderID },
-      //             updateOrders,
-      //             options
-      //         );
-      //         console.log("updated Order:- ", updatedOrder);
-      //     }
-      //     // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
-      //     return insertedOrders.ops;
-      // } catch (err) {
-      //     if (err.code === 11000) {
-      //         throw new ReactionError("duplicate", "Order Already Exists");
-
-      //         // throw new ReactionError("Order Already Exists");
-      //     }
-      //     throw err;
-      // }
+    
     },
     async updateRiderOrder(
       parent,
@@ -1213,13 +1178,13 @@ export default {
       }
       if (toDate && toDate !== undefined) {
         query.createdAt = {
-          ...query.createdAt, 
+          ...query.createdAt,
           $lte: new Date(toDate),
         };
       }
       if (fromDate && fromDate !== undefined) {
         query.createdAt = {
-          ...query.createdAt, 
+          ...query.createdAt,
           $gte: new Date(fromDate),
         };
       }
@@ -1323,7 +1288,7 @@ export default {
       }
       const { BranchData, Orders } = collections;
       const query = {};
-
+      let matchStage = [];
       if (branchID) {
         query.branchID = branchID;
         // matchStage.push({ branchID: branchID });
@@ -1386,7 +1351,7 @@ export default {
       //     ...matchingOrderIDs,
       //     // ...matchingBranchIDs,
       //   ];
-      //   console.log("matchingRiderIDs ", matchingRiderIDs);
+      //   // console.log("matchingRiderIDs ", matchingRiderIDs);
       //   // Adding the combined IDs to the matchStage
       //   matchStage.push({
       //     $or: [
@@ -1396,7 +1361,7 @@ export default {
       //     ],
       //   });
       // }
-      // console.log("query:- ", query);
+      // console.log("matchStage:- ", matchStage);
 
       // console.log("matchStage ", matchStage);
       // console.log("searchQuery ", searchQuery);
@@ -1404,9 +1369,7 @@ export default {
       // .sort({ createdAt: -1 })
       // .toArray();
       // console.log("ordersResp ", await Orders.find(query).toArray());
-    
-    
-    
+
       const ordersResp = await Orders.find(query);
       return getPaginatedResponse(ordersResp, connectionArgs, {
         includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
