@@ -27,18 +27,18 @@ export default async function executeCronJob(context) {
       // Convert milliseconds to minutes
       const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60);
       if (timeDifferenceMinutes > 60) {
-      let paymentIntentClientSecret1=  await context.mutations.oneSignalCreateNotification(context, {
-          message,
-          id: element.userId,
-          appType: "customer",
-          userId: element.userId,
-          orderID: element.orderId,
-        });
-        if (paymentIntentClientSecret1?.statusCode === 200) {
-          await CronJobs.findOneAndDelete({
-            _id: element._id,
+        let paymentIntentClientSecret1 =
+          await context.mutations.oneSignalCreateNotification(context, {
+            message,
+            id: element.userId,
+            appType: "customer",
+            userId: element.userId,
+            orderID: element.orderId,
           });
-        }
+        let delRecord = await CronJobs.findOneAndDelete({
+          _id: element._id,
+        });
+        console.log("delRecord ", delRecord);
         console.log(
           "Time difference is more than 60 minutes.i.e: ",
           timeDifferenceMinutes

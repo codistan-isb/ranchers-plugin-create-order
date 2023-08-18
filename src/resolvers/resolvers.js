@@ -838,6 +838,7 @@ export default {
           { $set: update },
           options
         );
+        console.log("response ", response);
         if (response) {
           const updatedOrderResp = await RiderOrder.findOne({
             OrderID: OrderID,
