@@ -9,180 +9,126 @@ import executeCronJob from "../utils/executeCronJob.js";
 export default {
   Order: {
     async branchInfo(parent, args, context, info) {
-      const BranchID = parent.branchID;
-      if (BranchID) {
-        const { BranchData } = context.collections;
-        const branchDataResponse = await BranchData.findOne({
-          _id: ObjectID.ObjectId(BranchID),
-        });
-        return branchDataResponse;
-      } else {
-        return [];
+      try {
+        const BranchID = parent.branchID;
+        if (BranchID) {
+          const { BranchData } = context.collections;
+          const branchDataResponse = await BranchData.findOne({
+            _id: ObjectID.ObjectId(BranchID),
+          });
+          return branchDataResponse;
+        } else {
+          return [];
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async riderInfo(parent, args, context, info) {
-      const { RiderOrder, Accounts } = context.collections;
-      const id = parent.id || parent._id;
-      let OrderIDArray = [];
-      if (id) {
-        const RiderOrderResponse = await RiderOrder.find({
-          OrderID: id,
-        }).toArray();
-        if (RiderOrderResponse[0] !== undefined) {
-          // console.log("rider ID Data : ", RiderOrderResponse[0].riderID);
-          const RiderDataResponse = await Accounts.find({
-            _id: RiderOrderResponse[0].riderID,
+      try {
+        const { RiderOrder, Accounts } = context.collections;
+        const id = parent.id || parent._id;
+        let OrderIDArray = [];
+        if (id) {
+          const RiderOrderResponse = await RiderOrder.find({
+            OrderID: id,
           }).toArray();
-          // console.log("RiderDataResponse Data : ", RiderDataResponse[0]);
-          return RiderDataResponse[0];
+          if (RiderOrderResponse[0] !== undefined) {
+            // console.log("rider ID Data : ", RiderOrderResponse[0].riderID);
+            const RiderDataResponse = await Accounts.find({
+              _id: RiderOrderResponse[0].riderID,
+            }).toArray();
+            // console.log("RiderDataResponse Data : ", RiderDataResponse[0]);
+            return RiderDataResponse[0];
+          }
+        } else {
+          return [];
         }
-      } else {
-        return [];
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async customerInfo(parent, args, context, info) {
-      if (parent.OrderID) {
-        const { Orders } = context.collections;
-        const orderInfoResponse = await Orders.findOne({
-          _id: parent.OrderID,
-        });
-        if (orderInfoResponse) {
-          return orderInfoResponse.shipping[0].address;
+      try {
+        if (parent.OrderID) {
+          const { Orders } = context.collections;
+          const orderInfoResponse = await Orders.findOne({
+            _id: parent.OrderID,
+          });
+          if (orderInfoResponse) {
+            return orderInfoResponse.shipping[0].address;
+          } else {
+            return null;
+          }
         } else {
-          return null;
+          if (parent._id) {
+            return parent.shipping[0].address;
+          } else {
+            return null;
+          }
         }
-      } else {
-        if (parent._id) {
-          return parent.shipping[0].address;
-        } else {
-          return null;
-        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async customerOrderTime(parent, args, context, info) {
-      const { Orders } = context.collections;
-      const customerOrderTimeResp = await Orders.findOne({
-        _id: parent.OrderID,
-      });
-      if (customerOrderTimeResp) {
-        return {
-          customerOrderTime: customerOrderTimeResp.createdAt,
-          Latitude: customerOrderTimeResp.Latitude,
-          Longitude: customerOrderTimeResp.Longitude,
-        };
-      } else {
-        return null;
+      try {
+        const { Orders } = context.collections;
+        const customerOrderTimeResp = await Orders.findOne({
+          _id: parent.OrderID,
+        });
+        if (customerOrderTimeResp) {
+          return {
+            customerOrderTime: customerOrderTimeResp.createdAt,
+            Latitude: customerOrderTimeResp.Latitude,
+            Longitude: customerOrderTimeResp.Longitude,
+          };
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async branchTimePickup(parent, args, context, info) {
-      const { RiderOrder } = context.collections;
+      try {
+        const { RiderOrder } = context.collections;
 
-      if (parent.riderID) {
-        const branchTimePickupResp = await RiderOrder.findOne({
-          riderID: parent.riderID,
-          OrderID: parent.OrderID,
-        });
-        if (branchTimePickupResp) {
-          return {
-            branchOrderTime: branchTimePickupResp.createdAt,
-          };
+        if (parent.riderID) {
+          const branchTimePickupResp = await RiderOrder.findOne({
+            riderID: parent.riderID,
+            OrderID: parent.OrderID,
+          });
+          if (branchTimePickupResp) {
+            return {
+              branchOrderTime: branchTimePickupResp.createdAt,
+            };
+          } else {
+            return null;
+          }
         } else {
-          return null;
-        }
-      } else {
-        // console.log(parent._id)
-        const branchTimePickupResp = await RiderOrder.findOne({
-          OrderID: parent._id,
-        });
+          // console.log(parent._id)
+          const branchTimePickupResp = await RiderOrder.findOne({
+            OrderID: parent._id,
+          });
 
-        if (branchTimePickupResp) {
-          // console.log("Data ", branchTimePickupResp);
-          // console.log("Data TIme ", branchTimePickupResp.createdAt);
-          return {
-            branchOrderTime: branchTimePickupResp.createdAt,
-          };
-        } else {
-          return null;
+          if (branchTimePickupResp) {
+            // console.log("Data ", branchTimePickupResp);
+            // console.log("Data TIme ", branchTimePickupResp.createdAt);
+            return {
+              branchOrderTime: branchTimePickupResp.createdAt,
+            };
+          } else {
+            return null;
+          }
         }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async kitchenOrderIDInfo(parent, args, context, info) {
-      const { Orders } = context.collections;
-      const kitchenOrderIDResp = await Orders.findOne({ _id: parent.OrderID });
-      if (kitchenOrderIDResp) {
-        return {
-          kitchenOrderID: kitchenOrderIDResp.kitchenOrderID,
-        };
-      } else {
-        return null;
-      }
-    },
-    async riderOrderInfo(parent, args, context, info) {
-      const { RiderOrder } = context.collections;
-      if (parent.id) {
-        const riderOrderInfoResp = await RiderOrder.findOne({
-          OrderID: parent.id,
-        });
-        if (riderOrderInfoResp) {
-          return riderOrderInfoResp;
-        } else {
-          return null;
-        }
-      } else {
-        let id = decodeOpaqueId(parent._id);
-        const riderOrderInfoResp = await RiderOrder.findOne({
-          OrderID: parent._id,
-        });
-        if (riderOrderInfoResp) {
-          return riderOrderInfoResp;
-        } else {
-          return null;
-        }
-      }
-    },
-    async orderIdResolver(parent, args, context, info) {
-      if (parent) {
-        return { orderId: parent?._id };
-      } else {
-        return null;
-      }
-    },
-  },
-  OrderReport: {
-    async branchInfo(parent, args, context, info) {
-      const BranchID = parent.branches;
-      if (BranchID) {
-        const { BranchData } = context.collections;
-        const branchDataResponse = await BranchData.find({
-          _id: ObjectID.ObjectId(BranchID),
-        }).toArray();
-        return branchDataResponse[0];
-      } else {
-        return [];
-      }
-    },
-    async customerInfo(parent, args, context, info) {
-      if (parent.OrderID) {
+      try {
         const { Orders } = context.collections;
-        const orderInfoResponse = await Orders.findOne({
-          _id: parent.OrderID,
-        });
-        if (orderInfoResponse) {
-          return orderInfoResponse.shipping[0].address;
-        } else {
-          return null;
-        }
-      } else {
-        if (parent._id) {
-          return parent.shipping[0].address;
-        } else {
-          return null;
-        }
-      }
-    },
-    async kitchenOrderIDInfo(parent, args, context, info) {
-      const { Orders } = context.collections;
-      if (parent.OrderID) {
         const kitchenOrderIDResp = await Orders.findOne({
           _id: parent.OrderID,
         });
@@ -193,13 +139,118 @@ export default {
         } else {
           return null;
         }
+      } catch (error) {
+        console.log("error ", error);
+      }
+    },
+    async riderOrderInfo(parent, args, context, info) {
+      try {
+        const { RiderOrder } = context.collections;
+        if (parent.id) {
+          const riderOrderInfoResp = await RiderOrder.findOne({
+            OrderID: parent.id,
+          });
+          if (riderOrderInfoResp) {
+            return riderOrderInfoResp;
+          } else {
+            return null;
+          }
+        } else {
+          let id = decodeOpaqueId(parent._id);
+          const riderOrderInfoResp = await RiderOrder.findOne({
+            OrderID: parent._id,
+          });
+          if (riderOrderInfoResp) {
+            return riderOrderInfoResp;
+          } else {
+            return null;
+          }
+        }
+      } catch (error) {
+        console.log("error ", error);
+      }
+    },
+    async orderIdResolver(parent, args, context, info) {
+      try {
+        if (parent) {
+          return { orderId: parent?._id };
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.log("error ", error);
+      }
+    },
+  },
+  OrderReport: {
+    async branchInfo(parent, args, context, info) {
+      try {
+        const BranchID = parent.branches;
+        if (BranchID) {
+          const { BranchData } = context.collections;
+          const branchDataResponse = await BranchData.find({
+            _id: ObjectID.ObjectId(BranchID),
+          }).toArray();
+          return branchDataResponse[0];
+        } else {
+          return [];
+        }
+      } catch (error) {
+        console.log("error ", error);
+      }
+    },
+    async customerInfo(parent, args, context, info) {
+      try {
+        if (parent.OrderID) {
+          const { Orders } = context.collections;
+          const orderInfoResponse = await Orders.findOne({
+            _id: parent.OrderID,
+          });
+          if (orderInfoResponse) {
+            return orderInfoResponse.shipping[0].address;
+          } else {
+            return null;
+          }
+        } else {
+          if (parent._id) {
+            return parent.shipping[0].address;
+          } else {
+            return null;
+          }
+        }
+      } catch (error) {
+        console.log("error ", error);
+      }
+    },
+    async kitchenOrderIDInfo(parent, args, context, info) {
+      try {
+        const { Orders } = context.collections;
+        if (parent.OrderID) {
+          const kitchenOrderIDResp = await Orders.findOne({
+            _id: parent.OrderID,
+          });
+          if (kitchenOrderIDResp) {
+            return {
+              kitchenOrderID: kitchenOrderIDResp.kitchenOrderID,
+            };
+          } else {
+            return null;
+          }
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async riderInfo(parent, args, context, info) {
-      const { RiderOrder, Accounts } = context.collections;
-      const { riderID } = parent;
-      const RiderInfoResp = await Accounts.findOne({ _id: riderID });
-      return RiderInfoResp;
+      try {
+        const { RiderOrder, Accounts } = context.collections;
+        const { riderID } = parent;
+        const RiderInfoResp = await Accounts.findOne({ _id: riderID });
+        return RiderInfoResp;
+      } catch (error) {
+        console.log("error ", error);
+      }
+
       // console.log("OrderID:- ", id);
       // if (riderID) {
 
@@ -219,32 +270,40 @@ export default {
       // }
     },
     async orderDetailTime(parent, args, context, info) {
-      const { Orders } = context.collections;
-      const { OrderID } = parent;
-      if (OrderID) {
-        const orderDetailResp = await Orders.findOne({ _id: OrderID });
-        if (orderDetailResp) {
-          return {
-            prepTime: orderDetailResp?.prepTime || 20,
-            deliveryTime: orderDetailResp?.deliveryTime || null,
-          };
-        } else {
-          return null;
+      try {
+        const { Orders } = context.collections;
+        const { OrderID } = parent;
+        if (OrderID) {
+          const orderDetailResp = await Orders.findOne({ _id: OrderID });
+          if (orderDetailResp) {
+            return {
+              prepTime: orderDetailResp?.prepTime || 20,
+              deliveryTime: orderDetailResp?.deliveryTime || null,
+            };
+          } else {
+            return null;
+          }
         }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async orderInfo(parent, args, context, info) {
-      const { Orders } = context.collections;
-      // console.log("parent of order report ", parent);
-      if (parent?.OrderID) {
-        const orderInfoResp = await Orders.findOne({
-          _id: parent?.OrderID,
-        });
-        if (orderInfoResp) {
-          return orderInfoResp;
-        } else {
-          return null;
+      try {
+        const { Orders } = context.collections;
+        // console.log("parent of order report ", parent);
+        if (parent?.OrderID) {
+          const orderInfoResp = await Orders.findOne({
+            _id: parent?.OrderID,
+          });
+          if (orderInfoResp) {
+            return orderInfoResp;
+          } else {
+            return null;
+          }
         }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
   },
@@ -257,114 +316,81 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
+      try {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
 
-      const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
-        context.collections;
-      const CurrentRiderID = context?.user?.id;
-      const AllOrdersArray = orders;
-      const RiderIDForAssign1 = orders.map((order) => {
-        const riderId = order.riderID ? order.riderID : CurrentRiderID;
-        return {
-          ...order,
-          riderID: riderId,
-          createdAt: now,
-        };
-      });
-      const riderID = RiderIDForAssign1[0].riderID;
-      const existingOrders1 = await RiderOrder.find({
-        riderID: riderID,
-        OrderStatus: { $ne: "delivered" },
-      }).toArray();
-      if (existingOrders1.length >= 1) {
-        throw new ReactionError(
-          "not-allowed",
-          "Cannot assign new orders. Complete previous order first."
-        );
-      }
-      const insertedOrders = [];
-      for (const order of orders) {
-        const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
-
-        let CustomerAccountID = "";
-        if (CustomerOrder) {
-          CustomerAccountID = CustomerOrder?.accountId;
-        }
-
-        const RiderIDForAssign = {
-          ...order,
-          riderID: order.riderID ? order.riderID : CurrentRiderID,
-          createdAt: now,
-        };
-
-        const riderStatus = await Accounts.findOne({
-          _id: RiderIDForAssign.riderID,
-        });
-        // console.log("Status of Rider : ", riderStatus);
-
-        if (riderStatus && riderStatus.currentStatus === "offline") {
-          throw new ReactionError(
-            "not-found",
-            "Rider is offline, cannot create order"
-          );
-        }
-
-        const existingRiderOrder = await RiderOrder.findOne({
-          OrderID: RiderIDForAssign.OrderID,
-        });
-
-        if (existingRiderOrder) {
-          const updatedOrder = await RiderOrder.findOneAndUpdate(
-            { _id: existingRiderOrder._id },
-            {
-              $set: {
-                riderID: RiderIDForAssign.riderID,
-                branches: RiderIDForAssign.branches,
-                OrderID: RiderIDForAssign.OrderID,
-                OrderStatus: RiderIDForAssign.OrderStatus,
-                startTime: RiderIDForAssign.startTime,
-              },
-            },
-            { new: true }
-          );
-          const createdOrderIDs = {
-            OrderID: RiderIDForAssign.OrderID,
-            RiderID: RiderIDForAssign.riderID,
-            branches: RiderIDForAssign.branches,
-            createdAt: new Date(),
+        const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
+          context.collections;
+        const CurrentRiderID = context?.user?.id;
+        const AllOrdersArray = orders;
+        const RiderIDForAssign1 = orders.map((order) => {
+          const riderId = order.riderID ? order.riderID : CurrentRiderID;
+          return {
+            ...order,
+            riderID: riderId,
+            createdAt: now,
           };
-          await RiderOrderHistory.insertOne(createdOrderIDs);
+        });
+        const riderID = RiderIDForAssign1[0].riderID;
+        const existingOrders1 = await RiderOrder.find({
+          riderID: riderID,
+          OrderStatus: { $ne: "delivered" },
+        }).toArray();
+        if (existingOrders1.length >= 1) {
+          throw new ReactionError(
+            "not-allowed",
+            "Cannot assign new orders. Complete previous order first."
+          );
+        }
 
-          const message = "Order has been assigned";
-          const appType = "rider";
-          const id = RiderIDForAssign.riderID;
-          let OrderIDs = RiderIDForAssign.OrderID;
-          const paymentIntentClientSecret =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id,
-              appType,
-              userId: id,
-            });
-          if (CustomerAccountID) {
-            const paymentIntentClientSecret1 =
-              context.mutations.oneSignalCreateNotification(context, {
-                message,
-                id: CustomerAccountID,
-                appType: "customer",
-                userId: CustomerAccountID,
-                orderID: OrderIDs,
-              });
+        const insertedOrders = [];
+        for (const order of orders) {
+          const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
+
+          let CustomerAccountID = "";
+          if (CustomerOrder) {
+            CustomerAccountID = CustomerOrder?.accountId;
           }
-          if (updatedOrder) {
-            insertedOrders.push(updatedOrder.value);
+
+          const RiderIDForAssign = {
+            ...order,
+            riderID: order.riderID ? order.riderID : CurrentRiderID,
+            createdAt: now,
+          };
+
+          const riderStatus = await Accounts.findOne({
+            _id: RiderIDForAssign.riderID,
+          });
+          // console.log("Status of Rider : ", riderStatus);
+
+          if (riderStatus && riderStatus.currentStatus === "offline") {
+            throw new ReactionError(
+              "not-found",
+              "Rider is offline, cannot create order"
+            );
           }
-        } else {
-          try {
-            const insertedOrder = await RiderOrder.insertOne(RiderIDForAssign);
+
+          const existingRiderOrder = await RiderOrder.findOne({
+            OrderID: RiderIDForAssign.OrderID,
+          });
+
+          if (existingRiderOrder) {
+            const updatedOrder = await RiderOrder.findOneAndUpdate(
+              { _id: existingRiderOrder._id },
+              {
+                $set: {
+                  riderID: RiderIDForAssign.riderID,
+                  branches: RiderIDForAssign.branches,
+                  OrderID: RiderIDForAssign.OrderID,
+                  OrderStatus: RiderIDForAssign.OrderStatus,
+                  startTime: RiderIDForAssign.startTime,
+                },
+              },
+              { new: true }
+            );
             const createdOrderIDs = {
               OrderID: RiderIDForAssign.OrderID,
               RiderID: RiderIDForAssign.riderID,
@@ -376,6 +402,7 @@ export default {
             const message = "Order has been assigned";
             const appType = "rider";
             const id = RiderIDForAssign.riderID;
+            let OrderIDs = RiderIDForAssign.OrderID;
             const paymentIntentClientSecret =
               context.mutations.oneSignalCreateNotification(context, {
                 message,
@@ -390,20 +417,59 @@ export default {
                   id: CustomerAccountID,
                   appType: "customer",
                   userId: CustomerAccountID,
-                  orderID: RiderIDForAssign.OrderID,
+                  orderID: OrderIDs,
                 });
             }
-            insertedOrders.push(insertedOrder.ops[0]);
-          } catch (err) {
-            if (err.code === 11000) {
-              throw new ReactionError("duplicate", "Order Already Exists");
+            if (updatedOrder) {
+              insertedOrders.push(updatedOrder.value);
             }
-            throw err;
+          } else {
+            try {
+              const insertedOrder = await RiderOrder.insertOne(
+                RiderIDForAssign
+              );
+              const createdOrderIDs = {
+                OrderID: RiderIDForAssign.OrderID,
+                RiderID: RiderIDForAssign.riderID,
+                branches: RiderIDForAssign.branches,
+                createdAt: new Date(),
+              };
+              await RiderOrderHistory.insertOne(createdOrderIDs);
+
+              const message = "Order has been assigned";
+              const appType = "rider";
+              const id = RiderIDForAssign.riderID;
+              const paymentIntentClientSecret =
+                context.mutations.oneSignalCreateNotification(context, {
+                  message,
+                  id,
+                  appType,
+                  userId: id,
+                });
+              if (CustomerAccountID) {
+                const paymentIntentClientSecret1 =
+                  context.mutations.oneSignalCreateNotification(context, {
+                    message,
+                    id: CustomerAccountID,
+                    appType: "customer",
+                    userId: CustomerAccountID,
+                    orderID: RiderIDForAssign.OrderID,
+                  });
+              }
+              insertedOrders.push(insertedOrder.ops[0]);
+            } catch (err) {
+              if (err.code === 11000) {
+                throw new ReactionError("duplicate", "Order Already Exists");
+              }
+              throw err;
+            }
           }
         }
-      }
 
-      return insertedOrders;
+        return insertedOrders;
+      } catch (error) {
+        console.log("error ", error);
+      }
     },
     async createRiderOrder(parent, { orders }, context, info) {
       const now = new Date();
@@ -413,211 +479,218 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
-      const AllOrdersArray = orders;
-      const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
-        context.collections;
-      const CurrentRiderID = context.user.id;
-      const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
-      let CustomerAccountID = "";
-      if (CustomerOrder) {
-        CustomerAccountID = CustomerOrder?.accountId;
-      }
-      const RiderIDForAssign = orders.map((order) => {
-        const riderId = order.riderID ? order.riderID : CurrentRiderID;
-        return {
-          ...order,
-          riderID: riderId,
-          createdAt: now,
-        };
-      });
-      const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
-      if (riderStatus && riderStatus.currentStatus === "offline") {
-        throw new ReactionError(
-          "not-found",
-          "Rider is offline, cannot create order"
-        );
-      }
-      const existingRiderOrders = await RiderOrder.find({
-        OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
-      }).toArray();
-      if (existingRiderOrders.length > 0) {
-        if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
-          const update = {};
-          const insertedOrders1 = await RiderOrder.findOneAndUpdate(
-            { _id: existingRiderOrders[0]._id },
-            {
-              $set: {
-                riderID: RiderIDForAssign[0].riderID,
-                branches: RiderIDForAssign[0].branches,
-                OrderID: RiderIDForAssign[0].OrderID,
-                OrderStatus: RiderIDForAssign[0].OrderStatus,
-                startTime: RiderIDForAssign[0].startTime,
-                riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
-                riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
-              },
-            },
-            { new: true }
-          );
-          const createdOrderIDs = {
-            OrderID: RiderIDForAssign[0].OrderID,
-            RiderID: RiderIDForAssign[0].riderID,
-            branches: RiderIDForAssign[0].branches,
-            riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
-            riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
-            createdAt: new Date(),
+      try {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+        const AllOrdersArray = orders;
+        const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
+          context.collections;
+        const CurrentRiderID = context.user.id;
+        const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
+        let CustomerAccountID = "";
+        if (CustomerOrder) {
+          CustomerAccountID = CustomerOrder?.accountId;
+        }
+        const RiderIDForAssign = orders.map((order) => {
+          const riderId = order.riderID ? order.riderID : CurrentRiderID;
+          return {
+            ...order,
+            riderID: riderId,
+            createdAt: now,
           };
-          await RiderOrderHistory.insertOne(createdOrderIDs);
-          const message = "Order has been assigned";
-          const appType = "rider";
-          const appType1 = "customer";
-          const id = RiderIDForAssign[0].riderID;
-          let OrderIDs = RiderIDForAssign[0].OrderID;
-          const paymentIntentClientSecret =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id,
-              appType,
-              userId: id,
-            });
-          if (CustomerAccountID) {
-            const paymentIntentClientSecret1 =
+        });
+        const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
+        if (riderStatus && riderStatus.currentStatus === "offline") {
+          throw new ReactionError(
+            "not-found",
+            "Rider is offline, cannot create order"
+          );
+        }
+        const existingRiderOrders = await RiderOrder.find({
+          OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
+        }).toArray();
+        if (existingRiderOrders.length > 0) {
+          if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
+            const update = {};
+            const insertedOrders1 = await RiderOrder.findOneAndUpdate(
+              { _id: existingRiderOrders[0]._id },
+              {
+                $set: {
+                  riderID: RiderIDForAssign[0].riderID,
+                  branches: RiderIDForAssign[0].branches,
+                  OrderID: RiderIDForAssign[0].OrderID,
+                  OrderStatus: RiderIDForAssign[0].OrderStatus,
+                  startTime: RiderIDForAssign[0].startTime,
+                  riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
+                  riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
+                },
+              },
+              { new: true }
+            );
+            const createdOrderIDs = {
+              OrderID: RiderIDForAssign[0].OrderID,
+              RiderID: RiderIDForAssign[0].riderID,
+              branches: RiderIDForAssign[0].branches,
+              riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
+              riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
+              createdAt: new Date(),
+            };
+            await RiderOrderHistory.insertOne(createdOrderIDs);
+            const message = "Order has been assigned";
+            const appType = "rider";
+            const appType1 = "customer";
+            const id = RiderIDForAssign[0].riderID;
+            let OrderIDs = RiderIDForAssign[0].OrderID;
+            const paymentIntentClientSecret =
               context.mutations.oneSignalCreateNotification(context, {
                 message,
-                id: CustomerAccountID,
-                appType: appType1,
-                userId: CustomerAccountID,
-                orderID: OrderIDs,
+                id,
+                appType,
+                userId: id,
               });
-          }
-          if (insertedOrders1) {
-            return insertedOrders1.value;
-          } else {
-            try {
-              const insertedOrders = await RiderOrder.insertMany(
-                RiderIDForAssign
-              );
-              if (insertedOrders) {
-                const message = "Order has been assigned";
-                const customerMessage = "Your order is picked";
-                const appType = "rider";
-                const id = RiderIDForAssign[0].riderID;
-                const appType1 = "customer";
-                let OrderIDs = RiderIDForAssign[0].OrderID;
-                const paymentIntentClientSecret =
-                  context.mutations.oneSignalCreateNotification(context, {
-                    message,
-                    id,
-                    appType,
-                    id,
-                  });
-                if (CustomerAccountID) {
-                  const paymentIntentClientSecret1 =
-                    context.mutations.oneSignalCreateNotification(context, {
-                      message: customerMessage,
-                      id: CustomerAccountID,
-                      appType: appType1,
-                      userId: CustomerAccountID,
-                      orderID: OrderIDs,
-                    });
-
-                  const updateOrders = {
-                    $set: { "workflow.status": "pickedUp" },
-                  };
-                  const options = { new: true };
-                  const updatedOrder = await Orders.findOneAndUpdate(
-                    { _id: AllOrdersArray[0].OrderID },
-                    updateOrders,
-                    options
-                  );
-                }
-              }
-              return insertedOrders.ops;
-            } catch (err) {
-              if (err.code === 11000) {
-                throw new ReactionError("duplicate", "Order Already Exists");
-
-                // throw new ReactionError("Order Already Exists");
-              }
-              throw err;
+            if (CustomerAccountID) {
+              const paymentIntentClientSecret1 =
+                context.mutations.oneSignalCreateNotification(context, {
+                  message,
+                  id: CustomerAccountID,
+                  appType: appType1,
+                  userId: CustomerAccountID,
+                  orderID: OrderIDs,
+                });
             }
+            if (insertedOrders1) {
+              return insertedOrders1.value;
+            } else {
+              try {
+                const insertedOrders = await RiderOrder.insertMany(
+                  RiderIDForAssign
+                );
+                if (insertedOrders) {
+                  const message = "Order has been assigned";
+                  const customerMessage = "Your order is picked";
+                  const appType = "rider";
+                  const id = RiderIDForAssign[0].riderID;
+                  const appType1 = "customer";
+                  let OrderIDs = RiderIDForAssign[0].OrderID;
+                  const paymentIntentClientSecret =
+                    context.mutations.oneSignalCreateNotification(context, {
+                      message,
+                      id,
+                      appType,
+                      id,
+                    });
+                  if (CustomerAccountID) {
+                    const paymentIntentClientSecret1 =
+                      context.mutations.oneSignalCreateNotification(context, {
+                        message: customerMessage,
+                        id: CustomerAccountID,
+                        appType: appType1,
+                        userId: CustomerAccountID,
+                        orderID: OrderIDs,
+                      });
+
+                    const updateOrders = {
+                      $set: { "workflow.status": "pickedUp" },
+                    };
+                    const options = { new: true };
+                    const updatedOrder = await Orders.findOneAndUpdate(
+                      { _id: AllOrdersArray[0].OrderID },
+                      updateOrders,
+                      options
+                    );
+                  }
+                }
+                return insertedOrders.ops;
+              } catch (err) {
+                if (err.code === 11000) {
+                  throw new ReactionError("duplicate", "Order Already Exists");
+
+                  // throw new ReactionError("Order Already Exists");
+                }
+                throw err;
+              }
+            }
+          } else {
+            throw new ReactionError(
+              "duplicate",
+              "One or more orders already exist for the same branch and day"
+            );
           }
         } else {
-          throw new ReactionError(
-            "duplicate",
-            "One or more orders already exist for the same branch and day"
-          );
-        }
-      } else {
-        // console.log("else 2 part")
-        try {
-          const insertedOrders = await RiderOrder.insertMany(RiderIDForAssign);
-          const createdOrderIDs = {
-            OrderID: RiderIDForAssign[0].OrderID,
-            RiderID: RiderIDForAssign[0].riderID,
-            branches: RiderIDForAssign[0].branches,
-            riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
-            riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
-            createdAt: new Date(),
-          };
-          await RiderOrderHistory.insertOne(createdOrderIDs);
-          // console.log(insertedOrders.insertedIds);
-          // console.log("inserted Data:- ", insertedOrders)
-          // console.log(AllOrdersArray);
-          // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
-          // console.log("RiderIDForAssign ", RiderIDForAssign[0]);
-          if (insertedOrders) {
-            const message = "Order has been assigned";
-            const customerMessage = "Your order is picked";
-            const appType = "rider";
-            const id = RiderIDForAssign[0].riderID;
-            const userId = RiderIDForAssign[0].riderID;
-            const appType1 = "customer";
-            let OrderIDs = RiderIDForAssign[0].OrderID;
-            // const paymentIntentClientSecret =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id,
-              appType,
-              userId,
-            });
-            // console.log("context Mutation: ", paymentIntentClientSecret);
-            if (CustomerAccountID) {
-              // const paymentIntentClientSecret1 =
+          // console.log("else 2 part")
+          try {
+            const insertedOrders = await RiderOrder.insertMany(
+              RiderIDForAssign
+            );
+            const createdOrderIDs = {
+              OrderID: RiderIDForAssign[0].OrderID,
+              RiderID: RiderIDForAssign[0].riderID,
+              branches: RiderIDForAssign[0].branches,
+              riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
+              riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
+              createdAt: new Date(),
+            };
+            await RiderOrderHistory.insertOne(createdOrderIDs);
+            // console.log(insertedOrders.insertedIds);
+            // console.log("inserted Data:- ", insertedOrders)
+            // console.log(AllOrdersArray);
+            // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
+            // console.log("RiderIDForAssign ", RiderIDForAssign[0]);
+            if (insertedOrders) {
+              const message = "Order has been assigned";
+              const customerMessage = "Your order is picked";
+              const appType = "rider";
+              const id = RiderIDForAssign[0].riderID;
+              const userId = RiderIDForAssign[0].riderID;
+              const appType1 = "customer";
+              let OrderIDs = RiderIDForAssign[0].OrderID;
+              // const paymentIntentClientSecret =
               context.mutations.oneSignalCreateNotification(context, {
-                message: customerMessage,
-                id: CustomerAccountID,
-                appType: appType1,
-                userId: CustomerAccountID,
-                orderID: OrderIDs,
+                message,
+                id,
+                appType,
+                userId,
               });
-              // console.log("context Mutation: ", paymentIntentClientSecret1);
+              // console.log("context Mutation: ", paymentIntentClientSecret);
+              if (CustomerAccountID) {
+                // const paymentIntentClientSecret1 =
+                context.mutations.oneSignalCreateNotification(context, {
+                  message: customerMessage,
+                  id: CustomerAccountID,
+                  appType: appType1,
+                  userId: CustomerAccountID,
+                  orderID: OrderIDs,
+                });
+                // console.log("context Mutation: ", paymentIntentClientSecret1);
 
-              const updateOrders = { $set: { "workflow.status": "pickedUp" } };
-              const options = { new: false };
-              const updatedOrder = await Orders.findOneAndUpdate(
-                { _id: AllOrdersArray[0].OrderID },
-                updateOrders,
-                options
-              );
-              // console.log("updated Order:- ", updatedOrder);
+                const updateOrders = {
+                  $set: { "workflow.status": "pickedUp" },
+                };
+                const options = { new: false };
+                const updatedOrder = await Orders.findOneAndUpdate(
+                  { _id: AllOrdersArray[0].OrderID },
+                  updateOrders,
+                  options
+                );
+                // console.log("updated Order:- ", updatedOrder);
+              }
             }
-          }
-          // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
-          return insertedOrders.ops[0];
-        } catch (err) {
-          if (err.code === 11000) {
-            throw new ReactionError("duplicate", "Order Already Exists");
+            // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
+            return insertedOrders.ops[0];
+          } catch (err) {
+            if (err.code === 11000) {
+              throw new ReactionError("duplicate", "Order Already Exists");
 
-            // throw new ReactionError("Order Already Exists");
+              // throw new ReactionError("Order Already Exists");
+            }
+            throw err;
           }
-          throw err;
         }
+      } catch (error) {
+        console.log("error ", error);
       }
-    
     },
     async updateRiderOrder(
       parent,
@@ -631,152 +704,158 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const CurrentRiderID = context.user.id;
-      const { RiderOrder, Orders, CronJobs } = context.collections;
-      const filter = { OrderID: OrderID };
-      const CustomerOrder = await Orders.findOne({ _id: OrderID });
-      let CustomerAccountID = "";
-      if (CustomerOrder) {
-        CustomerAccountID = CustomerOrder?.accountId;
-      }
-      const update = {};
-      if (rejectionReason) {
-        update.rejectionReason = rejectionReason;
-      }
-      if (startTime) {
-        update.startTime = startTime;
-      }
-      if (endTime) {
-        update.endTime = endTime;
-        const getStartTimeResp = await RiderOrder.findOne({ OrderID: OrderID });
-        if (getStartTimeResp) {
-          const startFinalTime = new Date(getStartTimeResp.startTime);
-          const endFinalTime = new Date(endTime);
-          const timeDiff = endFinalTime.getTime() - startFinalTime.getTime();
-          // timeDiff is in milliseconds, convert to seconds
-          const minutes = timeDiff / 60000;
-          update.deliveryTime = parseFloat(minutes.toFixed(2));
+      try {
+        const CurrentRiderID = context.user.id;
+        const { RiderOrder, Orders, CronJobs } = context.collections;
+        const filter = { OrderID: OrderID };
+        const CustomerOrder = await Orders.findOne({ _id: OrderID });
+        let CustomerAccountID = "";
+        if (CustomerOrder) {
+          CustomerAccountID = CustomerOrder?.accountId;
         }
-      }
-      if (OrderStatus) {
-        let message = "";
-        if (OrderStatus === "canceled") {
-          message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
-        } else {
-          message = `Order is ${OrderStatus}`;
+        const update = {};
+        if (rejectionReason) {
+          update.rejectionReason = rejectionReason;
         }
-        if (OrderStatus === "delivered") {
-          let cronJobObject = {
-            _id: Random.id(),
-            userId: CustomerAccountID,
-            orderId: OrderID,
-            createdAt: new Date(),
-            type: "orderFeedback",
-            status: "delivered",
-          };
-          const cronjobResp = await CronJobs.insertOne(cronJobObject);
-          const cornJobResp = executeCronJob(context);
+        if (startTime) {
+          update.startTime = startTime;
         }
-        const appType = "admin";
-        const appTypeCustomer = "customer";
-        const id = CurrentRiderID;
-        const userId = CurrentRiderID;
-        const paymentIntentClientSecret =
-          context.mutations.oneSignalCreateNotification(context, {
-            message,
-            id,
-            appType,
-            userId,
+        if (endTime) {
+          update.endTime = endTime;
+          const getStartTimeResp = await RiderOrder.findOne({
+            OrderID: OrderID,
           });
-        if (CustomerAccountID) {
-          const paymentIntentClientSecret1 =
+          if (getStartTimeResp) {
+            const startFinalTime = new Date(getStartTimeResp.startTime);
+            const endFinalTime = new Date(endTime);
+            const timeDiff = endFinalTime.getTime() - startFinalTime.getTime();
+            // timeDiff is in milliseconds, convert to seconds
+            const minutes = timeDiff / 60000;
+            update.deliveryTime = parseFloat(minutes.toFixed(2));
+          }
+        }
+        if (OrderStatus) {
+          let message = "";
+          if (OrderStatus === "canceled") {
+            message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
+          } else {
+            message = `Order is ${OrderStatus}`;
+          }
+          if (OrderStatus === "delivered") {
+            let cronJobObject = {
+              _id: Random.id(),
+              userId: CustomerAccountID,
+              orderId: OrderID,
+              createdAt: new Date(),
+              type: "orderFeedback",
+              status: "delivered",
+            };
+            const cronjobResp = await CronJobs.insertOne(cronJobObject);
+            const cornJobResp = executeCronJob(context);
+          }
+          const appType = "admin";
+          const appTypeCustomer = "customer";
+          const id = CurrentRiderID;
+          const userId = CurrentRiderID;
+          const paymentIntentClientSecret =
             context.mutations.oneSignalCreateNotification(context, {
               message,
-              id: CustomerAccountID,
-              appType: appTypeCustomer,
-              userId: CustomerAccountID,
-              orderID: OrderID,
+              id,
+              appType,
+              userId,
             });
+          if (CustomerAccountID) {
+            const paymentIntentClientSecret1 =
+              context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id: CustomerAccountID,
+                appType: appTypeCustomer,
+                userId: CustomerAccountID,
+                orderID: OrderID,
+              });
+          }
+          update.OrderStatus = OrderStatus;
+          let updateOrders = {};
+          if (rejectionReason) {
+            updateOrders = {
+              $set: {
+                "workflow.status": OrderStatus,
+                rejectionReason: rejectionReason,
+                updatedAt: new Date(),
+              },
+            };
+          } else {
+            updateOrders = {
+              $set: { "workflow.status": OrderStatus, updatedAt: new Date() },
+            };
+          }
+          const options = { new: true };
+          const updatedOrder = await Orders.findOneAndUpdate(
+            { _id: OrderID },
+            updateOrders,
+            options
+          );
         }
-        update.OrderStatus = OrderStatus;
-        let updateOrders = {};
-        if (rejectionReason) {
-          updateOrders = {
-            $set: {
-              "workflow.status": OrderStatus,
-              rejectionReason: rejectionReason,
-              updatedAt: new Date(),
-            },
+        if (OrderStatus === "ready") {
+          const updatedBranch = {
+            prepTime: 0, // add prepTime field here
+            updatedAt: new Date().toISOString(),
           };
-        } else {
-          updateOrders = {
-            $set: { "workflow.status": OrderStatus, updatedAt: new Date() },
-          };
+          const message = "Order is Ready";
+          const appType = "admin";
+          const appTypecustomer = "customer";
+          const id = userId;
+          const paymentIntentClientSecret =
+            context.mutations.oneSignalCreateNotification(context, {
+              message,
+              id,
+              appType,
+              userId,
+              // orderID,
+            });
+          if (CustomerAccountID) {
+            const paymentIntentClientSecret1 =
+              context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id: CustomerAccountID,
+                appType: appTypecustomer,
+                userId: CustomerAccountID,
+                orderID: OrderID,
+              });
+            // console.log(
+            //   " Customer Order context Mutation: ",
+            //   paymentIntentClientSecret1
+            // );
+          }
         }
+        if (OrderID) {
+          update.OrderID = OrderID;
+        }
+        console.log("Update ", update);
         const options = { new: true };
-        const updatedOrder = await Orders.findOneAndUpdate(
-          { _id: OrderID },
-          updateOrders,
+        const response = await RiderOrder.findOneAndUpdate(
+          filter,
+          { $set: update },
           options
         );
-      }
-      if (OrderStatus === "ready") {
-        const updatedBranch = {
-          prepTime: 0, // add prepTime field here
-          updatedAt: new Date().toISOString(),
-        };
-        const message = "Order is Ready";
-        const appType = "admin";
-        const appTypecustomer = "customer";
-        const id = userId;
-        const paymentIntentClientSecret =
-          context.mutations.oneSignalCreateNotification(context, {
-            message,
-            id,
-            appType,
-            userId,
-            // orderID,
+        if (response) {
+          const updatedOrderResp = await RiderOrder.findOne({
+            OrderID: OrderID,
           });
-        if (CustomerAccountID) {
-          const paymentIntentClientSecret1 =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id: CustomerAccountID,
-              appType: appTypecustomer,
-              userId: CustomerAccountID,
-              orderID: OrderID,
-            });
-          // console.log(
-          //   " Customer Order context Mutation: ",
-          //   paymentIntentClientSecret1
-          // );
-        }
-      }
-      if (OrderID) {
-        update.OrderID = OrderID;
-      }
-      console.log("Update ", update);
-      const options = { new: true };
-      const response = await RiderOrder.findOneAndUpdate(
-        filter,
-        { $set: update },
-        options
-      );
-      if (response) {
-        const updatedOrderResp = await RiderOrder.findOne({
-          OrderID: OrderID,
-        });
-        console.log("updated Order Resp", updatedOrderResp);
-        if (updatedOrderResp) {
-          return {
-            id: updatedOrderResp._id,
-            ...updatedOrderResp,
-          };
+          console.log("updated Order Resp", updatedOrderResp);
+          if (updatedOrderResp) {
+            return {
+              id: updatedOrderResp._id,
+              ...updatedOrderResp,
+            };
+          } else {
+            return null;
+          }
         } else {
           return null;
         }
-      } else {
-        return null;
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async updateUserCurrentStatus(parent, args, context, info) {
@@ -786,6 +865,7 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
+
       const { Accounts } = context.collections;
       const currentStatus = args.status;
       const userID = context.user.id;
@@ -795,19 +875,23 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const updatedUser = await Accounts.findOneAndUpdate(
-        { _id: userID },
-        { $set: { currentStatus, updatedAt: new Date() } },
-        { returnOriginal: false }
-      );
-      if (!updatedUser) {
-        throw new ReactionError(
-          "not-found",
-          `User with ID ${userID} not found`
+      try {
+        const updatedUser = await Accounts.findOneAndUpdate(
+          { _id: userID },
+          { $set: { currentStatus, updatedAt: new Date() } },
+          { returnOriginal: false }
         );
-      }
+        if (!updatedUser) {
+          throw new ReactionError(
+            "not-found",
+            `User with ID ${userID} not found`
+          );
+        }
 
-      return updatedUser.value;
+        return updatedUser.value;
+      } catch (error) {
+        console.log("error ", error);
+      }
     },
     async assignBranchtoUser(parent, args, context, info) {
       if (
@@ -820,44 +904,47 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
+      try {
+        const { userID, branches } = args;
+        const CurrentUserID = context.user.id;
+        const { Accounts, users } = context.collections;
+        const filter = { _id: userID };
+        const update = { $push: { branches: branches } };
+        const options = { new: true };
+        const userAccount = await Accounts.findOne(filter);
+        if (
+          userAccount.branches &&
+          userAccount.branches.includes(args.branches)
+        ) {
+          throw new ReactionError("duplicate", "Branch Already Assigned");
 
-      const { userID, branches } = args;
-      const CurrentUserID = context.user.id;
-      const { Accounts, users } = context.collections;
-      const filter = { _id: userID };
-      const update = { $push: { branches: branches } };
-      const options = { new: true };
-      const userAccount = await Accounts.findOne(filter);
-      if (
-        userAccount.branches &&
-        userAccount.branches.includes(args.branches)
-      ) {
-        throw new ReactionError("duplicate", "Branch Already Assigned");
+          // throw new ReactionError("Branch Already Assigned");
+        }
 
-        // throw new ReactionError("Branch Already Assigned");
-      }
-
-      if (
-        context.user.UserRole.toLowerCase() === "admin" ||
-        context.user.UserRole.toLowerCase() === "dispatcher"
-      ) {
-        const updatedAccount = await Accounts.findOneAndUpdate(
-          filter,
-          update,
-          options
-        );
-        const updatedUserAccount = await users.findOneAndUpdate(
-          filter,
-          update,
-          options
-        );
-        const updatedUser = await Accounts.findOne({ _id: userID });
-        return updatedUser;
-      } else {
-        throw new ReactionError(
-          "access-denied",
-          "Unauthorized access. Please Login First"
-        );
+        if (
+          context.user.UserRole.toLowerCase() === "admin" ||
+          context.user.UserRole.toLowerCase() === "dispatcher"
+        ) {
+          const updatedAccount = await Accounts.findOneAndUpdate(
+            filter,
+            update,
+            options
+          );
+          const updatedUserAccount = await users.findOneAndUpdate(
+            filter,
+            update,
+            options
+          );
+          const updatedUser = await Accounts.findOne({ _id: userID });
+          return updatedUser;
+        } else {
+          throw new ReactionError(
+            "access-denied",
+            "Unauthorized access. Please Login First"
+          );
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async updateAccountAdmin(parent, args, context, info) {
@@ -871,141 +958,155 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      if (
-        context.user.UserRole.toLowerCase() === "admin" ||
-        context.user.UserRole.toLowerCase() === "dispatcher"
-      ) {
-        const { users, Accounts } = context.collections;
-        const { userID, branches } = args;
-        const newBranchValue = branches;
-        let updateAccountResult;
-        let newBranchValueRIder = [];
-        newBranchValueRIder.push(branches);
-        const checkAccountResponse = await Accounts.findOne({ _id: userID });
-        // Check if the new branch already exists in the branches array
+      try {
         if (
-          checkAccountResponse.branches &&
-          checkAccountResponse.branches.includes(newBranchValue)
+          context.user.UserRole.toLowerCase() === "admin" ||
+          context.user.UserRole.toLowerCase() === "dispatcher"
         ) {
-          throw new ReactionError("duplicate", "branch already assigned");
-        }
-        if (checkAccountResponse?.UserRole === "rider") {
-          updateAccountResult = await Accounts.updateOne(
-            { _id: userID },
-            { $set: { branches: newBranchValueRIder } } // $addToSet only adds the value if it doesn't already exist
-          );
-          const updateUserResult = await users.updateOne(
-            { _id: userID },
-            { $set: { branches: newBranchValueRIder } } // $addToSet only adds the value if it doesn't already exist
-          );
-        } else {
-          updateAccountResult = await Accounts.updateOne(
-            { _id: userID },
-            { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
-          );
-        }
-        if (updateAccountResult.modifiedCount !== 1) {
-          if (!updatedAccount)
-            throw new ReactionError(
-              "server-error",
-              "Unable to update Account, Try again later"
+          const { users, Accounts } = context.collections;
+          const { userID, branches } = args;
+          const newBranchValue = branches;
+          let updateAccountResult;
+          let newBranchValueRIder = [];
+          newBranchValueRIder.push(branches);
+          const checkAccountResponse = await Accounts.findOne({ _id: userID });
+          // Check if the new branch already exists in the branches array
+          if (
+            checkAccountResponse.branches &&
+            checkAccountResponse.branches.includes(newBranchValue)
+          ) {
+            throw new ReactionError("duplicate", "branch already assigned");
+          }
+          if (checkAccountResponse?.UserRole === "rider") {
+            updateAccountResult = await Accounts.updateOne(
+              { _id: userID },
+              { $set: { branches: newBranchValueRIder } } // $addToSet only adds the value if it doesn't already exist
             );
+            const updateUserResult = await users.updateOne(
+              { _id: userID },
+              { $set: { branches: newBranchValueRIder } } // $addToSet only adds the value if it doesn't already exist
+            );
+          } else {
+            updateAccountResult = await Accounts.updateOne(
+              { _id: userID },
+              { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
+            );
+          }
+          if (updateAccountResult.modifiedCount !== 1) {
+            if (!updatedAccount)
+              throw new ReactionError(
+                "server-error",
+                "Unable to update Account, Try again later"
+              );
 
-          // throw new ReactionError("Failed", `Failed to update branch value to user: ${userID}`);
+            // throw new ReactionError("Failed", `Failed to update branch value to user: ${userID}`);
+          } else {
+            // console.log("Updated Account");
+            const updateUserResult = await users.updateOne(
+              { _id: userID },
+              { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
+            );
+            // console.log("Updated Account", updateUserResult);
+          }
+          const updatedUser = await Accounts.findOne({ _id: userID });
+          return updatedUser;
         } else {
-          // console.log("Updated Account");
-          const updateUserResult = await users.updateOne(
-            { _id: userID },
-            { $addToSet: { branches: newBranchValue } } // $addToSet only adds the value if it doesn't already exist
+          throw new ReactionError(
+            "access-denied",
+            "Unauthorized access. Please Login First"
           );
-          // console.log("Updated Account", updateUserResult);
         }
-        const updatedUser = await Accounts.findOne({ _id: userID });
-        return updatedUser;
-      } else {
-        throw new ReactionError(
-          "access-denied",
-          "Unauthorized access. Please Login First"
-        );
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async addBranchNotes(parent, args, context, info) {
-      const { orderId, Notes } = args;
-      const { Orders } = context.collections;
-      const updateOrders = { $set: { Notes: Notes } };
-      const options = { new: true };
-      const updatedOrderResp = await Orders.findOneAndUpdate(
-        { _id: orderId },
-        updateOrders,
-        options
-      );
-      if (updatedOrderResp.value) {
-        return updatedOrderResp.value;
-      } else {
-        throw new ReactionError(
-          "server-error",
-          "Something went wrong , please try later"
+      try {
+        const { orderId, Notes } = args;
+        const { Orders } = context.collections;
+        const updateOrders = { $set: { Notes: Notes } };
+        const options = { new: true };
+        const updatedOrderResp = await Orders.findOneAndUpdate(
+          { _id: orderId },
+          updateOrders,
+          options
         );
+        if (updatedOrderResp.value) {
+          return updatedOrderResp.value;
+        } else {
+          throw new ReactionError(
+            "server-error",
+            "Something went wrong , please try later"
+          );
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async transferOrder(parent, { input }, context, info) {
-      const { orderID, branchId } = input;
-      const { Orders, Accounts, BranchData } = context.collections;
-      if (
-        context.user === undefined ||
-        context.user === null ||
-        context.user === ""
-      ) {
-        throw new ReactionError(
-          "access-denied",
-          "Unauthorized access. Please Login First"
-        );
-      }
-      const modifier = {
-        $set: {
-          updatedAt: new Date(),
-        },
-      };
-      modifier.$set.branchID = branchId;
-      const { modifiedCount, value: updatedOrder } =
-        await Orders.findOneAndUpdate(
-          { _id: decodeOrderOpaqueId(orderID) },
-          modifier,
-          {
-            returnOriginal: false,
-          }
-        );
-      // console.log("updatedOrder ", updatedOrder);
-      const account = await Accounts.findOne({ branches: { $in: [branchId] } });
-      // console.log("account ", account);
-      const branchData = await BranchData.findOne({
-        _id: ObjectID.ObjectId(branchId),
-      });
+      try {
+        const { orderID, branchId } = input;
+        const { Orders, Accounts, BranchData } = context.collections;
+        if (
+          context.user === undefined ||
+          context.user === null ||
+          context.user === ""
+        ) {
+          throw new ReactionError(
+            "access-denied",
+            "Unauthorized access. Please Login First"
+          );
+        }
+        const modifier = {
+          $set: {
+            updatedAt: new Date(),
+          },
+        };
+        modifier.$set.branchID = branchId;
+        const { modifiedCount, value: updatedOrder } =
+          await Orders.findOneAndUpdate(
+            { _id: decodeOrderOpaqueId(orderID) },
+            modifier,
+            {
+              returnOriginal: false,
+            }
+          );
+        // console.log("updatedOrder ", updatedOrder);
+        const account = await Accounts.findOne({
+          branches: { $in: [branchId] },
+        });
+        // console.log("account ", account);
+        const branchData = await BranchData.findOne({
+          _id: ObjectID.ObjectId(branchId),
+        });
 
-      const message = `Order has been assigned to ${branchData?.name} branch and order id is ${updatedOrder?.kitchenOrderID}`;
-      const appType = "customer";
-      const appType1 = "admin";
-      const id = account?._id;
-      let OrderIDs = updatedOrder?.kitchenOrderI;
-      const paymentIntentClientSecret =
-        context.mutations.oneSignalCreateNotification(context, {
-          message,
-          id,
-          appType,
-          userId: id,
-          orderID: OrderIDs,
-        });
-      const paymentIntentClientSecret1 =
-        context.mutations.oneSignalCreateNotification(context, {
-          message,
-          id,
-          appType: appType1,
-          userId: id,
-        });
-      if (updatedOrder) {
-        return updatedOrder;
-      } else {
-        throw new ReactionError("not-found", "Order not found");
+        const message = `Order has been assigned to ${branchData?.name} branch and order id is ${updatedOrder?.kitchenOrderID}`;
+        const appType = "customer";
+        const appType1 = "admin";
+        const id = account?._id;
+        let OrderIDs = updatedOrder?.kitchenOrderI;
+        const paymentIntentClientSecret =
+          context.mutations.oneSignalCreateNotification(context, {
+            message,
+            id,
+            appType,
+            userId: id,
+            orderID: OrderIDs,
+          });
+        const paymentIntentClientSecret1 =
+          context.mutations.oneSignalCreateNotification(context, {
+            message,
+            id,
+            appType: appType1,
+            userId: id,
+          });
+        if (updatedOrder) {
+          return updatedOrder;
+        } else {
+          throw new ReactionError("not-found", "Order not found");
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
   },
@@ -1017,23 +1118,27 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const { RiderOrder } = context.collections;
-      if (id === null || id === undefined) {
-        id = context.user.id;
-      }
-      const today = new Date(); // Get current date
-      today.setHours(0, 0, 0, 0);
-      const ordersResp = await RiderOrder.find({
-        riderID: id,
-        createdAt: { $gte: today },
-      })
-        .sort({ createdAt: -1 })
-        .toArray();
+      try {
+        const { RiderOrder } = context.collections;
+        if (id === null || id === undefined) {
+          id = context.user.id;
+        }
+        const today = new Date(); // Get current date
+        today.setHours(0, 0, 0, 0);
+        const ordersResp = await RiderOrder.find({
+          riderID: id,
+          createdAt: { $gte: today },
+        })
+          .sort({ createdAt: -1 })
+          .toArray();
 
-      if (ordersResp) {
-        return ordersResp;
-      } else {
-        return null;
+        if (ordersResp) {
+          return ordersResp;
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async getOrderById(parent, { id }, context, info) {
@@ -1044,24 +1149,28 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const { RiderOrder } = context.collections;
-      if (id === null || id === undefined) {
-        id = context.user.id;
-      }
-      const today = new Date(); // Get current date
-      today.setHours(0, 0, 0, 0);
-      const ordersResp = await RiderOrder.find({
-        riderID: id,
-        // createdAt: { $gte: today },
-      })
-        .sort({ createdAt: -1 })
-        .toArray();
-      // console.log("ordersResp ", ordersResp);
+      try {
+        const { RiderOrder } = context.collections;
+        if (id === null || id === undefined) {
+          id = context.user.id;
+        }
+        const today = new Date(); // Get current date
+        today.setHours(0, 0, 0, 0);
+        const ordersResp = await RiderOrder.find({
+          riderID: id,
+          // createdAt: { $gte: today },
+        })
+          .sort({ createdAt: -1 })
+          .toArray();
+        // console.log("ordersResp ", ordersResp);
 
-      if (ordersResp) {
-        return ordersResp;
-      } else {
-        return null;
+        if (ordersResp) {
+          return ordersResp;
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.log("error ", error);
       }
     },
     async getOrdersByStatus(parent, { OrderStatus }, context, info) {
@@ -1072,63 +1181,67 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      // console.log(OrderStatus);
-      // console.log(context.user.id);
-      const LoginUserID = context.user.id;
-      const { RiderOrder, Orders } = context.collections;
-      // Get Order by status
-      const orders = await RiderOrder.find({
-        OrderStatus: OrderStatus,
-      })
-        .sort({ createdAt: -1 })
-        .toArray();
-      // console.log("orders ", orders);
+      try {
+        // console.log(OrderStatus);
+        // console.log(context.user.id);
+        const LoginUserID = context.user.id;
+        const { RiderOrder, Orders } = context.collections;
+        // Get Order by status
+        const orders = await RiderOrder.find({
+          OrderStatus: OrderStatus,
+        })
+          .sort({ createdAt: -1 })
+          .toArray();
+        // console.log("orders ", orders);
 
-      if (orders) {
-        // Current Login User Order
-        const filteredOrders = orders.filter(
-          (order) => order.riderID === LoginUserID
-        );
-        // console.log("Filter Order: ", filteredOrders);
-        // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
-        if (filteredOrders) {
-          const ordersWithId = filteredOrders.map((order) => ({
-            id: order._id,
-            ...order,
-          }));
-          // console.log("ordersWithId ", ordersWithId);
-          return ordersWithId;
+        if (orders) {
+          // Current Login User Order
+          const filteredOrders = orders.filter(
+            (order) => order.riderID === LoginUserID
+          );
+          // console.log("Filter Order: ", filteredOrders);
+          // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
+          if (filteredOrders) {
+            const ordersWithId = filteredOrders.map((order) => ({
+              id: order._id,
+              ...order,
+            }));
+            // console.log("ordersWithId ", ordersWithId);
+            return ordersWithId;
+          } else {
+            return null;
+          }
+          // if (filteredOrders[0]) {
+          //   const kitchenOrderIDResp = await Orders.find({
+          //     _id: filteredOrders[0].OrderID,
+          //   })
+          //     .sort({ createdAt: -1 })
+          //     .toArray();
+          //   console.log("kitchenOrderID: ", kitchenOrderIDResp);
+          //   if (kitchenOrderIDResp[0]) {
+          //     const ordersWithId = filteredOrders.map((order) => ({
+          //       id: order._id,
+          //       ...order,
+          //       kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID,
+          //     }));
+          //     return ordersWithId;
+          //   } else {
+          //     const ordersWithId = filteredOrders.map((order) => ({
+          //       id: order._id,
+          //       ...order,
+          //     }));
+          //     return ordersWithId;
+          //   }
+          //   // const OrderWithkitchenOrderID =
+          //   // console.log("Order with ID: ", ordersWithId);
+          // } else {
+          //   return null;
+          // }
         } else {
           return null;
         }
-        // if (filteredOrders[0]) {
-        //   const kitchenOrderIDResp = await Orders.find({
-        //     _id: filteredOrders[0].OrderID,
-        //   })
-        //     .sort({ createdAt: -1 })
-        //     .toArray();
-        //   console.log("kitchenOrderID: ", kitchenOrderIDResp);
-        //   if (kitchenOrderIDResp[0]) {
-        //     const ordersWithId = filteredOrders.map((order) => ({
-        //       id: order._id,
-        //       ...order,
-        //       kitchenOrderID: kitchenOrderIDResp[0]?.kitchenOrderID,
-        //     }));
-        //     return ordersWithId;
-        //   } else {
-        //     const ordersWithId = filteredOrders.map((order) => ({
-        //       id: order._id,
-        //       ...order,
-        //     }));
-        //     return ordersWithId;
-        //   }
-        //   // const OrderWithkitchenOrderID =
-        //   // console.log("Order with ID: ", ordersWithId);
-        // } else {
-        //   return null;
-        // }
-      } else {
-        return null;
+      } catch (error) {
+        console.log("error ", error);
       }
     },
 
@@ -1142,61 +1255,66 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      let {
-        searchQuery,
-        riderID,
-        branches,
-        startTime,
-        OrderID,
-        endTime,
-        fromDate,
-        toDate,
-        deliveryTime,
-        ...connectionArgs
-      } = args;
-      let query = {};
-      if (riderID) {
-        query.riderID = riderID;
-      }
-      if (branches) {
-        query.branches = branches;
-      }
 
-      if (startTime) {
-        const start = new Date(startTime); // Fix variable name
-        query.startTime = {
-          $gte: start,
-        };
+      try {
+        let {
+          searchQuery,
+          riderID,
+          branches,
+          startTime,
+          OrderID,
+          endTime,
+          fromDate,
+          toDate,
+          deliveryTime,
+          ...connectionArgs
+        } = args;
+        let query = {};
+        if (riderID) {
+          query.riderID = riderID;
+        }
+        if (branches) {
+          query.branches = branches;
+        }
+
+        if (startTime) {
+          const start = new Date(startTime); // Fix variable name
+          query.startTime = {
+            $gte: start,
+          };
+        }
+        if (endTime) {
+          query.endTime = {
+            $lte: new Date(endTime),
+          };
+        }
+        if (OrderID) {
+          query.OrderID = OrderID;
+        }
+        if (toDate && toDate !== undefined) {
+          query.createdAt = {
+            ...query.createdAt,
+            $lte: new Date(toDate),
+          };
+        }
+        if (fromDate && fromDate !== undefined) {
+          query.createdAt = {
+            ...query.createdAt,
+            $gte: new Date(fromDate),
+          };
+        }
+        const report = await RiderOrder.find(query);
+        return getPaginatedResponse(report, connectionArgs, {
+          includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+          includeHasPreviousPage: wasFieldRequested(
+            "pageInfo.hasPreviousPage",
+            info
+          ),
+          includeTotalCount: wasFieldRequested("totalCount", info),
+        });
+      } catch (error) {
+        console.log("error ", error);
       }
-      if (endTime) {
-        query.endTime = {
-          $lte: new Date(endTime),
-        };
-      }
-      if (OrderID) {
-        query.OrderID = OrderID;
-      }
-      if (toDate && toDate !== undefined) {
-        query.createdAt = {
-          ...query.createdAt,
-          $lte: new Date(toDate),
-        };
-      }
-      if (fromDate && fromDate !== undefined) {
-        query.createdAt = {
-          ...query.createdAt,
-          $gte: new Date(fromDate),
-        };
-      }
-      const report = await RiderOrder.find(query);
-      return getPaginatedResponse(report, connectionArgs, {
-        includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
-        includeHasPreviousPage: wasFieldRequested(
-          "pageInfo.hasPreviousPage",
-          info
-        ),
-        includeTotalCount: wasFieldRequested("totalCount", info),
-      });
     },
     async getRiderOrdersByLoginRider(parent, args, context, info) {
       if (context.user === undefined || context.user === null) {
@@ -1205,23 +1323,26 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-
-      const { startDate, endDate, riderID } = args;
-      const { RiderOrder } = context.collections;
-      const { id } = context.user;
-      const orders = await RiderOrder.find({ riderID: riderID })
-        .sort({ createdAt: -1 })
-        .toArray();
-      const today = new Date().toISOString().substring(0, 10);
-      // filter data array to include only items with today's date in startTime
-      const filteredData = orders.filter((item) => {
-        if (!item.createdAt) {
-          return false;
-        }
-        const itemDate = item.createdAt.substring(0, 10);
-        return itemDate === today;
-      });
-      return filteredData;
+      try {
+        const { startDate, endDate, riderID } = args;
+        const { RiderOrder } = context.collections;
+        const { id } = context.user;
+        const orders = await RiderOrder.find({ riderID: riderID })
+          .sort({ createdAt: -1 })
+          .toArray();
+        const today = new Date().toISOString().substring(0, 10);
+        // filter data array to include only items with today's date in startTime
+        const filteredData = orders.filter((item) => {
+          if (!item.createdAt) {
+            return false;
+          }
+          const itemDate = item.createdAt.substring(0, 10);
+          return itemDate === today;
+        });
+        return filteredData;
+      } catch (error) {
+        console.log("error ", error);
+      }
     },
     async getKitchenReport(parent, args, context, info) {
       const { startDate, endDate, branchID, OrderStatus } = args;
@@ -1231,30 +1352,34 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const { BranchData, Orders } = context.collections;
-      const query = {};
-      if (branchID) {
-        query.branchID = branchID;
+      try {
+        const { BranchData, Orders } = context.collections;
+        const query = {};
+        if (branchID) {
+          query.branchID = branchID;
+        }
+        if (OrderStatus) {
+          query["workflow.status"] = args.OrderStatus;
+        }
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          query.createdAt = {
+            $gte: start,
+            $lte: end,
+          };
+        }
+        const ordersResp = await Orders.find(query)
+          .sort({ createdAt: -1 })
+          .toArray();
+        const ordersWithId = ordersResp.map((order) => ({
+          id: order._id,
+          ...order,
+        }));
+        return ordersWithId;
+      } catch (error) {
+        console.log("error ", error);
       }
-      if (OrderStatus) {
-        query["workflow.status"] = args.OrderStatus;
-      }
-      if (startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        query.createdAt = {
-          $gte: start,
-          $lte: end,
-        };
-      }
-      const ordersResp = await Orders.find(query)
-        .sort({ createdAt: -1 })
-        .toArray();
-      const ordersWithId = ordersResp.map((order) => ({
-        id: order._id,
-        ...order,
-      }));
-      return ordersWithId;
     },
     async getCustomerOrderbyID(parent, args, context, info) {
       if (context.user === undefined || context.user === null) {
@@ -1263,122 +1388,131 @@ export default {
           "Unauthorized access. Please Login First"
         );
       }
-      const { Orders } = context.collections;
-      const { ID } = args;
-      const CustomerOrderResp = await Orders.findOne({
-        _id: decodeOpaqueId(ID).id,
-      });
-      return CustomerOrderResp;
+      try {
+        const { Orders } = context.collections;
+        const { ID } = args;
+        const CustomerOrderResp = await Orders.findOne({
+          _id: decodeOpaqueId(ID).id,
+        });
+        return CustomerOrderResp;
+      } catch (error) {
+        console.log("error ", error);
+      }
     },
     async generateKitchenReport(parent, args, context, info) {
-      let { authToken, userId, collections } = context;
-      const {
-        startDate,
-        endDate,
-        branchID,
-        OrderStatus,
-        searchQuery,
-        ...connectionArgs
-      } = args;
-      if (context.user === undefined || context.user === null) {
-        throw new ReactionError(
-          "access-denied",
-          "Unauthorized access. Please Login First"
-        );
-      }
-      const { BranchData, Orders } = collections;
-      const query = {};
-      let matchStage = [];
-      if (branchID) {
-        query.branchID = branchID;
-        // matchStage.push({ branchID: branchID });
-      }
-      if (OrderStatus) {
-        query["workflow.status"] = OrderStatus;
-        // matchStage.push({ "workflow.status": OrderStatus });
-      }
-      if (startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        query.createdAt = {
-          $gte: start,
-          $lte: end,
-        };
-        // matchStage.push({
-        //   createdAt: {
-        //     $gte: start,
-        //     $lte: end,
-        //   },
-        // });
-      }
-      // if (searchQuery) {
-      //   // console.log("searchQuery ", searchQuery);
-      //   const matchingRiderIDs = await collections.Accounts.distinct("_id", {
-      //     $or: [
-      //       {
-      //         "profile.firstName": {
-      //           $regex: new RegExp(searchQuery, "i"),
-      //         },
-      //       },
-      //       {
-      //         "profile.lastName": {
-      //           $regex: new RegExp(searchQuery, "i"),
-      //         },
-      //       },
-      //       {
-      //         fullName: {
-      //           $regex: new RegExp(searchQuery, "i"),
-      //         },
-      //       },
-      //     ],
-      //   });
-      //   const matchingOrderIDs = await collections.Orders.distinct("_id", {
-      //     $and: [
-      //       {
-      //         "shipping.0.address.address1": {
-      //           $regex: new RegExp(searchQuery, "i"),
-      //         },
-      //       },
-      //       {
-      //         "shipping.0.address.city": {
-      //           $regex: new RegExp(searchQuery, "i"),
-      //         },
-      //       },
-      //     ],
-      //   });
-      //   const matchingIDs = [
-      //     ...matchingRiderIDs,
-      //     ...matchingOrderIDs,
-      //     // ...matchingBranchIDs,
-      //   ];
-      //   // console.log("matchingRiderIDs ", matchingRiderIDs);
-      //   // Adding the combined IDs to the matchStage
-      //   matchStage.push({
-      //     $or: [
-      //       { riderID: { $in: matchingIDs } },
-      //       { OrderID: { $in: matchingIDs } },
-      //       // { BranchID: { $in: matchingIDs } },
-      //     ],
-      //   });
-      // }
-      // console.log("matchStage:- ", matchStage);
+      try {
+        let { authToken, userId, collections } = context;
+        const {
+          startDate,
+          endDate,
+          branchID,
+          OrderStatus,
+          searchQuery,
+          ...connectionArgs
+        } = args;
+        if (context.user === undefined || context.user === null) {
+          throw new ReactionError(
+            "access-denied",
+            "Unauthorized access. Please Login First"
+          );
+        }
+        console.log("here on testing ");
+        const { BranchData, Orders } = collections;
+        const query = {};
+        let matchStage = [];
+        if (branchID) {
+          query.branchID = branchID;
+          // matchStage.push({ branchID: branchID });
+        }
+        if (OrderStatus) {
+          query["workflow.status"] = OrderStatus;
+          // matchStage.push({ "workflow.status": OrderStatus });
+        }
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          query.createdAt = {
+            $gte: start,
+            $lte: end,
+          };
+          // matchStage.push({
+          //   createdAt: {
+          //     $gte: start,
+          //     $lte: end,
+          //   },
+          // });
+        }
+        // if (searchQuery) {
+        //   // console.log("searchQuery ", searchQuery);
+        //   const matchingRiderIDs = await collections.Accounts.distinct("_id", {
+        //     $or: [
+        //       {
+        //         "profile.firstName": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //       {
+        //         "profile.lastName": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //       {
+        //         fullName: {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //     ],
+        //   });
+        //   const matchingOrderIDs = await collections.Orders.distinct("_id", {
+        //     $and: [
+        //       {
+        //         "shipping.0.address.address1": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //       {
+        //         "shipping.0.address.city": {
+        //           $regex: new RegExp(searchQuery, "i"),
+        //         },
+        //       },
+        //     ],
+        //   });
+        //   const matchingIDs = [
+        //     ...matchingRiderIDs,
+        //     ...matchingOrderIDs,
+        //     // ...matchingBranchIDs,
+        //   ];
+        //   // console.log("matchingRiderIDs ", matchingRiderIDs);
+        //   // Adding the combined IDs to the matchStage
+        //   matchStage.push({
+        //     $or: [
+        //       { riderID: { $in: matchingIDs } },
+        //       { OrderID: { $in: matchingIDs } },
+        //       // { BranchID: { $in: matchingIDs } },
+        //     ],
+        //   });
+        // }
+        // console.log("matchStage:- ", matchStage);
 
-      // console.log("matchStage ", matchStage);
-      // console.log("searchQuery ", searchQuery);
-      // const ordersResp = await Orders.find({ $and: matchStage });
-      // .sort({ createdAt: -1 })
-      // .toArray();
-      // console.log("ordersResp ", await Orders.find(query).toArray());
-
-      const ordersResp = await Orders.find(query);
-      return getPaginatedResponse(ordersResp, connectionArgs, {
-        includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
-        includeHasPreviousPage: wasFieldRequested(
-          "pageInfo.hasPreviousPage",
-          info
-        ),
-        includeTotalCount: wasFieldRequested("totalCount", info),
-      });
+        // console.log("matchStage ", matchStage);
+        // console.log("searchQuery ", searchQuery);
+        // const ordersResp = await Orders.find({ $and: matchStage });
+        // .sort({ createdAt: -1 })
+        // .toArray();
+        // console.log("ordersResp ", await Orders.find(query).toArray());
+        console.log("query ", query);
+        const ordersResp = await Orders.find(query);
+        return getPaginatedResponse(ordersResp, connectionArgs, {
+          includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+          includeHasPreviousPage: wasFieldRequested(
+            "pageInfo.hasPreviousPage",
+            info
+          ),
+          includeTotalCount: wasFieldRequested("totalCount", info),
+        });
+      } catch (error) {
+        console.log("error ", error);
+      }
     },
   },
 };
