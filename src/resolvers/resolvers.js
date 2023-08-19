@@ -525,6 +525,7 @@ export default {
                   startTime: RiderIDForAssign[0].startTime,
                   riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
                   riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
+                  updatedAt: new Date(),
                 },
               },
               { new: true }
@@ -751,7 +752,7 @@ export default {
               status: "delivered",
             };
             const cronjobResp = await CronJobs.insertOne(cronJobObject);
-            const cornJobResp = executeCronJob(context);
+            // const cornJobResp = executeCronJob(context);
           }
           const appType = "admin";
           const appTypeCustomer = "customer";
@@ -1124,6 +1125,7 @@ export default {
         if (id === null || id === undefined) {
           id = context.user.id;
         }
+        console.log("id ", id);
         const today = new Date(); // Get current date
         today.setHours(0, 0, 0, 0);
         const ordersResp = await RiderOrder.find({
@@ -1132,7 +1134,7 @@ export default {
         })
           .sort({ createdAt: -1 })
           .toArray();
-
+        console.log("ordersResp ", ordersResp);
         if (ordersResp) {
           return ordersResp;
         } else {
@@ -1247,7 +1249,7 @@ export default {
     },
 
     async generateOrderReport(parent, args, context, info) {
-      console.log("args ", args);
+      // console.log("args ", args);
       let { authToken, userId, collections } = context;
       let { RiderOrder } = collections;
       if (context.user === undefined || context.user === null) {
