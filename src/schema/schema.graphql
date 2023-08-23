@@ -25,6 +25,7 @@ extend type Order {
   Longitude: Float
   riderOrderAmount: Float
   riderOrderNotes: String
+  isManual: Boolean
   # customerOrderInfo:customerOrderInfoPayload
 }
 type orderIdResolverPayload {
@@ -39,6 +40,7 @@ type riderOrderInfoPayload {
   riderID: String
   createdAt: DateTime
   endTime: DateTime
+  isManual: Boolean
 }
 # type customerOrderInfoPayload{
 
@@ -66,6 +68,7 @@ type OrderReport implements Node {
   kitchenOrderIDInfo: kitchenOrderIDPayload
   riderInfo: Account
   orderDetailTime: orderDetailTimePayload
+  isManual: Boolean
 }
 type orderDetailTimePayload {
   prepTime: Int
@@ -192,6 +195,7 @@ type RiderOrderDetail {
   OrderStatus: OrderStatusValue
   branches: String
   username: String
+  isManual: Boolean
 }
 input NewRiderOrderInput {
   startTime: DateTime
@@ -203,6 +207,7 @@ input NewRiderOrderInput {
   oldRiderID: String
   riderOrderAmount: Float
   riderOrderNotes: String
+  isManual: Boolean
 }
 input transferOrderInput {
   orderID: String!
@@ -210,6 +215,7 @@ input transferOrderInput {
 }
 
 type Mutation {
+  addIsManual(isManual: Boolean): OrderReport
   createRiderOrder(orders: [NewRiderOrderInput]): Order
   createRiderMultipleOrder(orders: [NewRiderOrderInput]): [Order]
   updateRiderOrder(
@@ -237,6 +243,7 @@ type Query {
   getRiderOrderByRiderId(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
   generateOrderReport(
+    isManual: Boolean
     branches: String
     startTime: DateTime
     endTime: DateTime
@@ -263,12 +270,15 @@ type Query {
     LoginRiderID: String! # startDate: String # endDate: String
   ): [RiderOrderDetail]
   getKitchenReport(
+    isManual: Boolean
     branchID: String
     OrderStatus: OrderStatusValue
     startDate: String
     endDate: String
   ): [Order]
   generateKitchenReport(
+    isManual: Boolean
+
     branchID: String
 
     OrderStatus: OrderStatusValue

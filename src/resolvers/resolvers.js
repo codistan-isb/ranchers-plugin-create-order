@@ -610,10 +610,10 @@ export default {
               } catch (err) {
                 if (err.code === 11000) {
                   throw new ReactionError("duplicate", "Order Already Exists");
-
                   // throw new ReactionError("Order Already Exists");
                 }
-                throw err;
+                console.log("error ", err);
+                throw new ReactionError("duplicate", "Order Already Exists");
               }
             }
           } else {
@@ -1114,6 +1114,22 @@ export default {
         console.log("error ", error);
       }
     },
+    async addIsManual(parent, args, context, info) {
+      console.log("args", args);
+      let { isManual } = args;
+      const { RiderOrder } = context.collections;
+      const updateResult = await RiderOrder.updateMany(
+        { OrderID: { $regex: "^[0-9]+$" } }, // Numeric OrderID
+        { $set: { isManual: true } } // Set isManual to true
+      );
+      const totalUpdated = updateResult.modifiedCount;
+      console.log("totalUpdated", updateResult);
+      await RiderOrder.updateMany(
+        { OrderID: { $not: { $regex: "^[0-9]+$" } } }, // Non-numeric OrderID
+        { $set: { isManual: false } } // Set isManual to false
+      );
+      console.log(`Updated ${totalUpdated} documents`);
+    },
   },
   Query: {
     async getRiderOrderByRiderId(parent, { id }, context, info) {
@@ -1264,6 +1280,7 @@ export default {
 
       try {
         let {
+          isManual,
           searchQuery,
           riderID,
           branches,
@@ -1275,8 +1292,17 @@ export default {
           deliveryTime,
           ...connectionArgs
         } = args;
+        // console.log("args ", args);
         let query = {};
         let matchStage = [];
+        if (isManual === false) {
+          query.isManual = false;
+          matchStage.push({ isManual: false });
+        }
+        if (isManual === true) {
+          query.isManual = true;
+          matchStage.push({ isManual: true });
+        }
         if (riderID) {
           query.riderID = riderID;
           matchStage.push({ riderID: riderID });
@@ -1382,8 +1408,8 @@ export default {
         //     },
         //   });
         // }
-        console.log("matchStage ", matchStage);
-        console.log("query ", query);
+        // console.log("matchStage ", matchStage);
+        // console.log("query ", query);
         const report = await RiderOrder.find(query);
         // const report = await RiderOrder.find([{ $match: { $and: matchStage } }]);
         return getPaginatedResponse(report, connectionArgs, {
