@@ -1266,7 +1266,6 @@ export default {
         console.log("error ", error);
       }
     },
-
     async generateOrderReport(parent, args, context, info) {
       // console.log("args ", args);
       let { authToken, userId, collections } = context;
@@ -1583,6 +1582,124 @@ export default {
         });
       } catch (error) {
         console.log("error ", error);
+      }
+    },
+    async getRiderReport(parent, args, context, info) {
+      console.log("args", args);
+      try {
+        let { collections } = context;
+
+        if (context.user === undefined || context.user === null) {
+          throw new ReactionError(
+            "access-denied",
+            "Unauthorized access. Please Login First"
+          );
+        }
+        const { RiderOrder, Accounts } = collections;
+        const { branchId } = args;
+        var matchStage = {};
+        matchStage = {
+          $match: {
+            riderID: { $exists: true },
+          },
+        };
+        if (branchId) {
+          matchStage = {
+            $match: {
+              branches: branchId,
+            },
+          };
+        }
+        console.log("matchStage ", matchStage);
+        let data = await RiderOrder.aggregate([
+          matchStage,
+          // {
+          //   $match: {
+          //     riderID: { $exists: true },
+          //   },
+          // },
+          {
+            $group: {
+              _id: "$riderID",
+              totalOrders: { $sum: 1 },
+              averageDeliveryTime: { $avg: "$deliveryTime" },
+              cancelOrders: {
+                $sum: { $cond: [{ $eq: ["$OrderStatus", "canceled"] }, 1, 0] },
+              },
+              completeOrder: {
+                $sum: { $cond: [{ $eq: ["$OrderStatus", "delivered"] }, 1, 0] },
+              },
+              completeInTimeOrder: {
+                $sum: { $cond: [{ $lte: ["$deliveryTime", 20] }, 1, 0] },
+              },
+              totalActiveTime: {
+                $sum: { $subtract: ["$endTime", "$startTime"] },
+              },
+              totalEarning: { $sum: "$riderOrderAmount" },
+              totalManualOrders: { $sum: { $cond: ["$isManual", 1, 0] } },
+              totalCustomerOrders: {
+                $sum: { $cond: ["$isManual", 0, 1] },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "Accounts",
+              localField: "_id",
+              foreignField: "_id",
+              as: "account",
+            },
+          },
+          {
+            $addFields: {
+              riderName: {
+                $concat: [
+                  { $arrayElemAt: ["$account.profile.firstName", 0] },
+                  " ",
+                  { $arrayElemAt: ["$account.profile.lastName", 0] },
+                ],
+              },
+              riderContactNumber: {
+                $concat: [{ $arrayElemAt: ["$account.profile.phone", 0] }],
+              },
+              totalActiveTime: {
+                $let: {
+                  vars: {
+                    hours: {
+                      $trunc: { $divide: ["$totalActiveTime", 3600000] },
+                    },
+                    minutes: {
+                      $trunc: {
+                        $divide: [
+                          { $mod: ["$totalActiveTime", 3600000] },
+                          60000,
+                        ],
+                      },
+                    },
+                  },
+                  in: {
+                    $concat: [
+                      { $toString: "$$hours" },
+                      "h ",
+                      { $toString: "$$minutes" },
+                      "m",
+                    ],
+                  },
+                },
+              },
+              averageDeliveryTime: { $round: ["$averageDeliveryTime", 2] },
+            },
+          },
+          {
+            $project: {
+              account: 0,
+            },
+          },
+        ]).toArray();
+        // console.log("data", data);
+        return data;
+      } catch (error) {
+        console.log(error);
       }
     },
   },
