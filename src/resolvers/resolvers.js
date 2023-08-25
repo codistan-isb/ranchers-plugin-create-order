@@ -1145,14 +1145,24 @@ export default {
           id = context.user.id;
         }
         console.log("id ", id);
-        const today = new Date(); // Get current date
+        const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const ordersResp = await RiderOrder.find({
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        let ordersResp = await RiderOrder.find({
           riderID: id,
-          createdAt: { $gte: today },
-        })
-          .sort({ createdAt: -1 })
-          .toArray();
+          createdAt: {
+            $gte: today,
+            $lt: tomorrow,
+          },
+        }).toArray();
+        // console.log("datarep ", datarep);
+        // const ordersResp = await RiderOrder.find({
+        //   riderID: new ObjectID.ObjectId(id),
+        //   // createdAt: { $gte: today },
+        // })
+        //   .sort({ createdAt: -1 })
+        //   .toArray();
         console.log("ordersResp ", ordersResp);
         if (ordersResp) {
           return ordersResp;
