@@ -360,5 +360,7 @@ type Query {
   #   # "Return results sorted in this order"
   #   sortOrder: SortOrder = asc
   # ): RiderReportConnection!
-  getRiderReport(branchId: ID): [RiderReport]
+  getRiderReport(branchId: ID, riderID: ID): # endDate: String
+  # startDate: String
+  [RiderReport]
 }
