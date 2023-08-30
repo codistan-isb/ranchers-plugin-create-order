@@ -69,6 +69,7 @@ type OrderReport implements Node {
   riderInfo: Account
   orderDetailTime: orderDetailTimePayload
   isManual: Boolean
+  createdAt: DateTime
 }
 type RiderReport implements Node {
   _id: ID!
@@ -360,7 +361,8 @@ type Query {
   #   # "Return results sorted in this order"
   #   sortOrder: SortOrder = asc
   # ): RiderReportConnection!
-  getRiderReport(branchId: ID, riderID: ID): # endDate: String
-  # startDate: String
-  [RiderReport]
+  getRiderReport(
+    branchId: ID
+    riderID: ID # endDate: String # startDate: String
+  ): [RiderReport]
 }

@@ -1634,11 +1634,11 @@ export default {
           console.log("matchStage ", matchStage);
           let data = await RiderOrder.aggregate([
             matchStage,
-            // {
-            //   $match: {
-            //     riderID: { $exists: true },
-            //   },
-            // },
+            {
+              $match: {
+                riderID: { $exists: true },
+              },
+            },
             {
               $group: {
                 _id: "$riderID",
@@ -1669,7 +1669,7 @@ export default {
             },
             {
               $lookup: {
-                from: "Accounts",
+                from: "Accounts", // Replace with the actual collection name
                 localField: "_id",
                 foreignField: "_id",
                 as: "account",
@@ -1679,11 +1679,21 @@ export default {
               $addFields: {
                 riderName: {
                   $concat: [
+                    // "$account.profile.firstName",
+                    // " ",
+                    // "$account.profile.lastName",
                     { $arrayElemAt: ["$account.profile.firstName", 0] },
                     " ",
                     { $arrayElemAt: ["$account.profile.lastName", 0] },
                   ],
                 },
+                // riderName: {
+                //   $concat: [
+                //     { $arrayElemAt: ["$account.profile.firstName", 0] },
+                //     " ",
+                //     { $arrayElemAt: ["$account.profile.lastName", 0] },
+                //   ],
+                // },
                 riderContactNumber: {
                   $concat: [{ $arrayElemAt: ["$account.profile.phone", 0] }],
                 },
@@ -1717,11 +1727,16 @@ export default {
             },
             {
               $project: {
+                // riderName:
+                //   "$account.profile.firstName" +
+                //   " " +
+                //   "$account.profile.lastName",
+                // riderContactNumber: "$account.profile.phone",
                 account: 0,
               },
             },
           ]).toArray();
-          // console.log("data", data);
+          console.log("data", data);
           return data;
         } else {
           throw new ReactionError(
