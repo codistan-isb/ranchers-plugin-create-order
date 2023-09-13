@@ -310,6 +310,20 @@ export default {
       }
     },
   },
+  RiderReport: {
+    async riderInfo(parent, args, context, info) {
+      try {
+        console.log("parent ", parent);
+        const { Accounts } = context.collections;
+        const { _id } = parent;
+        const RiderInfoResp = await Accounts.findOne({ _id: _id });
+        console.log("RiderInfoResp", RiderInfoResp);
+        return RiderInfoResp;
+      } catch (error) {
+        console.log("error ", error);
+      }
+    },
+  },
   Mutation: {
     async createRiderMultipleOrder(parent, { orders }, context, info) {
       const now = new Date();
@@ -1684,29 +1698,67 @@ export default {
                 },
               },
             },
-            {
-              $lookup: {
-                from: "Accounts", // Replace with the actual collection name
-                localField: "_id",
-                foreignField: "_id",
-                as: "account",
-              },
-            },
+            // {
+            //   $lookup: {
+            //     from: "Accounts", // Replace with the actual collection name
+            //     localField: "riderID",
+            //     foreignField: "_id",
+            //     as: "account",
+            //   },
+            // },
             {
               $addFields: {
-                riderName: {
-                  $concat: [
-                    // "$account.profile.firstName",
-                    // " ",
-                    // "$account.profile.lastName",
-                    { $arrayElemAt: ["$account.profile.firstName", 0] },
-                    " ",
-                    { $arrayElemAt: ["$account.profile.lastName", 0] },
-                  ],
-                },
-                riderContactNumber: {
-                  $concat: [{ $arrayElemAt: ["$account.profile.phone", 0] }],
-                },
+                // riderName: {
+                //   $concat: [
+                //     { $arrayElemAt: ["$account.profile.firstName", 0] },
+                //     " ",
+                //     { $arrayElemAt: ["$account.profile.lastName", 0] },
+                //   ],
+                // },
+                // riderContactNumber: {
+                //   $arrayElemAt: ["$account.profile.phone", 0],
+                // },
+                // riderName: {
+                //   $concat: [
+                //     {
+                //       $arrayElemAt: [
+                //         // { $ifNull: ["$account.profile.firstName", "N/A"] },
+                //         { $ifNull: ["$account.name", "N/A"] },
+                //         0,
+                //       ],
+                //     },
+                //     " ",
+                //     {
+                //       $arrayElemAt: [
+                //         { $ifNull: ["$account.profile.lastName", "N/A"] },
+                //         0,
+                //       ],
+                //     },
+                //   ],
+                // },
+                // riderContactNumber: {
+                //   $concat: [
+                //     {
+                //       $arrayElemAt: [
+                //         { $ifNull: ["$account.profile.phone", "N/A"] },
+                //         0,
+                //       ],
+                //     },
+                //   ],
+                // },
+                // riderName: {
+                //   $concat: [
+                //     // "$account.profile.firstName",
+                //     // " ",
+                //     // "$account.profile.lastName",
+                //     { $arrayElemAt: ["$account.profile.firstName", 0] },
+                //     " ",
+                //     { $arrayElemAt: ["$account.profile.lastName", 0] },
+                //   ],
+                // },
+                // riderContactNumber: {
+                //   $concat: [{ $arrayElemAt: ["$account.profile.phone", 0] }],
+                // },
                 totalActiveTime: {
                   $let: {
                     vars: {

@@ -84,6 +84,7 @@ type RiderReport implements Node {
   totalManualOrders: Int
   totalCustomerOrders: Int
   riderContactNumber: String
+  riderInfo: Account
 }
 type orderDetailTimePayload {
   prepTime: Int
