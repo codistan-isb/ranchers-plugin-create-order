@@ -364,5 +364,7 @@ type Query {
   getRiderReport(
     branchId: ID
     riderID: ID # endDate: String # startDate: String
+    startDate: DateTime
+    endDate: DateTime # endDate: String
   ): [RiderReport]
 }

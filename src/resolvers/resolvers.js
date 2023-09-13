@@ -1610,19 +1610,28 @@ export default {
           context.user.UserRole === "dispatcher"
         ) {
           const { RiderOrder, Accounts } = collections;
-          const { branchId, riderID } = args;
+          const { branchId, riderID, startDate, endDate } = args;
           var matchStage = {};
+          let query = [];
           matchStage = {
             $match: {
               riderID: { $exists: true },
+              createdAt: {
+                // assuming your order has a createdAt field
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+              },
             },
           };
+          query.push(matchStage);
+
           if (branchId) {
             matchStage = {
               $match: {
                 branches: branchId,
               },
             };
+            query.push(matchStage);
           }
           if (riderID) {
             matchStage = {
@@ -1630,15 +1639,12 @@ export default {
                 riderID: riderID,
               },
             };
+            query.push(matchStage);
           }
-          console.log("matchStage ", matchStage);
+          console.log("query", query);
+
           let data = await RiderOrder.aggregate([
-            matchStage,
-            {
-              $match: {
-                riderID: { $exists: true },
-              },
-            },
+            ...query,
             {
               $group: {
                 _id: "$riderID",
@@ -1687,13 +1693,6 @@ export default {
                     { $arrayElemAt: ["$account.profile.lastName", 0] },
                   ],
                 },
-                // riderName: {
-                //   $concat: [
-                //     { $arrayElemAt: ["$account.profile.firstName", 0] },
-                //     " ",
-                //     { $arrayElemAt: ["$account.profile.lastName", 0] },
-                //   ],
-                // },
                 riderContactNumber: {
                   $concat: [{ $arrayElemAt: ["$account.profile.phone", 0] }],
                 },
@@ -1722,16 +1721,16 @@ export default {
                     },
                   },
                 },
-                averageDeliveryTime: { $round: ["$averageDeliveryTime", 2] },
+                averageDeliveryTime: {
+                  $round: ["$averageDeliveryTime", 2],
+                },
+                // averageDeliveryTime: {
+                //   round: ["$averageDeliveryTime", 2],
+                // },
               },
             },
             {
               $project: {
-                // riderName:
-                //   "$account.profile.firstName" +
-                //   " " +
-                //   "$account.profile.lastName",
-                // riderContactNumber: "$account.profile.phone",
                 account: 0,
               },
             },
@@ -1748,5 +1747,192 @@ export default {
         console.log(error);
       }
     },
+
+    // async getRiderReport(parent, args, context, info) {
+    //   console.log("args", args);
+    //   try {
+    //     let { collections } = context;
+    //     if (context.user === undefined || context.user === null) {
+    //       throw new ReactionError(
+    //         "access-denied",
+    //         "Unauthorized access. Please Login First"
+    //       );
+    //     }
+    //     console.log("context.user ", context.user.UserRole);
+    //     if (
+    //       context.user.UserRole === "admin" ||
+    //       context.user.UserRole === "dispatcher"
+    //     ) {
+    //       const { RiderOrder, Accounts } = collections;
+    //       const { branchId, riderID, startDate, endDate } = args;
+    //       var matchStage = {};
+    //       let query = [];
+
+    //       matchStage = {
+    //         $match: {
+    //           riderID: { $exists: true },
+    //         },
+    //       };
+
+    //       query.push(matchStage);
+    //       if (startDate && endDate) {
+    //         matchStage = {
+    //           $match: {
+    //             createdAt: {
+    //               // assuming your order has a createdAt field
+    //               $gte: new Date(startDate),
+    //               $lte: new Date(endDate),
+    //             },
+    //           },
+    //         };
+    //         query.push(matchStage);
+    //       }
+    //       if (branchId) {
+    //         matchStage = {
+    //           $match: {
+    //             branches: branchId,
+    //           },
+    //         };
+    //         query.push(matchStage);
+    //         // query.push({
+    //         //   $match: {
+    //         //     riderID: { $exists: true },
+    //         //   },
+    //         // });
+    //         // query.push({ $match: { branches: branchId } });
+    //       }
+    //       if (riderID) {
+    //         matchStage = {
+    //           $match: {
+    //             riderID: riderID,
+    //           },
+    //         };
+    //         query.push(matchStage);
+
+    //         // query.push({
+    //         //   $match: {
+    //         //     riderID: riderID,
+    //         //   },
+    //         // });
+    //         // query.push({ $match: { riderID: riderID } });
+    //       }
+    //       console.log("matchStage : ", matchStage);
+    //       console.log("query : ", query);
+    //       let data = await RiderOrder.aggregate([
+    //         matchStage,
+    //         // {
+    //         //   $match: {
+    //         //     riderID: { $exists: true },
+    //         //   },
+    //         // },
+    //         {
+    //           $group: {
+    //             _id: "$riderID",
+    //             totalOrders: { $sum: 1 },
+    //             averageDeliveryTime: { $avg: "$deliveryTime" },
+    //             cancelOrders: {
+    //               $sum: {
+    //                 $cond: [{ $eq: ["$OrderStatus", "canceled"] }, 1, 0],
+    //               },
+    //             },
+    //             completeOrder: {
+    //               $sum: {
+    //                 $cond: [{ $eq: ["$OrderStatus", "delivered"] }, 1, 0],
+    //               },
+    //             },
+    //             completeInTimeOrder: {
+    //               $sum: { $cond: [{ $lte: ["$deliveryTime", 20] }, 1, 0] },
+    //             },
+    //             totalActiveTime: {
+    //               $sum: { $subtract: ["$endTime", "$startTime"] },
+    //             },
+    //             totalEarning: { $sum: "$riderOrderAmount" },
+    //             totalManualOrders: { $sum: { $cond: ["$isManual", 1, 0] } },
+    //             totalCustomerOrders: {
+    //               $sum: { $cond: ["$isManual", 0, 1] },
+    //             },
+    //           },
+    //         },
+    //         {
+    //           $lookup: {
+    //             from: "Accounts", // Replace with the actual collection name
+    //             localField: "_id",
+    //             foreignField: "_id",
+    //             as: "account",
+    //           },
+    //         },
+    //         {
+    //           $addFields: {
+    //             riderName: {
+    //               $concat: [
+    //                 // "$account.profile.firstName",
+    //                 // " ",
+    //                 // "$account.profile.lastName",
+    //                 { $arrayElemAt: ["$account.profile.firstName", 0] },
+    //                 " ",
+    //                 { $arrayElemAt: ["$account.profile.lastName", 0] },
+    //               ],
+    //             },
+    //             // riderName: {
+    //             //   $concat: [
+    //             //     { $arrayElemAt: ["$account.profile.firstName", 0] },
+    //             //     " ",
+    //             //     { $arrayElemAt: ["$account.profile.lastName", 0] },
+    //             //   ],
+    //             // },
+    //             riderContactNumber: {
+    //               $concat: [{ $arrayElemAt: ["$account.profile.phone", 0] }],
+    //             },
+    //             totalActiveTime: {
+    //               $let: {
+    //                 vars: {
+    //                   hours: {
+    //                     $trunc: { $divide: ["$totalActiveTime", 3600000] },
+    //                   },
+    //                   minutes: {
+    //                     $trunc: {
+    //                       $divide: [
+    //                         { $mod: ["$totalActiveTime", 3600000] },
+    //                         60000,
+    //                       ],
+    //                     },
+    //                   },
+    //                 },
+    //                 in: {
+    //                   $concat: [
+    //                     { $toString: "$$hours" },
+    //                     "h ",
+    //                     { $toString: "$$minutes" },
+    //                     "m",
+    //                   ],
+    //                 },
+    //               },
+    //             },
+    //             averageDeliveryTime: { $round: ["$averageDeliveryTime", 2] },
+    //           },
+    //         },
+    //         {
+    //           $project: {
+    //             // riderName:
+    //             //   "$account.profile.firstName" +
+    //             //   " " +
+    //             //   "$account.profile.lastName",
+    //             // riderContactNumber: "$account.profile.phone",
+    //             account: 0,
+    //           },
+    //         },
+    //       ]).toArray();
+    //       console.log("data", data);
+    //       return data;
+    //     } else {
+    //       throw new ReactionError(
+    //         "access-denied",
+    //         "You are not authorize fot this action"
+    //       );
+    //     }
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // },
   },
 };
