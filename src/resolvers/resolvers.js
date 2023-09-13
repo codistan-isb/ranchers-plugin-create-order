@@ -1616,14 +1616,25 @@ export default {
           matchStage = {
             $match: {
               riderID: { $exists: true },
-              createdAt: {
-                // assuming your order has a createdAt field
-                $gte: new Date(startDate),
-                $lte: new Date(endDate),
-              },
+              // createdAt: {
+              //   // assuming your order has a createdAt field
+              //   $gte: new Date(startDate),
+              //   $lte: new Date(endDate),
+              // },
             },
           };
           query.push(matchStage);
+          if (startDate && endDate) {
+            matchStage = {
+              $match: {
+                createdAt: {
+                  $gte: new Date(startDate),
+                  $lte: new Date(endDate),
+                },
+              },
+            };
+            query.push(matchStage);
+          }
 
           if (branchId) {
             matchStage = {
