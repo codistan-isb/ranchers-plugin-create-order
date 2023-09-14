@@ -248,7 +248,10 @@ input transferOrderInput {
   orderID: String!
   branchId: String!
 }
-
+type RiderReportPayload {
+  RiderReport: [RiderReport]
+  totalPages: String
+}
 type Mutation {
   addIsManual(isManual: Boolean): OrderReport
   createRiderOrder(orders: [NewRiderOrderInput]): Order
@@ -364,8 +367,10 @@ type Query {
   # ): RiderReportConnection!
   getRiderReport(
     branchId: ID
-    riderID: ID # endDate: String # startDate: String
+    riderID: ID
     startDate: DateTime
-    endDate: DateTime # endDate: String
-  ): [RiderReport]
+    endDate: DateTime
+    itemPerPage: Int
+    PageNumber: Int
+  ): RiderReportPayload
 }
