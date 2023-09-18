@@ -316,8 +316,11 @@ export default {
         // console.log("parent ", parent);
         const { Accounts } = context.collections;
         const { _id } = parent;
-        const RiderInfoResp = await Accounts.findOne({ _id: _id });
-        // console.log("RiderInfoResp", RiderInfoResp);
+        console.log("id ", _id);
+        const RiderInfoResp = await Accounts.findOne({
+          _id: _id,
+        });
+        console.log("RiderInfoResp", RiderInfoResp);
         return RiderInfoResp;
       } catch (error) {
         console.log("error ", error);
@@ -849,6 +852,7 @@ export default {
         if (OrderID) {
           update.OrderID = OrderID;
         }
+        update.updatedAt = new Date();
         console.log("Update ", update);
         const options = { new: true };
         const response = await RiderOrder.findOneAndUpdate(
@@ -1163,6 +1167,7 @@ export default {
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
+        console.log("tomorrow ", tomorrow);
         let ordersResp = await RiderOrder.find({
           riderID: id,
           createdAt: {
@@ -1170,7 +1175,7 @@ export default {
             $lt: tomorrow,
           },
         }).toArray();
-        // console.log("datarep ", datarep);
+        // console.log("ordersResp ", ordersResp);
         // const ordersResp = await RiderOrder.find({
         //   riderID: new ObjectID.ObjectId(id),
         //   // createdAt: { $gte: today },
@@ -1762,7 +1767,7 @@ export default {
             },
           ]).toArray();
           console.log("data", data.length);
-          console.log("data", data);
+          // console.log("data", data);
           if (data.length > 0) {
             return {
               RiderReport: data,
