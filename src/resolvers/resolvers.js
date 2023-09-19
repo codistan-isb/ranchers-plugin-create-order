@@ -341,7 +341,6 @@ export default {
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
-
         const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
           context.collections;
         const CurrentRiderID = context?.user?.id;
@@ -359,7 +358,8 @@ export default {
           riderID: riderID,
           OrderStatus: { $ne: "delivered" },
         }).toArray();
-        if (existingOrders1.length >= 1) {
+        console.log("existingOrders1 ", existingOrders1);
+        if (existingOrders1.length > 1) {
           throw new ReactionError(
             "not-allowed",
             "Cannot assign new orders. Complete previous order first."
