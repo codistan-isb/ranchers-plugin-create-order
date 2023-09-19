@@ -361,7 +361,7 @@ export default {
         console.log("existingOrders1 ", existingOrders1);
         if (existingOrders1.length > 1) {
           throw new ReactionError(
-            "not-allowed",
+            "access-denied",
             "Cannot assign new orders. Complete previous order first."
           );
         }
