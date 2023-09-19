@@ -358,7 +358,7 @@ export default {
           riderID: riderID,
           OrderStatus: { $ne: "delivered" },
         }).toArray();
-        console.log("existingOrders1 ", existingOrders1);
+        // console.log("existingOrders1 ", existingOrders1);
         if (existingOrders1.length > 1) {
           throw new ReactionError(
             "access-denied",
