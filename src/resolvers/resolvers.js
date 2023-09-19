@@ -330,7 +330,7 @@ export default {
   Mutation: {
     async createRiderMultipleOrder(parent, { orders }, context, info) {
       const now = new Date();
-      console.log("here first");
+      // console.log("here first");
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -338,6 +338,7 @@ export default {
         );
       }
       try {
+        // console.log("orders ", orders);
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date();
@@ -346,6 +347,22 @@ export default {
           context.collections;
         const CurrentRiderID = context?.user?.id;
         const AllOrdersArray = orders;
+        for (const orderItem of orders) {
+          const orderCount = await RiderOrder.countDocuments({
+            OrderID: orderItem.OrderID,
+            createdAt: {
+              $gte: todayStart,
+              $lt: todayEnd,
+            },
+          });
+          // console.log("orderCount", orderCount);
+          if (orderCount) {
+            throw new ReactionError(
+              "duplicate",
+              "Order with same ID already exists"
+            );
+          }
+        }
         const RiderIDForAssign1 = orders.map((order) => {
           const riderId = order.riderID ? order.riderID : CurrentRiderID;
           return {
@@ -357,10 +374,11 @@ export default {
         const riderID = RiderIDForAssign1[0].riderID;
         const existingOrders1 = await RiderOrder.find({
           riderID: riderID,
-          OrderStatus: { $ne: "delivered" },
+          OrderStatus: { $nin: ["delivered", "canceled"] }, // OrderStatus: { $ne: "delivered" },
         }).toArray();
-        console.log("testig");
-        console.log("existingOrders1 ", existingOrders1.length);
+        // console.log("testing");
+        // console.log("existingOrders1 ", existingOrders1.length);
+        // console.log("existingOrders1 ", existingOrders1);
         if (existingOrders1.length > 1) {
           console.log("testig 2");
           throw new ReactionError(
@@ -368,12 +386,10 @@ export default {
             "Cannot assign new orders. Complete previous order first."
           );
         }
-        console.log("inside else statement");
+        // console.log("inside else statement");
         const insertedOrders = [];
         for (const order of orders) {
-          console.log("inside loop");
           const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
-
           let CustomerAccountID = "";
           if (CustomerOrder) {
             CustomerAccountID = CustomerOrder?.accountId;
