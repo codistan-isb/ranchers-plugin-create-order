@@ -1174,7 +1174,9 @@ export default {
             $gte: today,
             $lt: tomorrow,
           },
-        }).toArray();
+        })
+          .sort({ createdAt: -1 })
+          .toArray();
         // console.log("ordersResp ", ordersResp);
         // const ordersResp = await RiderOrder.find({
         //   riderID: new ObjectID.ObjectId(id),
