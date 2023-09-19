@@ -330,13 +330,14 @@ export default {
   Mutation: {
     async createRiderMultipleOrder(parent, { orders }, context, info) {
       const now = new Date();
+      console.log("here first");
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
           "Unauthorized access. Please Login First"
         );
       }
-      try {
+      // try {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date();
@@ -358,16 +359,19 @@ export default {
           riderID: riderID,
           OrderStatus: { $ne: "delivered" },
         }).toArray();
-        // console.log("existingOrders1 ", existingOrders1);
+        console.log("testig");
+        console.log("existingOrders1 ", existingOrders1.length);
         if (existingOrders1.length > 1) {
+          console.log("testig 2");
           throw new ReactionError(
             "access-denied",
             "Cannot assign new orders. Complete previous order first."
           );
         }
-
+        console.log("inside else statement");
         const insertedOrders = [];
         for (const order of orders) {
+          console.log("inside loop");
           const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
 
           let CustomerAccountID = "";
@@ -407,6 +411,7 @@ export default {
                   OrderID: RiderIDForAssign.OrderID,
                   OrderStatus: RiderIDForAssign.OrderStatus,
                   startTime: RiderIDForAssign.startTime,
+                  updatedAt: new Date(),
                 },
               },
               { new: true }
@@ -416,6 +421,7 @@ export default {
               RiderID: RiderIDForAssign.riderID,
               branches: RiderIDForAssign.branches,
               createdAt: new Date(),
+              updatedAt: new Date(),
             };
             await RiderOrderHistory.insertOne(createdOrderIDs);
 
@@ -453,6 +459,7 @@ export default {
                 RiderID: RiderIDForAssign.riderID,
                 branches: RiderIDForAssign.branches,
                 createdAt: new Date(),
+                updatedAt: new Date(),
               };
               await RiderOrderHistory.insertOne(createdOrderIDs);
 
@@ -485,11 +492,10 @@ export default {
             }
           }
         }
-
         return insertedOrders;
-      } catch (error) {
-        console.log("error ", error);
-      }
+      // } catch (error) {
+      //   console.log("error ", error);
+      // }
     },
     async createRiderOrder(parent, { orders }, context, info) {
       const now = new Date();
@@ -531,6 +537,7 @@ export default {
         const existingRiderOrders = await RiderOrder.find({
           OrderID: { $in: RiderIDForAssign.map((o) => o.OrderID) },
         }).toArray();
+
         if (existingRiderOrders.length > 0) {
           if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
             const update = {};
