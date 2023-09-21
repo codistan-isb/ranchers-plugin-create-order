@@ -878,14 +878,14 @@ export default {
           update.OrderID = OrderID;
         }
         update.updatedAt = new Date();
-        console.log("Update ", update);
+        // console.log("Update ", update);
         const options = { new: true };
         const response = await RiderOrder.findOneAndUpdate(
           filter,
           { $set: update },
           options
         );
-        console.log("response ", response);
+        // console.log("response ", response);
         if (response) {
           const updatedOrderResp = await RiderOrder.findOne({
             OrderID: OrderID,
@@ -1245,7 +1245,7 @@ export default {
           riderID: id,
           // createdAt: { $gte: today },
         })
-          .sort({ createdAt: -1 })
+          .sort({ updatedAt: -1 })
           .toArray();
         // console.log("ordersResp ", ordersResp);
 
