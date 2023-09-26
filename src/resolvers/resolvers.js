@@ -416,15 +416,15 @@ export default {
           // const idToCheck = '3204'
           // var idToCheck = order.OrderID.split("|")[1];
           // console.log("inside loop order", order);
-          const orderCount = await RiderOrder.countDocuments({
-            OrderID: new RegExp(order.OrderID),
-          });
-          if (orderCount) {
-            throw new ReactionError(
-              "duplicate",
-              "Order with same ID already exists"
-            );
-          }
+          // const orderCount = await RiderOrder.countDocuments({
+          //   OrderID: new RegExp(order.OrderID),
+          // });
+          // if (orderCount) {
+          //   throw new ReactionError(
+          //     "duplicate",
+          //     "Order with same ID already exists"
+          //   );
+          // }
           const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
           let CustomerAccountID = "";
           if (CustomerOrder) {
