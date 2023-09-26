@@ -6,6 +6,9 @@ import { decodeOrderOpaqueId } from "../xforms/id.js";
 import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
 import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import executeCronJob from "../utils/executeCronJob.js";
+import seedrandom from "seedrandom";
+
+// import Random from "@reactioncommerce/random";
 export default {
   Order: {
     async branchInfo(parent, args, context, info) {
@@ -330,7 +333,19 @@ export default {
   Mutation: {
     async createRiderMultipleOrder(parent, { orders }, context, info) {
       const now = new Date();
-      // console.log("here first");
+      console.log("here first", orders);
+      console.log("Random id ", Random.id());
+      // Get the current date
+      // Use the current date to seed the random number generator
+      // Get the current date
+      // Get the current date
+      var current_date = new Date();
+
+      // Get the timestamp
+      var timestamp = current_date.getTime();
+
+      console.log("Timestamp:", timestamp);
+
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -392,9 +407,17 @@ export default {
         // console.log("inside else statement");
         const insertedOrders = [];
         for (const order of orders) {
-          // console.log("inside loof order", order);
+          var current_date = new Date();
+
+          // Get the timestamp
+          var timestamp = current_date.getTime();
+
+          // console.log("Timestamp:", timestamp);
+          // const idToCheck = '3204'
+          // var idToCheck = order.OrderID.split("|")[1];
+          // console.log("inside loop order", order);
           const orderCount = await RiderOrder.countDocuments({
-            OrderID: order.OrderID,
+            OrderID: new RegExp(order.OrderID),
           });
           if (orderCount) {
             throw new ReactionError(
@@ -407,7 +430,14 @@ export default {
           if (CustomerOrder) {
             CustomerAccountID = CustomerOrder?.accountId;
           }
-
+          // console.log("order id", order.OrderID);
+          // console.log(/^\d+$/.test(order.OrderID));
+          var OrderID = order.OrderID;
+          if (/^\d+$/.test(order.OrderID)) {
+            OrderID = timestamp + "|" + OrderID;
+          }
+          // console.log("Order ID", OrderID);
+          order.OrderID = OrderID;
           const RiderIDForAssign = {
             ...order,
             riderID: order.riderID ? order.riderID : CurrentRiderID,
