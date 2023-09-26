@@ -434,7 +434,7 @@ export default {
           // console.log(/^\d+$/.test(order.OrderID));
           var OrderID = order.OrderID;
           if (/^\d+$/.test(order.OrderID)) {
-            OrderID = timestamp + "|" + OrderID;
+            OrderID = timestamp + "-" + OrderID;
           }
           // console.log("Order ID", OrderID);
           order.OrderID = OrderID;
