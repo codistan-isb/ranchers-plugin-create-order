@@ -1273,6 +1273,45 @@ export default {
         throw new ReactionError("access-denied", `${error}`);
       }
     },
+    async getRiderOrderHistory(parent, { input }, context, info) {
+      console.log("input", input);
+      let { startTime, endTime, OrderStatus, riderID } = input;
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+      try {
+        const { RiderOrder } = context.collections;
+        if (riderID === null || riderID === undefined) {
+          riderID = context.user.id;
+        }
+        let query = { riderID: riderID };
+        if (startTime && endTime) {
+          query.updatedAt = {
+            $gte: new Date(startTime),
+            $lte: new Date(endTime),
+          };
+        }
+
+        if (OrderStatus) {
+          query.OrderStatus = OrderStatus;
+        }
+
+        const ordersResp = await RiderOrder.find(query)
+          .sort({ updatedAt: -1 })
+          .toArray();
+        if (ordersResp) {
+          return ordersResp;
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.log("error", error);
+        throw new ReactionError("access-denied", `${error}`);
+      }
+    },
     async getOrderById(parent, { id }, context, info) {
       // console.log(context.user);
       if (context.user === undefined || context.user === null) {

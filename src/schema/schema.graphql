@@ -244,6 +244,13 @@ input NewRiderOrderInput {
   riderOrderNotes: String
   isManual: Boolean
 }
+input riderOrderHistory {
+  startTime: DateTime
+  endTime: DateTime
+  OrderStatus: OrderStatusValue
+  riderID: String!
+}
+
 input transferOrderInput {
   orderID: String!
   branchId: String!
@@ -277,6 +284,7 @@ type Mutation {
 #   updatedAt
 # }
 type Query {
+  getRiderOrderHistory(input: riderOrderHistory): [Order]
   getOrderById(id: ID!): [Order]
   getRiderOrderByRiderId(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
