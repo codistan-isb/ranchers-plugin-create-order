@@ -1274,14 +1274,11 @@ export default {
       }
     },
     async getRiderOrderHistory(parent, { input }, context, info) {
-      // console.log("input", input);
       let {
         startTime,
         endTime,
         OrderStatus,
         riderID,
-        itemPerPage,
-        PageNumber,
       } = input;
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -1294,13 +1291,6 @@ export default {
         if (riderID === null || riderID === undefined) {
           riderID = context.user.id;
         }
-        let itemsPerPage = itemPerPage ? itemPerPage : 10; // Number of items to display per page
-        PageNumber = PageNumber ? PageNumber : 1;
-        let skipAmount = (PageNumber - 1) * itemsPerPage;
-        let pageCount = await RiderOrder.countDocuments({
-          riderID: riderID,
-        });
-        // console.log("pageCount", pageCount);
         let query = { riderID: riderID };
         if (startTime && endTime) {
           query.updatedAt = {
@@ -1312,16 +1302,10 @@ export default {
           query.OrderStatus = OrderStatus;
         }
         const ordersResponse = await RiderOrder.find(query)
-          .skip(skipAmount)
-          .limit(itemsPerPage)
           .sort({ updatedAt: -1 })
           .toArray();
         if (ordersResponse) {
-          return {
-            riderOrderHistory: ordersResponse,
-            totalPages: pageCount,
-          };
-          // return ordersResp;
+          return ordersResponse;
         } else {
           return null;
         }

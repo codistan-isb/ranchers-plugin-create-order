@@ -249,13 +249,13 @@ input riderOrderHistory {
   endTime: DateTime
   OrderStatus: OrderStatusValue
   riderID: String!
-  itemPerPage: Int
-  PageNumber: Int
+  # itemPerPage: Int
+  # PageNumber: Int
 }
-type riderOrderHistoryPayload {
-  riderOrderHistory: [Order]
-  totalPages: String
-}
+# type riderOrderHistoryPayload {
+#   riderOrderHistory: [Order]
+#   totalPages: String
+# }
 input transferOrderInput {
   orderID: String!
   branchId: String!
@@ -289,7 +289,7 @@ type Mutation {
 #   updatedAt
 # }
 type Query {
-  getRiderOrderHistory(input: riderOrderHistory): riderOrderHistoryPayload
+  getRiderOrderHistory(input: riderOrderHistory): [Order]
   getOrderById(id: ID!): [Order]
   getRiderOrderByRiderId(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
