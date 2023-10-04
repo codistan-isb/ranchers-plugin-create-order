@@ -1293,7 +1293,7 @@ export default {
         }
         let query = { riderID: riderID };
         if (startTime && endTime) {
-          query.updatedAt = {
+          query.createdAt = {
             $gte: new Date(startTime),
             $lte: new Date(endTime),
           };
@@ -1301,8 +1301,9 @@ export default {
         if (OrderStatus) {
           query.OrderStatus = OrderStatus;
         }
+        // console.log("query",query)
         const ordersResponse = await RiderOrder.find(query)
-          .sort({ updatedAt: -1 })
+          .sort({ createdAt: -1 })
           .toArray();
         if (ordersResponse) {
           return ordersResponse;
