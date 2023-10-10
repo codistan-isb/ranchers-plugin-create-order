@@ -1274,12 +1274,7 @@ export default {
       }
     },
     async getRiderOrderHistory(parent, { input }, context, info) {
-      let {
-        startTime,
-        endTime,
-        OrderStatus,
-        riderID,
-      } = input;
+      let { startTime, endTime, OrderStatus, riderID } = input;
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -1821,6 +1816,11 @@ export default {
 
           let data = await RiderOrder.aggregate([
             ...query,
+            // {
+            //   $match: {
+            //     riderOrderAmount: { $exists: true, $type: "number" },
+            //   },
+            // },
             {
               $group: {
                 _id: "$riderID",
@@ -1837,12 +1837,21 @@ export default {
                   },
                 },
                 completeInTimeOrder: {
-                  $sum: { $cond: [{ $lte: ["$deliveryTime", 20] }, 1, 0] },
+                  $sum: { $cond: [{ $lte: ["$deliveryTime", 25] }, 1, 0] },
                 },
                 totalActiveTime: {
                   $sum: { $subtract: ["$endTime", "$startTime"] },
                 },
-                totalEarning: { $sum: "$riderOrderAmount" },
+                totalEarning: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$OrderStatus", "delivered"] },
+                      "$riderOrderAmount",
+                      0,
+                    ],
+                  },
+                },
+                // totalEarning: { $sum: "$riderOrderAmount" },
                 totalManualOrders: { $sum: { $cond: ["$isManual", 1, 0] } },
                 totalCustomerOrders: {
                   $sum: { $cond: ["$isManual", 0, 1] },
@@ -1896,7 +1905,7 @@ export default {
               $limit: itemsPerPage,
             },
           ]).toArray();
-          console.log("data", data.length);
+          console.log("data", data);
           // console.log("data", data);
           if (data.length > 0) {
             return {

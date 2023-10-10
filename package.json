@@ -2,7 +2,7 @@
   "name": "@codistan-isb/ranchers-plugin-create-order",
   "description": "Boilerplate plugin for the Reaction API",
   "label": "Create Order Plugin",
-  "version": "11.1.15",
+  "version": "11.2.0",
   "main": "index.js",
   "type": "module",
   "engines": {
