@@ -1417,7 +1417,7 @@ export default {
     },
     async generateOrderReport(parent, args, context, info) {
       // console.log("args ", args);
-      console.log("info", info);
+      // console.log("info", info);
       let { authToken, userId, collections } = context;
       let { RiderOrder } = collections;
       if (context.user === undefined || context.user === null) {
@@ -1514,7 +1514,7 @@ export default {
             // { OrderID: { $in: matchingOrderIDs } },
           ];
         }
-        console.log("query", query);
+        // console.log("query", query);
         const report = await RiderOrder.find(query);
         // const report = await RiderOrder.find([{ $match: { $and: matchStage } }]);
         return getPaginatedResponse(report, connectionArgs, {
