@@ -1417,6 +1417,7 @@ export default {
     },
     async generateOrderReport(parent, args, context, info) {
       // console.log("args ", args);
+      console.log("info", info);
       let { authToken, userId, collections } = context;
       let { RiderOrder } = collections;
       if (context.user === undefined || context.user === null) {
@@ -1459,6 +1460,14 @@ export default {
           query.branches = branches;
           matchStage.push({ branches: branches });
         }
+        // if (deliveryTime) {
+        //   query.deliveryTime = deliveryTime;
+        //   matchStage.push({ deliveryTime: deliveryTime });
+        // }
+        if (deliveryTime) {
+          query.deliveryTime = { $lt: deliveryTime };
+          matchStage.push({ deliveryTime: { $lt: deliveryTime } });
+        }
 
         if (startTime) {
           const start = new Date(startTime); // Fix variable name
@@ -1497,36 +1506,7 @@ export default {
             $match: { createdAt: { $lte: new Date(toDate) } },
           });
         }
-        // if (searchQuery) {
-        //   // const regexStatus = new RegExp(OrderStatus, "i");
-        //   query.OrderID = {
-        //     $regex: searchQuery, // Applying the regex pattern to the OrderID field
-        //     $options: "i", // 'i' for case-insensitive
-        //   };
-        //   query.OrderStatus = {
-        //     $regex: searchQuery,
-        //     $options: "i",
-        //   };
-        // }
         if (searchQuery) {
-          // if (OrderID) {
-          //   const matchingOrderIDs = await collections.Orders.distinct("_id", {
-          //     $and: [
-          //       {
-          //         "shipping.0.address.address1": {
-          //           $regex: new RegExp(searchQuery, "i"),
-          //         },
-          //       },
-          //       {
-          //         "shipping.0.address.city": {
-          //           $regex: new RegExp(searchQuery, "i"),
-          //         },
-          //       },
-          //     ],
-          //   });
-          // }
-
-          // console.log("matchingOrderIDs ", matchingOrderIDs);
           const regexQuery = new RegExp(searchQuery, "i");
           query.$or = [
             { OrderID: { $regex: regexQuery } },
@@ -1534,30 +1514,7 @@ export default {
             // { OrderID: { $in: matchingOrderIDs } },
           ];
         }
-        // if (searchQuery) {
-
-        //   // Add the condition for searchQuery
-        //   matchStage.push({
-        //     OrderID: {
-        //       $in: await collections.Orders.distinct("_id", {
-        //         $or: [
-        //           {
-        //             "shipping.0.address.address1": {
-        //               $regex: new RegExp(searchQuery, "i"),
-        //             },
-        //           },
-        //           {
-        //             "shipping.0.address.city": {
-        //               $regex: new RegExp(searchQuery, "i"),
-        //             },
-        //           },
-        //         ],
-        //       }),
-        //     },
-        //   });
-        // }
-        // console.log("matchStage ", matchStage);
-        // console.log("query ", query);
+        console.log("query", query);
         const report = await RiderOrder.find(query);
         // const report = await RiderOrder.find([{ $match: { $and: matchStage } }]);
         return getPaginatedResponse(report, connectionArgs, {
@@ -1739,7 +1696,7 @@ export default {
       }
     },
     async getRiderReport(parent, args, context, info) {
-      console.log("args", args);
+      // console.log("args", info);
       try {
         let { collections } = context;
         if (context.user === undefined || context.user === null) {
@@ -1768,9 +1725,10 @@ export default {
           let pageCount = await RiderOrder.countDocuments({
             riderID: { $exists: true },
           });
-          console.log("data1", pageCount / 10);
-          console.log("skipAmount ", skipAmount);
-          console.log("itemsPerPage", itemsPerPage);
+          // console.log("pageCount", pageCount);
+          // console.log("data1", pageCount / 10);
+          // console.log("skipAmount ", skipAmount);
+          // console.log("itemsPerPage", itemsPerPage);
           var matchStage = {};
           let query = [];
           matchStage = {
@@ -1812,7 +1770,7 @@ export default {
             };
             query.push(matchStage);
           }
-          console.log("query", query);
+          // console.log("query", query);
 
           let data = await RiderOrder.aggregate([
             ...query,
@@ -1905,7 +1863,7 @@ export default {
               $limit: itemsPerPage,
             },
           ]).toArray();
-          console.log("data", data);
+          // console.log("data", data);
           // console.log("data", data);
           if (data.length > 0) {
             return {
@@ -1921,7 +1879,7 @@ export default {
         } else {
           throw new ReactionError(
             "access-denied",
-            "You are not authorize fot this action"
+            "You are not authorize for this action"
           );
         }
       } catch (error) {
