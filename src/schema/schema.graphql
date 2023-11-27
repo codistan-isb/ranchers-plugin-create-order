@@ -258,7 +258,9 @@ input riderOrderHistory {
 # }
 input transferOrderInput {
   orderID: String!
-  branchId: String!
+  # branchId: String!
+  transferFrom: String!
+  transferTo: String!
 }
 type RiderReportPayload {
   RiderReport: [RiderReport]

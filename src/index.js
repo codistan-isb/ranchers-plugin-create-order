@@ -4,6 +4,7 @@ import myResolvers from "./resolvers/resolvers.js";
 const mySchema = importAsString("./schema/schema.graphql");
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
+import startup from "./startup.js";
 
 async function register(app) {
   await app.registerPlugin({
@@ -26,10 +27,18 @@ async function register(app) {
         updatedAt: { type: Date, default: Date.now },
         createdAt: { type: Date, default: Date.now },
       },
+      transferOrder: {
+        name: "transferOrder",
+        updatedAt: { type: Date, default: Date.now },
+        createdAt: { type: Date, default: Date.now },
+      },
     },
     graphQL: {
       schemas: [mySchema],
       resolvers: myResolvers,
+    },
+    functionsByType: {
+      startup: [startup],
     },
   });
 }

@@ -11,7 +11,7 @@ export default async function executeCronJob(context) {
     status: "delivered",
   }).toArray();
 
-  cron.schedule("*/60 * * * *", () => {
+  cron.schedule("*/1 * * * *", () => {
     console.log("running a task every sixty minutes");
     cronJobResp.forEach(async (element) => {
       let message = "How was your order? Share your thoughts.";
@@ -26,7 +26,8 @@ export default async function executeCronJob(context) {
 
       // Convert milliseconds to minutes
       const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60);
-      if (timeDifferenceMinutes > 60) {
+
+      if (timeDifferenceMinutes > 1) {
         let paymentIntentClientSecret1 =
           await context.mutations.oneSignalCreateNotification(context, {
             message,
@@ -35,9 +36,7 @@ export default async function executeCronJob(context) {
             userId: element.userId,
             orderID: element.orderId,
           });
-        let delRecord = await CronJobs.findOneAndDelete({
-          _id: element._id,
-        });
+        let delRecord = await CronJobs.drop({});
         console.log("delRecord ", delRecord);
         console.log(
           "Time difference is more than 60 minutes.i.e: ",

@@ -843,7 +843,7 @@ export default {
               type: "orderFeedback",
               status: "delivered",
             };
-            const cronjobResp = await CronJobs.insertOne(cronJobObject);
+            // const cronjobResp = await CronJobs.insertOne(cronJobObject);
             // const cornJobResp = executeCronJob(context);
           }
           const appType = "admin";
@@ -1145,8 +1145,10 @@ export default {
     },
     async transferOrder(parent, { input }, context, info) {
       try {
-        const { orderID, branchId } = input;
-        const { Orders, Accounts, BranchData } = context.collections;
+        const { orderID, transferTo, transferFrom } = input;
+        const { appEvents, collections, userId } = context
+        const { Orders, Accounts, BranchData } = collections;
+        console.log("input", input);
         if (
           context.user === undefined ||
           context.user === null ||
@@ -1157,12 +1159,13 @@ export default {
             "Unauthorized access. Please Login First"
           );
         }
+
         const modifier = {
           $set: {
             updatedAt: new Date(),
           },
         };
-        modifier.$set.branchID = branchId;
+        modifier.$set.branchID = transferTo;
         const { modifiedCount, value: updatedOrder } =
           await Orders.findOneAndUpdate(
             { _id: decodeOrderOpaqueId(orderID) },
@@ -1172,34 +1175,36 @@ export default {
             }
           );
         // console.log("updatedOrder ", updatedOrder);
-        const account = await Accounts.findOne({
-          branches: { $in: [branchId] },
-        });
+        // const account = await Accounts.findOne({
+        //   branches: { $in: [transferTo] },
+        // });
         // console.log("account ", account);
-        const branchData = await BranchData.findOne({
-          _id: ObjectID.ObjectId(branchId),
-        });
+        // const branchData = await BranchData.findOne({
+        //   _id: ObjectID.ObjectId(transferTo),
+        // });
 
-        const message = `Order has been assigned to ${branchData?.name} branch and order id is ${updatedOrder?.kitchenOrderID}`;
-        const appType = "customer";
-        const appType1 = "admin";
-        const id = account?._id;
-        let OrderIDs = updatedOrder?.kitchenOrderI;
-        const paymentIntentClientSecret =
-          context.mutations.oneSignalCreateNotification(context, {
-            message,
-            id,
-            appType,
-            userId: id,
-            orderID: OrderIDs,
-          });
-        const paymentIntentClientSecret1 =
-          context.mutations.oneSignalCreateNotification(context, {
-            message,
-            id,
-            appType: appType1,
-            userId: id,
-          });
+        // const message = `Order has been assigned to ${branchData?.name} branch and order id is ${updatedOrder?.kitchenOrderID}`;
+        // const appType = "customer";
+        // const appType1 = "admin";
+        // const id = account?._id;
+        // let OrderIDs = updatedOrder?.kitchenOrderI;
+        // const paymentIntentClientSecret =
+        //   context.mutations.oneSignalCreateNotification(context, {
+        //     message,
+        //     id,
+        //     appType,
+        //     userId: id,
+        //     orderID: OrderIDs,
+        //   });
+        // const paymentIntentClientSecret1 =
+        //   context.mutations.oneSignalCreateNotification(context, {
+        //     message,
+        //     id,
+        //     appType: appType1,
+        //     userId: id,
+        //   });
+        await appEvents.emit("afterOrderTransfer", { createdBy: userId, orderID, transferTo, transferFrom, updatedOrder });
+
         if (updatedOrder) {
           return updatedOrder;
         } else {
@@ -1795,8 +1800,18 @@ export default {
                   },
                 },
                 completeInTimeOrder: {
-                  $sum: { $cond: [{ $lte: ["$deliveryTime", 25] }, 1, 0] },
+                  $sum: {
+                    $cond: [
+                      { $and: [{ $eq: ["$OrderStatus", "delivered"] }, { $lte: ["$deliveryTime", 25] }] },
+                      1,
+                      0
+                    ]
+                  }
                 },
+
+                //  {
+                //   $sum: { $cond: [{ $lte: ["$deliveryTime", 25] }, 1, 0] },
+                // },
                 totalActiveTime: {
                   $sum: { $subtract: ["$endTime", "$startTime"] },
                 },
