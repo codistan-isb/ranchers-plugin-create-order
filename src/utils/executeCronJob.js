@@ -11,7 +11,7 @@ export default async function executeCronJob(context) {
     status: "delivered",
   }).toArray();
 
-  cron.schedule("*/1 * * * *", () => {
+  cron.schedule("*/60 * * * *", () => {
     console.log("running a task every sixty minutes");
     cronJobResp.forEach(async (element) => {
       let message = "How was your order? Share your thoughts.";
@@ -27,7 +27,7 @@ export default async function executeCronJob(context) {
       // Convert milliseconds to minutes
       const timeDifferenceMinutes = timeDifferenceMs / (1000 * 60);
 
-      if (timeDifferenceMinutes > 1) {
+      if (timeDifferenceMinutes > 60) {
         let paymentIntentClientSecret1 =
           await context.mutations.oneSignalCreateNotification(context, {
             message,

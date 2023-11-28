@@ -335,12 +335,12 @@ export default {
       const now = new Date();
       console.log("here first", orders);
       console.log("Random id ", Random.id());
+      const { userId } = context
       // Get the current date
       // Use the current date to seed the random number generator
       // Get the current date
       // Get the current date
       var current_date = new Date();
-
       // Get the timestamp
       var timestamp = current_date.getTime();
 
@@ -368,7 +368,7 @@ export default {
         });
         // console.log("Status of Rider : ", riderStatus);
 
-        if (riderStatus && riderStatus.currentStatus === "offline") {
+        if (riderStatus && riderStatus?.currentStatus === "offline") {
           throw new ReactionError(
             "not-found",
             "Rider is offline, cannot create order"
@@ -425,10 +425,20 @@ export default {
           //     "Order with same ID already exists"
           //   );
           // }
-          const CustomerOrder = await Orders.findOne({ _id: order.OrderID });
+          const CustomerOrder = await Orders.findOne({ _id: order?.OrderID });
           let CustomerAccountID = "";
           if (CustomerOrder) {
             CustomerAccountID = CustomerOrder?.accountId;
+
+            let updateOrders = {
+              $set: { "workflow.status": "pickedUp", updatedAt: new Date() },
+            };
+            const options = { new: true };
+            await Orders.findOneAndUpdate(
+              { _id: order?.OrderID },
+              updateOrders,
+              options
+            );
           }
           // console.log("order id", order.OrderID);
           // console.log(/^\d+$/.test(order.OrderID));
@@ -480,36 +490,38 @@ export default {
             insertedOrders.push(riderOrderResp.ops[0]);
           }
           await RiderOrderHistory.insertOne(order);
-          const message = "Order has been assigned";
-          const appType = "rider";
-          const id = order?.riderID;
-          let OrderIDs = order?.OrderID;
-          const paymentIntentClientSecret =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id,
-              appType,
-              userId: id,
-            });
-          if (CustomerAccountID) {
-            const paymentIntentClientSecret1 =
-              context.mutations.oneSignalCreateNotification(context, {
-                message,
-                id: CustomerAccountID,
-                appType: "customer",
-                userId: CustomerAccountID,
-                orderID: OrderIDs,
-              });
-            let updateOrders = {
-              $set: { "workflow.status": "pickedUp", updatedAt: new Date() },
-            };
-            const options = { new: true };
-            await Orders.findOneAndUpdate(
-              { _id: OrderIDs },
-              updateOrders,
-              options
-            );
-          }
+          await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, order, CustomerAccountID });
+
+          // const message = "Order has been assigned";
+          // const appType = "rider";
+          // let id = order?.riderID;
+          // let OrderIDs = order?.OrderID;
+          // const paymentIntentClientSecret =
+          //   context.mutations.oneSignalCreateNotification(context, {
+          //     message,
+          //     id,
+          //     appType,
+          //     userId: id,
+          //   });
+          // if (CustomerAccountID) {
+          //   // const paymentIntentClientSecret1 =
+          //   //   context.mutations.oneSignalCreateNotification(context, {
+          //   //     message,
+          //   //     id: CustomerAccountID,
+          //   //     appType: "customer",
+          //   //     userId: CustomerAccountID,
+          //   //     orderID: OrderIDs,
+          //   //   });
+          //   let updateOrders = {
+          //     $set: { "workflow.status": "pickedUp", updatedAt: new Date() },
+          //   };
+          //   const options = { new: true };
+          //   await Orders.findOneAndUpdate(
+          //     { _id: order?.OrderID },
+          //     updateOrders,
+          //     options
+          //   );
+          // }
           // if (updatedOrder) {
           //   insertedOrders.push(updatedOrder.value);
           // }
@@ -1174,6 +1186,7 @@ export default {
               returnOriginal: false,
             }
           );
+        // moved to appevent for testing
         // console.log("updatedOrder ", updatedOrder);
         // const account = await Accounts.findOne({
         //   branches: { $in: [transferTo] },

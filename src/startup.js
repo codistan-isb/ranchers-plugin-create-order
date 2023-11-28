@@ -33,4 +33,26 @@ export default function ordersStartup(context) {
                 userId: id,
             });
     });
+    appEvents.on("afterCreatingRiderOrder", async ({ createdBy: userId, order, CustomerAccountID }) => {
+        const message = "Order has been assigned";
+        const appType = "rider";
+        let id = order?.riderID;
+        let OrderIDs = order?.OrderID;
+        context.mutations.oneSignalCreateNotification(context, {
+            message,
+            id,
+            appType,
+            userId: id,
+        });
+        if (CustomerAccountID) {
+
+            context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id: CustomerAccountID,
+                appType: "customer",
+                userId: CustomerAccountID,
+                orderID: OrderIDs,
+            });
+        }
+    });
 }
