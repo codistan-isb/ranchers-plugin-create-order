@@ -333,9 +333,10 @@ export default {
   Mutation: {
     async createRiderMultipleOrder(parent, { orders }, context, info) {
       const now = new Date();
+      let CustomerOrder;
       console.log("here first", orders);
-      console.log("Random id ", Random.id());
-      const { userId } = context
+      // console.log("Random id ", Random.id());
+      const { userId, appEvents, collections } = context
       // Get the current date
       // Use the current date to seed the random number generator
       // Get the current date
@@ -359,7 +360,7 @@ export default {
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
         const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
-          context.collections;
+          collections;
         const CurrentRiderID = context?.user?.id;
         const AllOrdersArray = [];
 
@@ -425,7 +426,8 @@ export default {
           //     "Order with same ID already exists"
           //   );
           // }
-          const CustomerOrder = await Orders.findOne({ _id: order?.OrderID });
+          CustomerOrder = await Orders.findOne({ _id: order?.OrderID });
+          console.log("CustomerOrder", CustomerOrder);
           let CustomerAccountID = "";
           if (CustomerOrder) {
             CustomerAccountID = CustomerOrder?.accountId;
@@ -490,7 +492,7 @@ export default {
             insertedOrders.push(riderOrderResp.ops[0]);
           }
           await RiderOrderHistory.insertOne(order);
-          await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, order, CustomerAccountID });
+          await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, order, CustomerAccountID, CustomerOrder });
 
           // const message = "Order has been assigned";
           // const appType = "rider";
@@ -582,13 +584,14 @@ export default {
         );
       }
       try {
+        const { userId, appEvents, collections } = context
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
         const AllOrdersArray = orders;
         const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
-          context.collections;
+          collections;
         const CurrentRiderID = context.user.id;
         const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
         let CustomerAccountID = "";
@@ -642,6 +645,8 @@ export default {
               createdAt: new Date(),
             };
             await RiderOrderHistory.insertOne(createdOrderIDs);
+            await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
+
             const message = "Order has been assigned";
             const appType = "rider";
             const appType1 = "customer";
@@ -706,6 +711,8 @@ export default {
                     );
                   }
                 }
+                await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
+
                 return insertedOrders.ops;
               } catch (err) {
                 if (err.code === 11000) {
@@ -782,6 +789,8 @@ export default {
               }
             }
             // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
+            await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
+
             return insertedOrders.ops[0];
           } catch (err) {
             if (err.code === 11000) {
@@ -811,7 +820,9 @@ export default {
       }
       try {
         const CurrentRiderID = context.user.id;
-        const { RiderOrder, Orders, CronJobs } = context.collections;
+        const { userId, appEvents, collections } = context
+
+        const { RiderOrder, Orders, CronJobs } = collections;
         const filter = { OrderID: OrderID };
         const CustomerOrder = await Orders.findOne({ _id: OrderID });
         let CustomerAccountID = "";
@@ -846,18 +857,7 @@ export default {
           } else {
             message = `Order is ${OrderStatus}`;
           }
-          if (OrderStatus === "delivered") {
-            let cronJobObject = {
-              _id: Random.id(),
-              userId: CustomerAccountID,
-              orderId: OrderID,
-              createdAt: new Date(),
-              type: "orderFeedback",
-              status: "delivered",
-            };
-            // const cronjobResp = await CronJobs.insertOne(cronJobObject);
-            // const cornJobResp = executeCronJob(context);
-          }
+
           const appType = "admin";
           const appTypeCustomer = "customer";
           const id = CurrentRiderID;
@@ -949,7 +949,7 @@ export default {
           const updatedOrderResp = await RiderOrder.findOne({
             OrderID: OrderID,
           });
-          console.log("updated Order Resp", updatedOrderResp);
+          // console.log("updated Order Resp", updatedOrderResp);
           if (updatedOrderResp) {
             return {
               id: updatedOrderResp._id,

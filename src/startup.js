@@ -1,5 +1,8 @@
 
 import ObjectID from "mongodb";
+// import sendOrderEmail from "./utils/sendOrderEmail.js";
+import _ from "lodash";
+
 export default function ordersStartup(context) {
     const { appEvents, collections } = context;
 
@@ -33,7 +36,10 @@ export default function ordersStartup(context) {
                 userId: id,
             });
     });
-    appEvents.on("afterCreatingRiderOrder", async ({ createdBy: userId, order, CustomerAccountID }) => {
+    appEvents.on("afterCreatingRiderOrder", async ({ createdBy: userId, order, CustomerAccountID, CustomerOrder }) => {
+        // console.log("order", order);
+        // console.log("CustomerOrder", CustomerOrder);
+        const customerMessage = "Your order is picked";
         const message = "Order has been assigned";
         const appType = "rider";
         let id = order?.riderID;
@@ -45,14 +51,14 @@ export default function ordersStartup(context) {
             userId: id,
         });
         if (CustomerAccountID) {
-
             context.mutations.oneSignalCreateNotification(context, {
-                message,
+                message: customerMessage,
                 id: CustomerAccountID,
                 appType: "customer",
                 userId: CustomerAccountID,
                 orderID: OrderIDs,
             });
         }
+
     });
 }
