@@ -3,7 +3,7 @@ import ObjectID from "mongodb";
 // import sendOrderEmail from "./utils/sendOrderEmail.js";
 import _ from "lodash";
 
-export default function ordersStartup(context) {
+export default function orderValueStartup(context) {
     const { appEvents, collections } = context;
 
     appEvents.on("afterOrderTransfer", async ({ createdBy: userId, orderID, updatedOrder, transferTo, transferFrom }) => {

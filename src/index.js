@@ -4,7 +4,7 @@ import myResolvers from "./resolvers/resolvers.js";
 const mySchema = importAsString("./schema/schema.graphql");
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
-import startup from "./startup.js";
+import orderValueStartup from "./orderValueStartup.js";
 
 async function register(app) {
   await app.registerPlugin({
@@ -38,7 +38,7 @@ async function register(app) {
       resolvers: myResolvers,
     },
     functionsByType: {
-      startup: [startup],
+      startup: [orderValueStartup],
     },
   });
 }
