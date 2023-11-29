@@ -1,6 +1,6 @@
 
 import ObjectID from "mongodb";
-// import sendOrderEmail from "./utils/sendOrderEmail.js";
+import sendOrderEmail from "./utils/sendOrderEmail.js";
 import _ from "lodash";
 
 export default function orderValueStartup(context) {
@@ -36,9 +36,7 @@ export default function orderValueStartup(context) {
                 userId: id,
             });
     });
-    appEvents.on("afterCreatingRiderOrder", async ({ createdBy: userId, order, CustomerAccountID, CustomerOrder }) => {
-        // console.log("order", order);
-        // console.log("CustomerOrder", CustomerOrder);
+    appEvents.on("afterCreatingRiderOrder", async ({ createdBy, order, CustomerAccountID, CustomerOrder }) => {
         const customerMessage = "Your order is picked";
         const message = "Order has been assigned";
         const appType = "rider";
@@ -59,6 +57,6 @@ export default function orderValueStartup(context) {
                 orderID: OrderIDs,
             });
         }
-
+        sendOrderEmail(context, CustomerOrder, "pickedUp")
     });
 }

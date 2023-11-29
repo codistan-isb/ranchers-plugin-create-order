@@ -334,7 +334,7 @@ export default {
     async createRiderMultipleOrder(parent, { orders }, context, info) {
       const now = new Date();
       let CustomerOrder;
-      console.log("here first", orders);
+      // console.log("here first", orders);
       // console.log("Random id ", Random.id());
       const { userId, appEvents, collections } = context
       // Get the current date
@@ -345,7 +345,7 @@ export default {
       // Get the timestamp
       var timestamp = current_date.getTime();
 
-      console.log("Timestamp:", timestamp);
+      // console.log("Timestamp:", timestamp);
 
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -427,7 +427,7 @@ export default {
           //   );
           // }
           CustomerOrder = await Orders.findOne({ _id: order?.OrderID });
-          console.log("CustomerOrder", CustomerOrder);
+          // console.log("CustomerOrder", CustomerOrder);
           let CustomerAccountID = "";
           if (CustomerOrder) {
             CustomerAccountID = CustomerOrder?.accountId;
@@ -764,6 +764,8 @@ export default {
                 appType,
                 userId,
               });
+              await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerAccountID, CustomerOrder });
+
               // console.log("context Mutation: ", paymentIntentClientSecret);
               if (CustomerAccountID) {
                 // const paymentIntentClientSecret1 =
