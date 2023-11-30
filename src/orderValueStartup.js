@@ -5,7 +5,7 @@ import _ from "lodash";
 
 export default function orderValueStartup(context) {
     const { appEvents, collections } = context;
-
+    const { Orders } = collections;
     appEvents.on("afterOrderTransfer", async ({ createdBy: userId, orderID, updatedOrder, transferTo, transferFrom }) => {
         console.log("here in app event");
         const { Orders, Accounts, BranchData } = collections;
@@ -58,5 +58,42 @@ export default function orderValueStartup(context) {
             });
         }
         sendOrderEmail(context, CustomerOrder, "pickedUp")
+    });
+    appEvents.on("afterUpdatingRiderOrder", async ({ createdBy, CustomerAccountID, CustomerOrder, updateOrders, OrderID, message, CurrentRiderID }) => {
+        // console.log("createdBy", createdBy);
+        // console.log("CustomerAccountID", CustomerAccountID);
+        // console.log("CustomerOrder", CustomerOrder);
+        // console.log("updateOrders", updateOrders);
+        // console.log("OrderID", OrderID);
+        // console.log("message", message);
+        const options = { new: true };
+        let updatedOrderResult = await Orders.findOneAndUpdate(
+            { _id: OrderID },
+            updateOrders,
+            options
+        );
+        console.log("updatedOrderResult", updatedOrderResult);
+        const appType = "admin";
+        const appTypeCustomer = "customer";
+        const id = CurrentRiderID;
+        const userId = CurrentRiderID;
+        const paymentIntentClientSecret =
+            context.mutations.oneSignalCreateNotification(context, {
+                message,
+                id,
+                appType,
+                userId,
+            });
+        if (CustomerAccountID) {
+            const paymentIntentClientSecret1 =
+                context.mutations.oneSignalCreateNotification(context, {
+                    message,
+                    id: CustomerAccountID,
+                    appType: appTypeCustomer,
+                    userId: CustomerAccountID,
+                    orderID: OrderID,
+                });
+        }
+        sendOrderEmail(context, updatedOrderResult?.value, "delivered")
     });
 }

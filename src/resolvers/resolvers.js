@@ -5,7 +5,7 @@ import ReactionError from "@reactioncommerce/reaction-error";
 import { decodeOrderOpaqueId } from "../xforms/id.js";
 import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
 import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
-import executeCronJob from "../utils/executeCronJob.js";
+import calculateDeliveryTIme from "../utils/calculateDeliveryTIme.js";
 import seedrandom from "seedrandom";
 
 // import Random from "@reactioncommerce/random";
@@ -823,7 +823,8 @@ export default {
       try {
         const CurrentRiderID = context.user.id;
         const { userId, appEvents, collections } = context
-
+        let message = "";
+        let updateOrders = {};
         const { RiderOrder, Orders, CronJobs } = collections;
         const filter = { OrderID: OrderID };
         const CustomerOrder = await Orders.findOne({ _id: OrderID });
@@ -839,51 +840,28 @@ export default {
           update.startTime = startTime;
         }
         if (endTime) {
+          let deliveryTimeCalculation = await calculateDeliveryTIme(context, OrderID, endTime);
+          console.log("deliveryTimeCalculation", deliveryTimeCalculation);
           update.endTime = endTime;
-          const getStartTimeResp = await RiderOrder.findOne({
-            OrderID: OrderID,
-          });
-          if (getStartTimeResp) {
-            const startFinalTime = new Date(getStartTimeResp.startTime);
-            const endFinalTime = new Date(endTime);
-            const timeDiff = endFinalTime.getTime() - startFinalTime.getTime();
-            // timeDiff is in milliseconds, convert to seconds
-            const minutes = timeDiff / 60000;
-            update.deliveryTime = parseFloat(minutes.toFixed(2));
-          }
+          update.deliveryTime = deliveryTimeCalculation
+          // this move to another function, dnt uncomment it
+          // const getStartTimeResp = await RiderOrder.findOne({
+          //   OrderID: OrderID,
+          // });
+          // if (getStartTimeResp) {
+          //   const startFinalTime = new Date(getStartTimeResp.startTime);
+          //   const endFinalTime = new Date(endTime);
+          //   const timeDiff = endFinalTime.getTime() - startFinalTime.getTime();
+          //   // timeDiff is in milliseconds, convert to seconds
+          //   const minutes = timeDiff / 60000;
+          //   update.deliveryTime = parseFloat(minutes.toFixed(2));
+          // }
         }
+        // console.log("update", update);
         if (OrderStatus) {
-          let message = "";
           if (OrderStatus === "canceled") {
             message = `Order is ${OrderStatus} and reason is ${rejectionReason}`;
-          } else {
-            message = `Order is ${OrderStatus}`;
-          }
-
-          const appType = "admin";
-          const appTypeCustomer = "customer";
-          const id = CurrentRiderID;
-          const userId = CurrentRiderID;
-          const paymentIntentClientSecret =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id,
-              appType,
-              userId,
-            });
-          if (CustomerAccountID) {
-            const paymentIntentClientSecret1 =
-              context.mutations.oneSignalCreateNotification(context, {
-                message,
-                id: CustomerAccountID,
-                appType: appTypeCustomer,
-                userId: CustomerAccountID,
-                orderID: OrderID,
-              });
-          }
-          update.OrderStatus = OrderStatus;
-          let updateOrders = {};
-          if (rejectionReason) {
+            update.OrderStatus = OrderStatus;
             updateOrders = {
               $set: {
                 "workflow.status": OrderStatus,
@@ -892,67 +870,100 @@ export default {
               },
             };
           } else {
+            update.OrderStatus = OrderStatus;
+            message = `Order is ${OrderStatus}`;
             updateOrders = {
               $set: { "workflow.status": OrderStatus, updatedAt: new Date() },
             };
           }
-          const options = { new: true };
-          const updatedOrder = await Orders.findOneAndUpdate(
-            { _id: OrderID },
-            updateOrders,
-            options
-          );
+          // move toward appevent
+          // const appType = "admin";
+          // const appTypeCustomer = "customer";
+          // const id = CurrentRiderID;
+          // const userId = CurrentRiderID;
+          // const paymentIntentClientSecret =
+          //   context.mutations.oneSignalCreateNotification(context, {
+          //     message,
+          //     id,
+          //     appType,
+          //     userId,
+          //   });
+          // if (CustomerAccountID) {
+          //   const paymentIntentClientSecret1 =
+          //     context.mutations.oneSignalCreateNotification(context, {
+          //       message,
+          //       id: CustomerAccountID,
+          //       appType: appTypeCustomer,
+          //       userId: CustomerAccountID,
+          //       orderID: OrderID,
+          //     });
+          // }
+
+
+          // if (rejectionReason) {
+          // } else {
+          //   updateOrders = {
+          //     $set: { "workflow.status": OrderStatus, updatedAt: new Date() },
+          //   };
+          // }
+          // const options = { new: true };
+          // const updatedOrder = await Orders.findOneAndUpdate(
+          //   { _id: OrderID },
+          //   updateOrders,
+          //   options
+          // );
         }
-        if (OrderStatus === "ready") {
-          const updatedBranch = {
-            prepTime: 0, // add prepTime field here
-            updatedAt: new Date().toISOString(),
-          };
-          const message = "Order is Ready";
-          const appType = "admin";
-          const appTypecustomer = "customer";
-          const id = userId;
-          const paymentIntentClientSecret =
-            context.mutations.oneSignalCreateNotification(context, {
-              message,
-              id,
-              appType,
-              userId,
-              // orderID,
-            });
-          if (CustomerAccountID) {
-            const paymentIntentClientSecret1 =
-              context.mutations.oneSignalCreateNotification(context, {
-                message,
-                id: CustomerAccountID,
-                appType: appTypecustomer,
-                userId: CustomerAccountID,
-                orderID: OrderID,
-              });
-            // console.log(
-            //   " Customer Order context Mutation: ",
-            //   paymentIntentClientSecret1
-            // );
-          }
-        }
+        // if (OrderStatus === "ready") {
+        //   const updatedBranch = {
+        //     prepTime: 0, // add prepTime field here
+        //     updatedAt: new Date().toISOString(),
+        //   };
+        //   const message = "Order is Ready";
+        //   const appType = "admin";
+        //   const appTypecustomer = "customer";
+        //   const id = userId;
+        //   const paymentIntentClientSecret =
+        //     context.mutations.oneSignalCreateNotification(context, {
+        //       message,
+        //       id,
+        //       appType,
+        //       userId,
+        //       // orderID,
+        //     });
+        //   if (CustomerAccountID) {
+        //     const paymentIntentClientSecret1 =
+        //       context.mutations.oneSignalCreateNotification(context, {
+        //         message,
+        //         id: CustomerAccountID,
+        //         appType: appTypecustomer,
+        //         userId: CustomerAccountID,
+        //         orderID: OrderID,
+        //       });
+        //     // console.log(
+        //     //   " Customer Order context Mutation: ",
+        //     //   paymentIntentClientSecret1
+        //     // );
+        //   }
+        // }
         if (OrderID) {
           update.OrderID = OrderID;
         }
         update.updatedAt = new Date();
         // console.log("Update ", update);
-        const options = { new: true };
+        const options = { new: false };
         const response = await RiderOrder.findOneAndUpdate(
           filter,
           { $set: update },
           options
         );
-        // console.log("response ", response);
+        // console.log("response ", response.value);
         if (response) {
           const updatedOrderResp = await RiderOrder.findOne({
             OrderID: OrderID,
           });
           // console.log("updated Order Resp", updatedOrderResp);
           if (updatedOrderResp) {
+            await appEvents.emit("afterUpdatingRiderOrder", { createdBy: userId, CustomerAccountID, CustomerOrder, updateOrders, OrderID, message, CurrentRiderID });
             return {
               id: updatedOrderResp._id,
               ...updatedOrderResp,
