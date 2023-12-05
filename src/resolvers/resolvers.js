@@ -399,7 +399,7 @@ export default {
         // console.log("existingOrders1 ", existingOrders1.length);
         // console.log("existingOrders1 ", existingOrders1);
         if (existingOrders1.length > 1) {
-          console.log("testig 2");
+          // console.log("testig 2");
           throw new ReactionError(
             "access-denied",
             "Cannot assign new orders. Complete previous order first."
@@ -409,29 +409,12 @@ export default {
         const insertedOrders = [];
         for (const order of orders) {
           var current_date = new Date();
-
           // Get the timestamp
           var timestamp = current_date.getTime();
-
-          // console.log("Timestamp:", timestamp);
-          // const idToCheck = '3204'
-          // var idToCheck = order.OrderID.split("|")[1];
-          // console.log("inside loop order", order);
-          // const orderCount = await RiderOrder.countDocuments({
-          //   OrderID: new RegExp(order.OrderID),
-          // });
-          // if (orderCount) {
-          //   throw new ReactionError(
-          //     "duplicate",
-          //     "Order with same ID already exists"
-          //   );
-          // }
           CustomerOrder = await Orders.findOne({ _id: order?.OrderID });
-          // console.log("CustomerOrder", CustomerOrder);
           let CustomerAccountID = "";
           if (CustomerOrder) {
             CustomerAccountID = CustomerOrder?.accountId;
-
             let updateOrders = {
               $set: { "workflow.status": "pickedUp", updatedAt: new Date() },
             };
@@ -455,35 +438,6 @@ export default {
             riderID: order.riderID ? order.riderID : CurrentRiderID,
             createdAt: now,
           };
-
-          // const existingRiderOrder = await RiderOrder.findOne({
-          //   OrderID: RiderIDForAssign.OrderID,
-          // });
-
-          // if (existingRiderOrder) {
-          //   const updatedOrder = await RiderOrder.findOneAndUpdate(
-          //     { _id: existingRiderOrder._id },
-          //     {
-          //       $set: {
-          //         riderID: RiderIDForAssign.riderID,
-          //         branches: RiderIDForAssign.branches,
-          //         OrderID: RiderIDForAssign.OrderID,
-          //         OrderStatus: RiderIDForAssign.OrderStatus,
-          //         startTime: RiderIDForAssign.startTime,
-          //         updatedAt: new Date(),
-          //       },
-          //     },
-          //     { new: true }
-          //   );
-          // const createdOrderIDs = {
-          //   OrderID: RiderIDForAssign.OrderID,
-          //   RiderID: RiderIDForAssign.riderID,
-          //   branches: RiderIDForAssign.branches,
-          //   OrderStatus: RiderIDForAssign.OrderStatus,
-          //   isManual: RiderIDForAssign.isManual,
-          //   createdAt: new Date(),
-          //   updatedAt: new Date(),
-          // };
           order.createdAt = new Date();
           order.updatedAt = new Date();
           let riderOrderResp = await RiderOrder.insertOne(order);
@@ -491,82 +445,9 @@ export default {
           if (riderOrderResp?.ops?.length >= 1) {
             insertedOrders.push(riderOrderResp.ops[0]);
           }
-          await RiderOrderHistory.insertOne(order);
+          // await RiderOrderHistory.insertOne(order);
           await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, order, CustomerAccountID, CustomerOrder });
 
-          // const message = "Order has been assigned";
-          // const appType = "rider";
-          // let id = order?.riderID;
-          // let OrderIDs = order?.OrderID;
-          // const paymentIntentClientSecret =
-          //   context.mutations.oneSignalCreateNotification(context, {
-          //     message,
-          //     id,
-          //     appType,
-          //     userId: id,
-          //   });
-          // if (CustomerAccountID) {
-          //   // const paymentIntentClientSecret1 =
-          //   //   context.mutations.oneSignalCreateNotification(context, {
-          //   //     message,
-          //   //     id: CustomerAccountID,
-          //   //     appType: "customer",
-          //   //     userId: CustomerAccountID,
-          //   //     orderID: OrderIDs,
-          //   //   });
-          //   let updateOrders = {
-          //     $set: { "workflow.status": "pickedUp", updatedAt: new Date() },
-          //   };
-          //   const options = { new: true };
-          //   await Orders.findOneAndUpdate(
-          //     { _id: order?.OrderID },
-          //     updateOrders,
-          //     options
-          //   );
-          // }
-          // if (updatedOrder) {
-          //   insertedOrders.push(updatedOrder.value);
-          // }
-          // } else {
-          // try {
-          //   const insertedOrder = await RiderOrder.insertOne(RiderIDForAssign);
-          //   const createdOrderIDs = {
-          //     OrderID: RiderIDForAssign.OrderID,
-          //     RiderID: RiderIDForAssign.riderID,
-          //     branches: RiderIDForAssign.branches,
-          //     createdAt: new Date(),
-          //     updatedAt: new Date(),
-          //   };
-          //   await RiderOrderHistory.insertOne(createdOrderIDs);
-
-          //   const message = "Order has been assigned";
-          //   const appType = "rider";
-          //   const id = RiderIDForAssign.riderID;
-          //   const paymentIntentClientSecret =
-          //     context.mutations.oneSignalCreateNotification(context, {
-          //       message,
-          //       id,
-          //       appType,
-          //       userId: id,
-          //     });
-          //   if (CustomerAccountID) {
-          //     const paymentIntentClientSecret1 =
-          //       context.mutations.oneSignalCreateNotification(context, {
-          //         message,
-          //         id: CustomerAccountID,
-          //         appType: "customer",
-          //         userId: CustomerAccountID,
-          //         orderID: RiderIDForAssign.OrderID,
-          //       });
-          //   }
-          //   insertedOrders.push(insertedOrder.ops[0]);
-          // } catch (err) {
-          //   if (err.code === 11000) {
-          //     throw new ReactionError("duplicate", "Order Already Exists");
-          //   }
-          //   throw err;
-          // }
-          // }
         }
         // console.log("insertedOrders", insertedOrders);
         return insertedOrders;
@@ -645,7 +526,7 @@ export default {
               createdAt: new Date(),
             };
             await RiderOrderHistory.insertOne(createdOrderIDs);
-            await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
+            // await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
 
             const message = "Order has been assigned";
             const appType = "rider";
@@ -711,7 +592,7 @@ export default {
                     );
                   }
                 }
-                await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
+                // await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
 
                 return insertedOrders.ops;
               } catch (err) {
@@ -764,7 +645,7 @@ export default {
                 appType,
                 userId,
               });
-              await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerAccountID, CustomerOrder });
+              // await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerAccountID, CustomerOrder });
 
               // console.log("context Mutation: ", paymentIntentClientSecret);
               if (CustomerAccountID) {
@@ -791,7 +672,7 @@ export default {
               }
             }
             // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
-            await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
+            // await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
 
             return insertedOrders.ops[0];
           } catch (err) {

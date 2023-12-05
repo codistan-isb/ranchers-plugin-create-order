@@ -5,7 +5,7 @@ import _ from "lodash";
 
 export default function orderValueStartup(context) {
     const { appEvents, collections } = context;
-    const { Orders } = collections;
+    const { Orders, RiderOrderHistory } = collections;
     appEvents.on("afterOrderTransfer", async ({ createdBy: userId, orderID, updatedOrder, transferTo, transferFrom }) => {
         console.log("here in app event");
         const { Orders, Accounts, BranchData } = collections;
@@ -37,6 +37,7 @@ export default function orderValueStartup(context) {
             });
     });
     appEvents.on("afterCreatingRiderOrder", async ({ createdBy, order, CustomerAccountID, CustomerOrder }) => {
+        await RiderOrderHistory.insertOne(order);
         const customerMessage = "Your order is picked";
         const message = "Order has been assigned";
         const appType = "rider";
