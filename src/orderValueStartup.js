@@ -59,6 +59,11 @@ export default function orderValueStartup(context) {
             });
         }
         sendOrderEmail(context, CustomerOrder, "pickedUp")
+        await context.mutations.sendWhatsAppMessage(context, {
+            createdBy:CustomerAccountID,
+            generatedID: order?.kitchenOrderID,
+            OrderStatus: "pickedUp",
+          });
     });
     appEvents.on("afterUpdatingRiderOrder", async ({ createdBy, CustomerAccountID, CustomerOrder, updateOrders, OrderID, message, CurrentRiderID }) => {
         // console.log("createdBy", createdBy);
@@ -95,6 +100,7 @@ export default function orderValueStartup(context) {
                     orderID: OrderID,
                 });
         }
-        sendOrderEmail(context, updatedOrderResult?.value, "delivered")
+        sendOrderEmail(context, updatedOrderResult?.value, "delivered");
+        
     });
 }
