@@ -1482,8 +1482,10 @@ export default {
       try {
         const { BranchData, Orders } = context.collections;
         const query = {};
+        // query._id= "3YXwmnv2fJ8mTfs4Z";
         if (branchID) {
           query.branchID = branchID;
+          
         }
         if (OrderStatus) {
           query["workflow.status"] = args.OrderStatus;
@@ -1499,6 +1501,8 @@ export default {
         const ordersResp = await Orders.find(query)
           .sort({ createdAt: -1 })
           .toArray();
+        console.log("getKitchenReport",ordersResp);
+        
         const ordersWithId = ordersResp.map((order) => ({
           id: order._id,
           ...order,
@@ -1509,6 +1513,188 @@ export default {
         throw new ReactionError("access-denied", `${error}`);
       }
     },
+    async getKitchenReportOptimized(parent, args, context, info) {
+      const { startDate, endDate, branchID, OrderStatus } = args;
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+      try {
+        const { Orders } = context.collections;
+        const query = {};
+        // query._id = "3YXwmnv2fJ8mTfs4Z"; // Example _id
+        if (branchID) {
+          query.branchID = branchID;
+        }
+        if (OrderStatus) {
+          query["workflow.status"] = args.OrderStatus;
+        }
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          query.createdAt = {
+            $gte: start,
+            $lte: end,
+          };
+        }
+    
+        const ordersResp = await Orders.aggregate([
+          { $match: query },
+          { $sort: { createdAt: -1 } },
+          {
+            $lookup: {
+              from: "RiderOrder",
+              localField: "_id",
+              foreignField: "OrderID",
+              as: "riderOrderInfo",
+            },
+          },
+          { $unwind: "$riderOrderInfo" },
+          {
+            $lookup: {
+              from: "Accounts",
+              localField: "riderOrderInfo.riderID",
+              foreignField: "_id",
+              as: "riderInfo",
+            },
+          },
+          { $unwind: "$riderInfo" },
+          {
+            $project: {
+              id: "$_id",
+              _id: 1,
+              startTime: "$riderOrderInfo.startTime",
+              endTime: "$riderOrderInfo.endTime",
+              createdAt: 1,
+              updatedAt: 1,
+              branchID: 1,
+              summary: {
+                discountTotal: {
+                  amount: { $sum: "$discounts.amount" },
+                  __typename: "DiscountTotal",
+                },
+                __typename: "Summary",
+              },
+              payments: {
+                $map: {
+                  input: "$payments",
+                  as: "payment",
+                  in: {
+                    finalAmount: "$$payment.finalAmount",
+                    tax: "$$payment.tax",
+                    totalAmount: "$$payment.totalAmount",
+                    billingAddress: {
+                      fullName: "$$payment.address.fullName",
+                      phone: "$$payment.address.phone",
+                      address1: "$$payment.address.address1",
+                      city: "$$payment.address.city",
+                      country: "$$payment.address.country",
+                      postal: "$$payment.address.postal",
+                      region: "$$payment.address.region",
+                    },
+                    __typename: "Payments",
+                  },
+                },
+              },
+              email: 1,
+              kitchenOrderID: 1,
+              status: "$workflow.status",
+              branches: "$riderOrderInfo.branches",
+              username: "$riderInfo.name",
+              OrderStatus: "$riderOrderInfo.OrderStatus",
+              riderOrderInfo: {
+                _id: "$riderOrderInfo._id",
+                startTime: "$riderOrderInfo.startTime",
+                endTime: "$riderOrderInfo.endTime",
+                __typename: "RiderOrderInfo",
+              },
+              riderInfo: {
+                userId: "$riderInfo.userId",
+                _id: "$riderInfo._id",
+                firstName: "$riderInfo.profile.firstName",
+                lastName: "$riderInfo.profile.lastName",
+                phone: "$riderInfo.profile.phone",
+                __typename: "RiderInfo",
+              },
+              fulfillmentGroups: {
+                $map: {
+                  input: "$shipping", // Map the shipping field
+                  as: "shippingItem",
+                  in: {
+                    selectedFulfillmentOption: {
+                      fulfillmentMethod: {
+                        fulfillmentTypes: ["$$shippingItem.type"], // Correct
+                        __typename: "FulfillmentMethod",
+                      },
+                      __typename: "FulfillmentOption",
+                    },
+                    items: {
+                      nodes: {
+                        $map: {
+                          input: "$$shippingItem.items",
+                          as: "item",
+                          in: {
+                            _id: "$$item._id",
+                            quantity: "$$item.quantity",
+                            optionTitle: "$$item.optionTitle",
+                            title: "$$item.title",
+                            variantTitle: "$$item.variantTitle",
+                            attributes: {
+                              $map: {
+                                input: "$$item.attributes",
+                                as: "attribute",
+                                in: {
+                                  label: "$$attribute.label",
+                                  value: "$$attribute.value",
+                                  __typename: "OrderItemAttribute",
+                                },
+                              },
+                            },
+                            // __typename: "OrderItem",
+                          },
+                        },
+                        // __typename: "OrderItemConnection",
+                      },
+                    },
+                    // __typename: "OrderFulfillmentGroup",
+                  },
+                },
+                // __typename: "OrderFulfillmentGroups",
+              },
+              notes: {
+                content: { $arrayElemAt: ["$notes.content", 0] }, // Access first element using $arrayElemAt
+                createdAt: { $arrayElemAt: ["$notes.createdAt", 0] }, // Access first createdAt element using $arrayElemAt
+                __typename: "Notes",
+              },
+              deliveryTime: 1,
+              branchTimePickup: {
+                branchOrderTime: "$riderOrderInfo.startTime",
+                __typename: "BranchTimePickup",
+              },
+              customerInfo: {
+                address1: { $arrayElemAt: ["$shipping.address.address1", 0] }, // Ensure address1 is treated as a string
+                __typename: "CustomerInfo",
+              },
+              branchInfo: {
+                _id: "$branchID",
+                name: "$branchName",
+                __typename: "BranchInfo",
+              },
+            },
+          },
+        ]).toArray();
+    
+        console.log(ordersResp[0]);
+        console.log(ordersResp[0].payments[0].billingAddress);
+        console.log(ordersResp[0].fulfillmentGroups);
+        return ordersResp;
+      } catch (error) {
+        console.log("error ", error);
+        throw new ReactionError("access-denied", `${error}`);
+      }
+    },                    
     async getCustomerOrderbyID(parent, args, context, info) {
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(

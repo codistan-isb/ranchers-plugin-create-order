@@ -1,3 +1,4 @@
+
 extend type Order {
   _id: ID
   id: ID
@@ -26,6 +27,401 @@ extend type Order {
   riderOrderAmount: Float
   riderOrderNotes: String
   isManual: Boolean
+  # customerOrderInfo:customerOrderInfoPayload
+}
+type OrderSummary {
+  discountTotal: Money!
+  effectiveTaxRate: Rate!
+  fulfillmentTotal: Money!
+  itemTotal: Money!
+  taxTotal: Money!
+  taxableAmount: Money!
+  total: Money!
+  surchargeTotal: Money
+}
+type Refund implements Node {
+  "The refund ID"
+  _id: ID!
+
+  "The amount of the refund"
+  amount: Money!
+
+  "The date and time at which the refund was created"
+  createdAt: DateTime!
+
+  "The display name of the payment refunded to"
+  paymentDisplayName: String!
+
+  "The ID of the payment this refund is applied to"
+  paymentId: ID!
+
+  "The reason for the refund"
+  reason: String
+}
+"Valid payment statuses"
+enum PaymentStatus {
+  "A shop operator adjusted the payment amount after the order was placed"
+  adjustments
+
+  "A shop operator has approved this payment"
+  approved
+
+  "A shop operator has canceled this payment before it was captured"
+  canceled
+
+  "A shop operator has captured this payment"
+  completed
+
+  "Upon placing an order, the status of all payments for that order begins at 'created'"
+  created
+
+  "There was an error capturing the payment"
+  error
+
+  "A shop operator has refunded some but not all of this payment"
+  partialRefund
+
+  "A shop operator has refunded all of this payment"
+  refunded
+}
+type Payment implements Node {
+  "The Payment ID"
+  _id: ID!
+
+  """
+  The amount that will be applied to this payment method. If there are multiple payment methods applied to the
+  cart, this may be less than the cart total.
+  """
+  amount: Money!
+
+  "The billing address for this payment, if one was collected"
+  billingAddress: Address
+
+  """
+  If status is `error` due to a capture error, this code describes the error in a machine-readable way.
+  """
+  captureErrorCode: String
+
+  """
+  If status is `error` due to a capture error, this code describes the error in a human-readable way.
+  """
+  captureErrorMessage: String
+
+  "For card payments, the brand of the card. Useful for showing card icons for common brands."
+  cardBrand: String
+
+  "The date and time at which this payment was created"
+  createdAt: DateTime!
+
+  """
+  The shopper-provided data needed to complete the payment using this method.
+  For example, a billing address, store credit code, stored credit card ID, etc.
+  """
+  data: PaymentData
+
+  "Use this identifier when showing this payment in a user interface"
+  displayName: String!
+
+  "Has the payment authorization been canceled?"
+  isAuthorizationCanceled: Boolean!
+
+  "Has the payment been captured? If false, it is just an authorization."
+  isCaptured: Boolean!
+
+  "The payment method"
+  method: PaymentMethod!
+
+  "The payment mode"
+  mode: String
+
+  "The payment processor"
+  processor: String
+
+  "Refunds that have been applied to this payment."
+  refunds: [Refund]
+
+  "Risk level of payment"
+  riskLevel: RiskLevel
+
+  "The current status of this payment"
+  status: PaymentStatus!
+
+  "The payment transaction ID"
+  transactionId: String
+}
+"An order fulfillment group"
+type OrderFulfillmentGroup implements Node {
+  "The order fulfillment group ID"
+  _id: ID!
+
+  "Information needed by the selected fulfillment method to properly fulfill the order"
+  data: OrderFulfillmentGroupData
+
+  "The order status for display in UI"
+  displayStatus(
+    """
+    The language in which you want the status. If no translation is available for this language,
+    it will be in the default language of the shop that owns the order.
+    """
+    language: String!
+  ): String!
+
+  "The items that are part of this fulfillment group"
+  items(
+    "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
+    after: ConnectionCursor
+
+    "Return only results that come before this cursor. Use this with `last` to specify the number of results to return."
+    before: ConnectionCursor
+
+    "Return at most this many results. This parameter may be used with either `after` or `offset` parameters."
+    first: ConnectionLimitInt
+
+    "Return at most this many results. This parameter may be used with the `before` parameter."
+    last: ConnectionLimitInt
+
+    "Return only results that come after the Nth result. This parameter may be used with the `first` parameter."
+    offset: Int
+
+    "Return results sorted in this order"
+    sortOrder: SortOrder = desc
+
+    "By default, order items are sorted by when they were added to the order, newest first. Set this to sort by one of the other allowed fields"
+    sortBy: OrderFulfillmentGroupItemsSortByField = addedAt
+  ): OrderItemConnection
+
+  "The fulfillment method that was selected, with its price quote"
+  selectedFulfillmentOption: FulfillmentOption!
+
+  "The shipping label URL"
+  shippingLabelUrl: String
+
+  "The shop responsible for fulfilling this order"
+  shop: Shop!
+
+  "The machine-readable fulfillment group status."
+  status: String!
+
+  "A summary of the totals for this group"
+  summary: OrderSummary!
+
+  "Total quantity of all items in the group"
+  totalItemQuantity: Int!
+
+  "The order fulfillment group shipment tracking number"
+  tracking: String
+
+  "The order fulfillment group shipment tracking URL"
+  trackingUrl: String
+
+  """
+  The fulfillment type. Any valid type that has been registered by a fulfillment plugin. Examples: `shipping`, `digital`
+  """
+  type: FulfillmentType!
+}
+"An order fulfillment group"
+type OrderFulfillmentGroupNew implements Node {
+  "The order fulfillment group ID"
+  _id: ID!
+
+  "Information needed by the selected fulfillment method to properly fulfill the order"
+  data: OrderFulfillmentGroupData
+
+  "The order status for display in UI"
+  displayStatus(
+    """
+    The language in which you want the status. If no translation is available for this language,
+    it will be in the default language of the shop that owns the order.
+    """
+    language: String!
+  ): String!
+
+  "The items that are part of this fulfillment group"
+  items(
+    "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
+    after: ConnectionCursor
+
+    "Return only results that come before this cursor. Use this with `last` to specify the number of results to return."
+    before: ConnectionCursor
+
+    "Return at most this many results. This parameter may be used with either `after` or `offset` parameters."
+    first: ConnectionLimitInt
+
+    "Return at most this many results. This parameter may be used with the `before` parameter."
+    last: ConnectionLimitInt
+
+    "Return only results that come after the Nth result. This parameter may be used with the `first` parameter."
+    offset: Int
+
+    "Return results sorted in this order"
+    sortOrder: SortOrder = desc
+
+    "By default, order items are sorted by when they were added to the order, newest first. Set this to sort by one of the other allowed fields"
+    sortBy: OrderFulfillmentGroupItemsSortByField = addedAt
+  ): OrderItemConnection
+
+  "The fulfillment method that was selected, with its price quote"
+  selectedFulfillmentOption: FulfillmentOption!
+
+  "The shipping label URL"
+  shippingLabelUrl: String
+
+  "The shop responsible for fulfilling this order"
+  shop: Shop!
+
+  "The machine-readable fulfillment group status."
+  status: String!
+
+  "A summary of the totals for this group"
+  summary: OrderSummary!
+
+  "Total quantity of all items in the group"
+  totalItemQuantity: Int!
+
+  "The order fulfillment group shipment tracking number"
+  tracking: String
+
+  "The order fulfillment group shipment tracking URL"
+  trackingUrl: String
+
+  """
+  The fulfillment type. Any valid type that has been registered by a fulfillment plugin. Examples: `shipping`, `digital`
+  """
+  type: FulfillmentType!
+}
+type AccountNew implements Node {
+  "The account ID"
+  _id: ID!
+
+  "A list of physical or mailing addresses associated with this account"
+  addressBook(
+    "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
+    after: ConnectionCursor
+
+    "Return only results that come before this cursor. Use this with `last` to specify the number of results to return."
+    before: ConnectionCursor
+
+    "Return at most this many results. This parameter may be used with either `after` or `offset` parameters."
+    first: ConnectionLimitInt
+
+    "Return at most this many results. This parameter may be used with the `before` parameter."
+    last: ConnectionLimitInt
+
+    "Return only results that come after the Nth result. This parameter may be used with the `first` parameter."
+    offset: Int
+  ): AddressConnection
+
+  "A list of shops this user can administer with the admin UI"
+  adminUIShops: [Shop]
+
+  "Bio to display on profile"
+  bio: String
+
+  "branch Info Displayed"
+  branchInfo: [Branch]
+
+  "The date and time at which this account was created"
+  createdAt: DateTime!
+
+  "The preferred currency used by this account"
+  currency: Currency
+
+  "A list of email records associated with this account"
+  emailRecords: [EmailRecord]
+
+  "The first name of the person this account represents, if known"
+  firstName: String
+  UserRole: UserRoleValue
+  "The preferred language used by this account"
+  language: String
+
+  "The last name of the person this account represents, if known"
+  lastName: String
+
+  currentStatus: String
+  "Arbitrary additional metadata about this account"
+  metafields: [Metafield]
+
+  "The full name of the person this account represents, if known"
+  name: String
+
+  "Some note about this account"
+  note: String
+
+  "URL of picture to display on profile"
+  picture: String
+
+  "An object storing plugin-specific preferences for this account"
+  preferences: JSONObject
+
+  """
+  The primary email address for the account. This matches the address in `emailRecords` where `provides` is `default`.
+  """
+  primaryEmailAddress: Email!
+
+  "The date and time at which this account was last updated"
+  updatedAt: DateTime
+
+  "The Identity user ID with which this account is associated"
+  userId: String!
+
+  "Username"
+  username: String
+
+  phone: String
+}
+
+type OrderNote {
+  "The account who wrote this note"
+  account: Account
+
+  "The content of the note"
+  content: String
+
+  "The date and time at which this note was created"
+  createdAt: DateTime
+
+  "The date and time at which this note was last updated"
+  updatedAt: DateTime
+}
+type OrderNew {
+  _id: ID
+  id: ID
+  startTime: DateTime
+  endTime: DateTime
+  OrderStatus: OrderStatusValue
+  deliveryTime: Float
+  OrderID: String
+  username: String
+  branches: String
+  riderID: String
+  # deliveryTime: Float
+  "branch Info Displayed"
+  branchInfo: Branch
+  Notes: String
+  riderInfo: AccountNew
+  customerInfo: customerInfoPayload
+  rejectionReason: String
+  customerOrderTime: customerOrderTimePayload
+  branchTimePickup: branchTimePickupPayload
+  kitchenOrderIDInfo: kitchenOrderIDPayload
+  riderOrderInfo: riderOrderInfoPayload
+  orderIdResolver: orderIdResolverPayload
+  summary: OrderSummary!
+  payments: [Payment]
+  notes: [OrderNote]
+  fulfillmentGroups: [OrderFulfillmentGroupNew]
+  branchID: ID
+  email: String
+  kitchenOrderID: String
+  status: String!
+  Latitude: Float
+  Longitude: Float
+  riderOrderAmount: Float
+  riderOrderNotes: String
+  isManual: Boolean
+  createdAt: Date
+  updatedAt: Date
   # customerOrderInfo:customerOrderInfoPayload
 }
 type orderIdResolverPayload {
@@ -329,6 +725,13 @@ type Query {
     startDate: String
     endDate: String
   ): [Order]
+  getKitchenReportOptimized(
+    isManual: Boolean
+    branchID: String
+    OrderStatus: OrderStatusValue
+    startDate: String
+    endDate: String
+  ): [OrderNew]
   generateKitchenReport(
     isManual: Boolean
 
