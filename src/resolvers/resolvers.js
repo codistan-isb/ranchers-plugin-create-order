@@ -1687,8 +1687,8 @@ export default {
         ]).toArray();
     
         console.log(ordersResp[0]);
-        console.log(ordersResp[0].payments[0].billingAddress);
-        console.log(ordersResp[0].fulfillmentGroups);
+        // console.log(ordersResp[0].payments[0].billingAddress);
+        // console.log(ordersResp[0].fulfillmentGroups);
         return ordersResp;
       } catch (error) {
         console.log("error ", error);
