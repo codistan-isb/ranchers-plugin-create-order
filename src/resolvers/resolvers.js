@@ -1482,10 +1482,10 @@ export default {
       try {
         const { BranchData, Orders } = context.collections;
         const query = {};
-        // query._id= "3YXwmnv2fJ8mTfs4Z";
+        query._id = "gaEncZjXwfkRPcwif";
         if (branchID) {
           query.branchID = branchID;
-          
+
         }
         if (OrderStatus) {
           query["workflow.status"] = args.OrderStatus;
@@ -1501,8 +1501,10 @@ export default {
         const ordersResp = await Orders.find(query)
           .sort({ createdAt: -1 })
           .toArray();
-        console.log("getKitchenReport",ordersResp);
-        
+        console.log(ordersResp.length);
+        // console.log()
+        // return
+
         const ordersWithId = ordersResp.map((order) => ({
           id: order._id,
           ...order,
@@ -1524,7 +1526,7 @@ export default {
       try {
         const { Orders } = context.collections;
         const query = {};
-        // query._id = "3YXwmnv2fJ8mTfs4Z"; // Example _id
+        query._id = "gaEncZjXwfkRPcwif"; // Example _id
         if (branchID) {
           query.branchID = branchID;
         }
@@ -1539,7 +1541,7 @@ export default {
             $lte: end,
           };
         }
-    
+
         const ordersResp = await Orders.aggregate([
           { $match: query },
           { $sort: { createdAt: -1 } },
@@ -1551,7 +1553,7 @@ export default {
               as: "riderOrderInfo",
             },
           },
-          { $unwind: "$riderOrderInfo" },
+          { $unwind: { path: "$riderOrderInfo", preserveNullAndEmptyArrays: true } }, // Preserve documents even if riderOrderInfo is missing
           {
             $lookup: {
               from: "Accounts",
@@ -1560,7 +1562,22 @@ export default {
               as: "riderInfo",
             },
           },
-          { $unwind: "$riderInfo" },
+          { $unwind: { path: "$riderInfo", preserveNullAndEmptyArrays: true } }, // Preserve documents even if riderInfo is missing
+          {
+            // Convert branchID to ObjectId and lookup in BranchData
+            $addFields: {
+              branchObjectId: { $toObjectId: "$branchID" }, // Convert branchID string to ObjectId
+            },
+          },
+          {
+            $lookup: {
+              from: "BranchData", // The collection where branch information is stored
+              localField: "branchObjectId", // Use the converted ObjectId field
+              foreignField: "_id", // Field in BranchData that matches the branchID
+              as: "branchDetails",
+            },
+          },
+          { $unwind: { path: "$branchDetails", preserveNullAndEmptyArrays: true } },
           {
             $project: {
               id: "$_id",
@@ -1679,14 +1696,15 @@ export default {
               },
               branchInfo: {
                 _id: "$branchID",
-                name: "$branchName",
+                name: "$branchDetails.name", // Use the name from branchDetail
                 __typename: "BranchInfo",
               },
             },
           },
         ]).toArray();
-    
-        console.log(ordersResp[0]);
+
+        console.log(ordersResp.length);
+        console.log(ordersResp);
         // console.log(ordersResp[0].payments[0].billingAddress);
         // console.log(ordersResp[0].fulfillmentGroups);
         return ordersResp;
@@ -1694,7 +1712,7 @@ export default {
         console.log("error ", error);
         throw new ReactionError("access-denied", `${error}`);
       }
-    },                    
+    },
     async getCustomerOrderbyID(parent, args, context, info) {
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(

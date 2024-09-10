@@ -289,9 +289,9 @@ type OrderFulfillmentGroupNew implements Node {
   """
   type: FulfillmentType!
 }
-type AccountNew implements Node {
+type AccountNew {
   "The account ID"
-  _id: ID!
+  _id: ID
 
   "A list of physical or mailing addresses associated with this account"
   addressBook(
@@ -357,13 +357,13 @@ type AccountNew implements Node {
   """
   The primary email address for the account. This matches the address in `emailRecords` where `provides` is `default`.
   """
-  primaryEmailAddress: Email!
+  primaryEmailAddress: Email
 
   "The date and time at which this account was last updated"
   updatedAt: DateTime
 
   "The Identity user ID with which this account is associated"
-  userId: String!
+  userId: String
 
   "Username"
   username: String
