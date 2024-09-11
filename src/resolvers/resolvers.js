@@ -1482,7 +1482,7 @@ export default {
       try {
         const { BranchData, Orders } = context.collections;
         const query = {};
-        query._id = "gaEncZjXwfkRPcwif";
+        // query._id = "gaEncZjXwfkRPcwif";
         if (branchID) {
           query.branchID = branchID;
 
@@ -1526,7 +1526,7 @@ export default {
       try {
         const { Orders } = context.collections;
         const query = {};
-        query._id = "gaEncZjXwfkRPcwif"; // Example _id
+        // query._id = "gaEncZjXwfkRPcwif"; // Example _id
         if (branchID) {
           query.branchID = branchID;
         }
