@@ -7,6 +7,7 @@ import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginat
 import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import calculateDeliveryTIme from "../utils/calculateDeliveryTIme.js";
 import seedrandom from "seedrandom";
+// import Random from "@reactioncommerce/random";
 
 // import Random from "@reactioncommerce/random";
 export default {
@@ -1501,7 +1502,7 @@ export default {
         const ordersResp = await Orders.find(query)
           .sort({ createdAt: -1 })
           .toArray();
-        console.log(ordersResp.length);
+        // console.log(ordersResp.length);
         // console.log()
         // return
 
@@ -1703,15 +1704,16 @@ export default {
           },
         ]).toArray();
 
-        console.log(ordersResp.length);
-        console.log(ordersResp[0]);
+        // console.log(ordersResp.length);
+        // console.log(ordersResp[0]);
+        // console.log("Random.id(), ", Random.id())
         // const ordersWithId = ordersResp.map((order) => ({
-        //   createdAt: order.createdAt,
+        //   _id: Random.id(),
         //   ...order,
         // }));
-        // console.log(ordersResp[0].payments[0].billingAddress);
-        // console.log(ordersResp[0].fulfillmentGroups);
-        return ordersResp;
+        // console.log(ordersWithId.length);
+        // console.log(ordersWithId[0]);
+        return ordersWithId;
       } catch (error) {
         console.log("error ", error);
         throw new ReactionError("access-denied", `${error}`);
