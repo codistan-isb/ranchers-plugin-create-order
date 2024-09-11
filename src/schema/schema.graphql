@@ -420,8 +420,8 @@ type OrderNew {
   riderOrderAmount: Float
   riderOrderNotes: String
   isManual: Boolean
-  createdAt: Date
-  updatedAt: Date
+  createdAt: DateTime
+  updatedAt: DateTime
   # customerOrderInfo:customerOrderInfoPayload
 }
 type orderIdResolverPayload {

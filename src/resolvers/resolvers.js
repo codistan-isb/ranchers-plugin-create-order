@@ -1704,7 +1704,11 @@ export default {
         ]).toArray();
 
         console.log(ordersResp.length);
-        console.log(ordersResp);
+        console.log(ordersResp[0]);
+        // const ordersWithId = ordersResp.map((order) => ({
+        //   createdAt: order.createdAt,
+        //   ...order,
+        // }));
         // console.log(ordersResp[0].payments[0].billingAddress);
         // console.log(ordersResp[0].fulfillmentGroups);
         return ordersResp;
