@@ -1517,7 +1517,7 @@ export default {
       }
     },
     async getKitchenReportOptimized(parent, args, context, info) {
-      const { startDate, endDate, branchID, OrderStatus } = args;
+      const { startDate, endDate, branchID, OrderStatus,type } = args;
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -1527,9 +1527,23 @@ export default {
       try {
         const { Orders } = context.collections;
         const query = {};
+        const filterStatus=[]
+        if(type=="kitchenOrders"){
+          filterStatus.push("new","processing","ready","pickedUp","picked")
+        }else if (type=="completed"){
+          filterStatus.push("delivered","complete","canceled")
+        }
+        console.log("filterStatus ",filterStatus)
+        // let statuses=await Orders.distinct("workflow.status")
+        // console.log("statuses ",statuses)
         // query._id = "gaEncZjXwfkRPcwif"; // Example _id
         if (branchID) {
           query.branchID = branchID;
+        }
+        if(filterStatus&&filterStatus.length>0){
+          query["workflow.status"]={
+            $in:filterStatus
+          }
         }
         if (OrderStatus) {
           query["workflow.status"] = args.OrderStatus;
@@ -1542,6 +1556,7 @@ export default {
             $lte: end,
           };
         }
+        console.log("query ",query)
 
         const ordersResp = await Orders.aggregate([
           { $match: query },
@@ -1704,7 +1719,7 @@ export default {
           },
         ]).toArray();
 
-        // console.log(ordersResp.length);
+        // console.log(ordersResp);
         // console.log(ordersResp[0]);
         // console.log("Random.id(), ", Random.id())
         // const ordersWithId = ordersResp.map((order) => ({
