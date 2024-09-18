@@ -1276,6 +1276,7 @@ export default {
           .sort({ createdAt: -1 })
           .toArray();
         // console.log("orders ", orders);
+        console.log("LoginUserID ",LoginUserID)
 
         if (orders) {
           // Current Login User Order
@@ -1284,11 +1285,13 @@ export default {
           );
           // console.log("Filter Order: ", filteredOrders);
           // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
+          console.log("filteredOrders.length ", filteredOrders.length)
           if (filteredOrders) {
             const ordersWithId = filteredOrders.map((order) => ({
               id: order._id,
               ...order,
             }));
+            console.log("ordersWithId.length ", ordersWithId.length)
             // console.log("ordersWithId ", ordersWithId);
             return ordersWithId;
           } else {
@@ -1323,6 +1326,203 @@ export default {
         } else {
           return null;
         }
+      } catch (error) {
+        console.log("error ", error);
+        throw new ReactionError("access-denied", `${error}`);
+      }
+    },
+    async getOrdersByStatusOptimized(parent, { OrderStatus }, context, info) {
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+
+      try {
+        const LoginUserID = context.user.id;
+        const { RiderOrder } = context.collections;
+
+        // Aggregate directly on RiderOrder
+        const ordersResp = await RiderOrder.aggregate([
+          {
+            $match: {
+              OrderStatus: OrderStatus,
+              riderID: LoginUserID,
+            },
+          },
+          { $sort: { createdAt: -1 } },
+          {
+            $lookup: {
+              from: "Accounts",
+              localField: "riderID",
+              foreignField: "_id",
+              as: "riderInfo",
+            },
+          },
+          { $unwind: { path: "$riderInfo", preserveNullAndEmptyArrays: true } },
+          {
+            $lookup: {
+              from: "Orders",
+              localField: "OrderID",
+              foreignField: "_id",
+              as: "orderInfo",
+            },
+          },
+          { $unwind: { path: "$orderInfo", preserveNullAndEmptyArrays: true } }, // Preserve documents even if riderOrderInfo is missing
+          {
+            // Convert branchID to ObjectId and lookup in BranchData
+            $addFields: {
+              branchObjectId: { $toObjectId: "$branchID" }, // Convert branchID string to ObjectId
+            },
+          },
+          {
+            $lookup: {
+              from: "BranchData", // The collection where branch information is stored
+              localField: "branchObjectId", // Use the converted ObjectId field
+              foreignField: "_id", // Field in BranchData that matches the branchID
+              as: "branchDetails",
+            },
+          },
+          { $unwind: { path: "$branchDetails", preserveNullAndEmptyArrays: true } },
+          {
+            $project: {
+              id: "$_id",
+              OrderID: "$orderInfo._id",
+              startTime: "$startTime",
+              endTime: "$endTime",
+              createdAt: "$orderInfo.createdAt",
+              updatedAt: "$orderInfo.updatedAt",
+              branchID: "$orderInfo.branchID",
+              summary: {
+                discountTotal: {
+                  amount: { $sum: "$discounts.amount" },
+                  __typename: "DiscountTotal",
+                },
+                __typename: "Summary",
+              },
+              payments: {
+                $map: {
+                  input: "$orderInfo.payments",
+                  as: "payment",
+                  in: {
+                    finalAmount: "$$payment.finalAmount",
+                    tax: "$$payment.tax",
+                    totalAmount: "$$payment.totalAmount",
+                    billingAddress: {
+                      fullName: "$$payment.address.fullName",
+                      phone: "$$payment.address.phone",
+                      address1: "$$payment.address.address1",
+                      city: "$$payment.address.city",
+                      country: "$$payment.address.country",
+                      postal: "$$payment.address.postal",
+                      region: "$$payment.address.region",
+                    },
+                    __typename: "Payments",
+                  },
+                },
+              },
+              email: 1,
+              kitchenOrderID: 1,
+              kitchenOrderIDInfo: {
+                kitchenOrderID: "$orderInfo.kitchenOrderID",
+              },
+              customerOrderTime: {
+                customerOrderTime: "$orderInfo.createdAt",
+              },
+              riderOrderNotes: "$riderOrderNotes",
+              riderOrderAmount: "$riderOrderAmount",
+              status: "$workflow.status",
+              branches: "$branches",
+              username: "$riderInfo.name",
+              OrderStatus: "$OrderStatus",
+              riderOrderInfo: {
+                _id: "$_id",
+                startTime: "$startTime",
+                endTime: "$endTime",
+                __typename: "RiderOrderInfo",
+              },
+              riderInfo: {
+                userId: "$riderInfo.userId",
+                _id: "$riderInfo._id",
+                firstName: "$riderInfo.profile.firstName",
+                lastName: "$riderInfo.profile.lastName",
+                phone: "$riderInfo.profile.phone",
+                __typename: "RiderInfo",
+              },
+              fulfillmentGroups: {
+                $map: {
+                  input: "$orderInfo.shipping", // Map the shipping field
+                  as: "shippingItem",
+                  in: {
+                    selectedFulfillmentOption: {
+                      fulfillmentMethod: {
+                        fulfillmentTypes: ["$$shippingItem.type"],
+                        __typename: "FulfillmentMethod",
+                      },
+                      __typename: "FulfillmentOption",
+                    },
+                    items: {
+                      nodes: {
+                        $map: {
+                          input: "$$shippingItem.items",
+                          as: "item",
+                          in: {
+                            _id: "$$item._id",
+                            quantity: "$$item.quantity",
+                            optionTitle: "$$item.optionTitle",
+                            title: "$$item.title",
+                            variantTitle: "$$item.variantTitle",
+                            attributes: {
+                              $map: {
+                                input: "$$item.attributes",
+                                as: "attribute",
+                                in: {
+                                  label: "$$attribute.label",
+                                  value: "$$attribute.value",
+                                  __typename: "OrderItemAttribute",
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              notes: {
+                content: { $arrayElemAt: ["$orderInfo.notes.content", 0] },
+                createdAt: { $arrayElemAt: ["$orderInfo.notes.createdAt", 0] },
+                __typename: "Notes",
+              },
+              deliveryTime: 1,
+              branchTimePickup: {
+                branchOrderTime: "$createdAt",
+                __typename: "BranchTimePickup",
+              },
+              customerInfo: {
+                address1: { $arrayElemAt: ["$orderInfo.shipping.address.address1", 0] },
+                city: { $arrayElemAt: ["$orderInfo.shipping.address.city", 0] },
+                country: { $arrayElemAt: ["$orderInfo.shipping.address.country", 0] },
+                postal: { $arrayElemAt: ["$orderInfo.shipping.address.postal", 0] },
+                region: { $arrayElemAt: ["$orderInfo.shipping.address.region", 0] },
+                phone: { $arrayElemAt: ["$orderInfo.shipping.address.phone", 0] },
+                fullName: { $arrayElemAt: ["$orderInfo.shipping.address.fullName", 0] },
+                __typename: "CustomerInfo",
+              },
+              branchInfo: {
+                _id: "$branchID",
+                name: "$branchDetails.name",
+                __typename: "BranchInfo",
+              },
+            },
+          },
+        ]).toArray();
+        console.log("ordersResp ", ordersResp)
+        console.log("ordersResp.length ", ordersResp.length);
+        console.log("ordersResp[0].fulfillmentGroups ",ordersResp[0].fulfillmentGroups)
+        return ordersResp;
       } catch (error) {
         console.log("error ", error);
         throw new ReactionError("access-denied", `${error}`);
@@ -1517,7 +1717,7 @@ export default {
       }
     },
     async getKitchenReportOptimized(parent, args, context, info) {
-      const { startDate, endDate, branchID, OrderStatus,type } = args;
+      const { startDate, endDate, branchID, OrderStatus, type } = args;
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
           "access-denied",
@@ -1527,22 +1727,22 @@ export default {
       try {
         const { Orders } = context.collections;
         const query = {};
-        const filterStatus=[]
-        if(type=="kitchenOrders"){
-          filterStatus.push("new","processing","ready","pickedUp","picked")
-        }else if (type=="completed"){
-          filterStatus.push("delivered","complete","canceled")
+        const filterStatus = []
+        if (type == "kitchenOrders") {
+          filterStatus.push("new", "processing", "ready", "pickedUp", "picked")
+        } else if (type == "completed") {
+          filterStatus.push("delivered", "complete", "canceled")
         }
-        console.log("filterStatus ",filterStatus)
+        console.log("filterStatus ", filterStatus)
         // let statuses=await Orders.distinct("workflow.status")
         // console.log("statuses ",statuses)
         // query._id = "gaEncZjXwfkRPcwif"; // Example _id
         if (branchID) {
           query.branchID = branchID;
         }
-        if(filterStatus&&filterStatus.length>0){
-          query["workflow.status"]={
-            $in:filterStatus
+        if (filterStatus && filterStatus.length > 0) {
+          query["workflow.status"] = {
+            $in: filterStatus
           }
         }
         if (OrderStatus) {
@@ -1556,7 +1756,7 @@ export default {
             $lte: end,
           };
         }
-        console.log("query ",query)
+        console.log("query ", query)
 
         const ordersResp = await Orders.aggregate([
           { $match: query },

@@ -691,6 +691,7 @@ type Query {
   getOrderById(id: ID!): [Order]
   getRiderOrderByRiderId(id: ID!): [Order]
   getOrdersByStatus(OrderStatus: OrderStatusValue!): [Order]
+  getOrdersByStatusOptimized(OrderStatus: OrderStatusValue!): [OrderNew]
   generateOrderReport(
     isManual: Boolean
     branches: String
