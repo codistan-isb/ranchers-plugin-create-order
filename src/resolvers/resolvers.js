@@ -1519,9 +1519,9 @@ export default {
             },
           },
         ]).toArray();
-        console.log("ordersResp ", ordersResp)
-        console.log("ordersResp.length ", ordersResp.length);
-        console.log("ordersResp[0].fulfillmentGroups ",ordersResp[0].fulfillmentGroups)
+        // console.log("ordersResp ", ordersResp)
+        // console.log("ordersResp.length ", ordersResp.length);
+        // console.log("ordersResp[0].fulfillmentGroups ",ordersResp[0].fulfillmentGroups)
         return ordersResp;
       } catch (error) {
         console.log("error ", error);
