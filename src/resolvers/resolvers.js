@@ -1276,7 +1276,7 @@ export default {
           .sort({ createdAt: -1 })
           .toArray();
         // console.log("orders ", orders);
-        console.log("LoginUserID ",LoginUserID)
+        console.log("LoginUserID ", LoginUserID)
 
         if (orders) {
           // Current Login User Order
@@ -1373,7 +1373,7 @@ export default {
           {
             // Convert branchID to ObjectId and lookup in BranchData
             $addFields: {
-              branchObjectId: { $toObjectId: "$branchID" }, // Convert branchID string to ObjectId
+              branchObjectId: { $toObjectId: "$orderInfo.branchID" }, // Convert branchID string to ObjectId
             },
           },
           {
@@ -1388,7 +1388,8 @@ export default {
           {
             $project: {
               id: "$_id",
-              OrderID: "$orderInfo._id",
+              OrderID: "$OrderID",
+              status: "$orderInfo.workflow.status",
               startTime: "$startTime",
               endTime: "$endTime",
               createdAt: "$orderInfo.createdAt",
@@ -1424,15 +1425,19 @@ export default {
               },
               email: 1,
               kitchenOrderID: 1,
+              // Ensure kitchenOrderIDInfo is null if the value is null or missing
               kitchenOrderIDInfo: {
-                kitchenOrderID: "$orderInfo.kitchenOrderID",
+                $cond: {
+                  if: { $or: [{ $eq: ["$orderInfo", null] }, { $eq: ["$orderInfo.kitchenOrderID", null] }] },
+                  then: null,
+                  else: { kitchenOrderID: "$orderInfo.kitchenOrderID" }
+                }
               },
               customerOrderTime: {
                 customerOrderTime: "$orderInfo.createdAt",
               },
               riderOrderNotes: "$riderOrderNotes",
               riderOrderAmount: "$riderOrderAmount",
-              status: "$workflow.status",
               branches: "$branches",
               username: "$riderInfo.name",
               OrderStatus: "$OrderStatus",
@@ -1452,7 +1457,7 @@ export default {
               },
               fulfillmentGroups: {
                 $map: {
-                  input: "$orderInfo.shipping", // Map the shipping field
+                  input: "$orderInfo.shipping",
                   as: "shippingItem",
                   in: {
                     selectedFulfillmentOption: {
@@ -1491,11 +1496,7 @@ export default {
                   },
                 },
               },
-              notes: {
-                content: { $arrayElemAt: ["$orderInfo.notes.content", 0] },
-                createdAt: { $arrayElemAt: ["$orderInfo.notes.createdAt", 0] },
-                __typename: "Notes",
-              },
+              notes: "$orderInfo.notes",
               deliveryTime: 1,
               branchTimePickup: {
                 branchOrderTime: "$createdAt",
@@ -1512,14 +1513,15 @@ export default {
                 __typename: "CustomerInfo",
               },
               branchInfo: {
-                _id: "$branchID",
+                _id: "$branchDetails._id",
                 name: "$branchDetails.name",
                 __typename: "BranchInfo",
               },
-            },
-          },
+            }
+          }
+          
         ]).toArray();
-        // console.log("ordersResp ", ordersResp)
+        console.log("ordersResp ", ordersResp)
         // console.log("ordersResp.length ", ordersResp.length);
         // console.log("ordersResp[0].fulfillmentGroups ",ordersResp[0].fulfillmentGroups)
         return ordersResp;
