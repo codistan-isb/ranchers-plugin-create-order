@@ -1,4 +1,3 @@
-
 extend type Order {
   _id: ID
   id: ID
@@ -716,6 +715,9 @@ type Query {
     # "Return results sorted in this order"
     sortOrder: SortOrder = desc # "By default, groups are sorted by when they were created, oldest first. Set this to sort by one of the other allowed fields" # sortBy: OrderReportSortBy = startTime #  OrderReportConnection!
   ): OrderReportConnection!
+
+  generateOrderReportV2(data: JSON): JSON
+
   getRiderOrdersByLoginRider(
     LoginRiderID: String! # startDate: String # endDate: String
   ): [RiderOrderDetail]
@@ -778,4 +780,61 @@ type Query {
     itemPerPage: Int
     PageNumber: Int
   ): RiderReportPayload
+
+  getRiderOrder(riderOrderId: ID!): Order
+}
+
+type OrderReportConnectionV2 {
+  "The list of nodes that match the query, wrapped in an edge to provide a cursor string for each"
+  edges: [OrderReportEdgeV2]
+  """
+  You can request the `nodes` directly to avoid the extra wrapping that `NodeEdge` has,
+  if you know you will not need to paginate the results.
+  """
+  nodes: [OrderReportV2]
+  "Information to help a client request the next or previous page"
+  pageInfo: PageInfo!
+  "The total number of nodes that match your query"
+  totalCount: Int!
+}
+
+type OrderReportEdgeV2 implements NodeEdge {
+  "The cursor that represents this node in the paginated results"
+  cursor: ConnectionCursor!
+  "The Order Report"
+  node: OrderReportV2
+}
+
+type OrderReportV2 implements Node {
+  # id: ID!
+  _id: ID!
+  riderID: String
+  # riderName: String
+  # branchCity: String
+  # branches: String
+  # OrderStatus: OrderStatusValue
+  # deliveryTime: String
+  # startTime: DateTime
+  # endTime: DateTime
+  # username: String
+  # OrderID: String
+  # orderInfo: Order
+  # riderOrderAmount: Float
+  # riderOrderNotes: String
+  # # "branch Info Displayed"implements Node
+  # branchInfo: Branch
+  # rejectionReason: String
+  # customerInfo: customerInfoPayload
+  # kitchenOrderIDInfo: kitchenOrderIDPayload
+  riderInfo: Account
+  # orderDetailTime: orderDetailTimePayload
+  # isManual: Boolean
+  # createdAt: DateTime
+}
+
+scalar JSON
+
+type DataType {
+  # id: ID!
+  data: JSON
 }

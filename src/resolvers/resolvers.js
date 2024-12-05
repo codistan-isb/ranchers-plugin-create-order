@@ -7,6 +7,7 @@ import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginat
 import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import calculateDeliveryTIme from "../utils/calculateDeliveryTIme.js";
 import seedrandom from "seedrandom";
+import Logger from "@reactioncommerce/logger";
 // import Random from "@reactioncommerce/random";
 
 // import Random from "@reactioncommerce/random";
@@ -337,7 +338,7 @@ export default {
       let CustomerOrder;
       // console.log("here first", orders);
       // console.log("Random id ", Random.id());
-      const { userId, appEvents, collections } = context
+      const { userId, appEvents, collections } = context;
       // Get the current date
       // Use the current date to seed the random number generator
       // Get the current date
@@ -360,8 +361,7 @@ export default {
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
-        const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
-          collections;
+        const { RiderOrder, Accounts, Orders, RiderOrderHistory } = collections;
         const CurrentRiderID = context?.user?.id;
         const AllOrdersArray = [];
 
@@ -447,8 +447,12 @@ export default {
             insertedOrders.push(riderOrderResp.ops[0]);
           }
           // await RiderOrderHistory.insertOne(order);
-          await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, order, CustomerAccountID, CustomerOrder });
-
+          await appEvents.emit("afterCreatingRiderOrder", {
+            createdBy: userId,
+            order,
+            CustomerAccountID,
+            CustomerOrder,
+          });
         }
         // console.log("insertedOrders", insertedOrders);
         return insertedOrders;
@@ -466,14 +470,13 @@ export default {
         );
       }
       try {
-        const { userId, appEvents, collections } = context
+        const { userId, appEvents, collections } = context;
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
         const AllOrdersArray = orders;
-        const { RiderOrder, Accounts, Orders, RiderOrderHistory } =
-          collections;
+        const { RiderOrder, Accounts, Orders, RiderOrderHistory } = collections;
         const CurrentRiderID = context.user.id;
         const CustomerOrder = await Orders.findOne({ _id: orders[0].OrderID });
         let CustomerAccountID = "";
@@ -704,7 +707,7 @@ export default {
       }
       try {
         const CurrentRiderID = context.user.id;
-        const { userId, appEvents, collections } = context
+        const { userId, appEvents, collections } = context;
         let message = "";
         let updateOrders = {};
         const { RiderOrder, Orders, CronJobs } = collections;
@@ -722,10 +725,14 @@ export default {
           update.startTime = startTime;
         }
         if (endTime) {
-          let deliveryTimeCalculation = await calculateDeliveryTIme(context, OrderID, endTime);
+          let deliveryTimeCalculation = await calculateDeliveryTIme(
+            context,
+            OrderID,
+            endTime
+          );
           console.log("deliveryTimeCalculation", deliveryTimeCalculation);
           update.endTime = endTime;
-          update.deliveryTime = deliveryTimeCalculation
+          update.deliveryTime = deliveryTimeCalculation;
           // this move to another function, dnt uncomment it
           // const getStartTimeResp = await RiderOrder.findOne({
           //   OrderID: OrderID,
@@ -780,7 +787,6 @@ export default {
           //       orderID: OrderID,
           //     });
           // }
-
 
           // if (rejectionReason) {
           // } else {
@@ -845,7 +851,15 @@ export default {
           });
           // console.log("updated Order Resp", updatedOrderResp);
           if (updatedOrderResp) {
-            await appEvents.emit("afterUpdatingRiderOrder", { createdBy: userId, CustomerAccountID, CustomerOrder, updateOrders, OrderID, message, CurrentRiderID });
+            await appEvents.emit("afterUpdatingRiderOrder", {
+              createdBy: userId,
+              CustomerAccountID,
+              CustomerOrder,
+              updateOrders,
+              OrderID,
+              message,
+              CurrentRiderID,
+            });
             return {
               id: updatedOrderResp._id,
               ...updatedOrderResp,
@@ -1053,7 +1067,7 @@ export default {
     async transferOrder(parent, { input }, context, info) {
       try {
         const { orderID, transferTo, transferFrom } = input;
-        const { appEvents, collections, userId } = context
+        const { appEvents, collections, userId } = context;
         const { Orders, Accounts, BranchData } = collections;
         console.log("input", input);
         if (
@@ -1111,7 +1125,13 @@ export default {
         //     appType: appType1,
         //     userId: id,
         //   });
-        await appEvents.emit("afterOrderTransfer", { createdBy: userId, orderID, transferTo, transferFrom, updatedOrder });
+        await appEvents.emit("afterOrderTransfer", {
+          createdBy: userId,
+          orderID,
+          transferTo,
+          transferFrom,
+          updatedOrder,
+        });
 
         if (updatedOrder) {
           return updatedOrder;
@@ -1276,7 +1296,7 @@ export default {
           .sort({ createdAt: -1 })
           .toArray();
         // console.log("orders ", orders);
-        console.log("LoginUserID ", LoginUserID)
+        console.log("LoginUserID ", LoginUserID);
 
         if (orders) {
           // Current Login User Order
@@ -1285,13 +1305,13 @@ export default {
           );
           // console.log("Filter Order: ", filteredOrders);
           // console.log("Filter Order ID: ", filteredOrders[0].OrderID);
-          console.log("filteredOrders.length ", filteredOrders.length)
+          console.log("filteredOrders.length ", filteredOrders.length);
           if (filteredOrders) {
             const ordersWithId = filteredOrders.map((order) => ({
               id: order._id,
               ...order,
             }));
-            console.log("ordersWithId.length ", ordersWithId.length)
+            console.log("ordersWithId.length ", ordersWithId.length);
             // console.log("ordersWithId ", ordersWithId);
             return ordersWithId;
           } else {
@@ -1384,7 +1404,12 @@ export default {
               as: "branchDetails",
             },
           },
-          { $unwind: { path: "$branchDetails", preserveNullAndEmptyArrays: true } },
+          {
+            $unwind: {
+              path: "$branchDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
           {
             $project: {
               id: "$_id",
@@ -1428,10 +1453,15 @@ export default {
               // Ensure kitchenOrderIDInfo is null if the value is null or missing
               kitchenOrderIDInfo: {
                 $cond: {
-                  if: { $or: [{ $eq: ["$orderInfo", null] }, { $eq: ["$orderInfo.kitchenOrderID", null] }] },
+                  if: {
+                    $or: [
+                      { $eq: ["$orderInfo", null] },
+                      { $eq: ["$orderInfo.kitchenOrderID", null] },
+                    ],
+                  },
                   then: null,
-                  else: { kitchenOrderID: "$orderInfo.kitchenOrderID" }
-                }
+                  else: { kitchenOrderID: "$orderInfo.kitchenOrderID" },
+                },
               },
               customerOrderTime: {
                 customerOrderTime: "$orderInfo.createdAt",
@@ -1503,13 +1533,25 @@ export default {
                 __typename: "BranchTimePickup",
               },
               customerInfo: {
-                address1: { $arrayElemAt: ["$orderInfo.shipping.address.address1", 0] },
+                address1: {
+                  $arrayElemAt: ["$orderInfo.shipping.address.address1", 0],
+                },
                 city: { $arrayElemAt: ["$orderInfo.shipping.address.city", 0] },
-                country: { $arrayElemAt: ["$orderInfo.shipping.address.country", 0] },
-                postal: { $arrayElemAt: ["$orderInfo.shipping.address.postal", 0] },
-                region: { $arrayElemAt: ["$orderInfo.shipping.address.region", 0] },
-                phone: { $arrayElemAt: ["$orderInfo.shipping.address.phone", 0] },
-                fullName: { $arrayElemAt: ["$orderInfo.shipping.address.fullName", 0] },
+                country: {
+                  $arrayElemAt: ["$orderInfo.shipping.address.country", 0],
+                },
+                postal: {
+                  $arrayElemAt: ["$orderInfo.shipping.address.postal", 0],
+                },
+                region: {
+                  $arrayElemAt: ["$orderInfo.shipping.address.region", 0],
+                },
+                phone: {
+                  $arrayElemAt: ["$orderInfo.shipping.address.phone", 0],
+                },
+                fullName: {
+                  $arrayElemAt: ["$orderInfo.shipping.address.fullName", 0],
+                },
                 __typename: "CustomerInfo",
               },
               branchInfo: {
@@ -1517,11 +1559,10 @@ export default {
                 name: "$branchDetails.name",
                 __typename: "BranchInfo",
               },
-            }
-          }
-          
+            },
+          },
         ]).toArray();
-        console.log("ordersResp ", ordersResp)
+        console.log("ordersResp ", ordersResp);
         // console.log("ordersResp.length ", ordersResp.length);
         // console.log("ordersResp[0].fulfillmentGroups ",ordersResp[0].fulfillmentGroups)
         return ordersResp;
@@ -1645,6 +1686,303 @@ export default {
         throw new ReactionError("access-denied", `${error}`);
       }
     },
+    async generateOrderReportV2(parent, args, context, info) {
+      let { authToken, userId, collections } = context;
+      let { Orders } = collections; // Use the Order collection here
+      if (!context.user) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+
+      try {
+        Logger.info("args: ", args);
+        const {
+          fromDate = null,
+          toDate = null,
+          offset = 0,
+          searchQuery = null,
+          branchID = null,
+          rowPerPage = 10,
+          isManual = null,
+        } = args?.data;
+
+        let query = {};
+        let matchStage = [];
+        if (isManual === false) {
+          query.isManual = false;
+          matchStage.push({ isManual: false });
+        }
+        if (isManual === true) {
+          query.isManual = true;
+          matchStage.push({ isManual: true });
+        }
+        // if (riderID) {
+        //   query.riderID = riderID;
+        //   matchStage.push({ riderID: riderID });
+        // }
+        // if (branches) {
+        //   query.branches = branches;
+        //   matchStage.push({ branches: branches });
+        // }
+        // if (deliveryTime) {
+        //   query.deliveryTime = deliveryTime;
+        //   matchStage.push({ deliveryTime: deliveryTime });
+        // }
+        // if (deliveryTime) {
+        //   query.deliveryTime = { $lt: deliveryTime };
+        //   matchStage.push({ deliveryTime: { $lt: deliveryTime } });
+        // }
+
+        // if (startTime) {
+        //   const start = new Date(startTime); // Fix variable name
+        //   query.startTime = {
+        //     $gte: start,
+        //   };
+        //   matchStage.push({ $match: { startTime: { $gte: start } } });
+        // }
+        // if (endTime) {
+        //   query.endTime = {
+        //     $lte: new Date(endTime),
+        //   };
+        //   matchStage.push({
+        //     $match: { startTime: { $lte: new Date(endTime) } },
+        //   });
+        // }
+        // if (OrderID) {
+        //   query.OrderID = OrderID;
+        //   matchStage.push({ OrderID: OrderID });
+        // }
+        if (fromDate && fromDate !== undefined) {
+          query.createdAt = {
+            ...query.createdAt,
+            $gte: new Date(fromDate),
+          };
+          matchStage.push({
+            $match: { createdAt: { $gte: new Date(fromDate) } },
+          });
+        }
+        if (toDate && toDate !== undefined) {
+          query.createdAt = {
+            ...query.createdAt,
+            $lte: new Date(toDate),
+          };
+          matchStage.push({
+            $match: { createdAt: { $lte: new Date(toDate) } },
+          });
+        }
+        if (searchQuery) {
+          const regexQuery = new RegExp(searchQuery, "i");
+          query.$or = [
+            { OrderID: { $regex: regexQuery } },
+            { OrderStatus: { $regex: regexQuery } },
+            // { OrderID: { $in: matchingOrderIDs } },
+          ];
+        }
+
+        Logger.info("query: ", query);
+
+        // Pagination: Use skip and limit for efficient data fetching
+        const skip = offset || 0;
+        const limit = rowPerPage || 10;
+
+        // Projection: Select only the necessary fields to reduce data transfer
+        const projection = {
+          _id: 1,
+          // OrderStatus: 1,
+          // createdAt: 1,
+          // isManual: 1,
+        };
+
+        // const [dbOrders, totalOrders] = await Promise.all([
+        //   Orders.find(query)
+        //     .skip(skip)
+        //     .limit(limit)
+        //     .project(projection) // Use projection to return only required fields
+        //     .toArray(),
+        //   Orders.countDocuments(query),
+        // ]);
+
+        let [dbOrders, totalOrders] = await Promise.all([
+          Orders.aggregate([
+            // Stage 1: Match only orders created on the current date
+            {
+              $match: query,
+            },
+            // Stage 2: Sort orders by creation date (newest first)
+            {
+              $sort: { createdAt: -1 },
+            },
+            // Stage 3: Lookup RiderOrder based on OrderID
+            {
+              $lookup: {
+                from: "RiderOrder", // the collection with rider details
+                localField: "_id", // the field in the orders collection referencing the rider
+                foreignField: "OrderID", // the field in the riders collection to match
+                as: "riderOrderInfo", // output field containing the rider details
+              },
+            },
+            {
+              $match: {
+                riderOrderInfo: { $ne: [] }, // ensures the rider exists by checking that riderInfo is not empty
+              },
+            },
+            {
+              $unwind: {
+                path: "$riderOrderInfo",
+                preserveNullAndEmptyArrays: true, // Keep the order even if no matching RiderOrder exists
+              },
+            },
+            {
+              $addFields: {
+                branchID: { $toObjectId: "$branchID" },
+              },
+            },
+            {
+              $lookup: {
+                from: "BranchData", // The collection for branch data
+                localField: "branchID", // The branches field in RiderOrder
+                foreignField: "_id", // The _id field in BranchData
+                as: "branchData", // Store the branch data
+              },
+            },
+            {
+              $unwind: {
+                path: "$branchData",
+                preserveNullAndEmptyArrays: true, // Keep the order even if no matching BranchData exists
+              },
+            },
+            {
+              $lookup: {
+                from: "users", // The collection for rider accounts
+                localField: "riderOrderInfo.riderID", // The riderID field in RiderOrder
+                foreignField: "_id", // The _id field in Accounts
+                as: "riderData", // Store the rider data
+              },
+            },
+            // {
+            //   $match: {
+            //     riderData: { $ne: [] } // ensures the rider exists by checking that riderInfo is not empty
+            //   }
+            // },
+            {
+              $unwind: {
+                path: "$riderData",
+                preserveNullAndEmptyArrays: true, // Keep the order even if no matching BranchData exists
+              },
+            },
+            // Stage 4: Paginate the results
+            {
+              $skip: skip,
+            },
+            {
+              $limit: limit,
+            },
+
+            // No $project stage means all fields will be returned
+          ]),
+          // Count total documents matching today's orders
+          Orders.countDocuments(query),
+        ]);
+
+        dbOrders = await dbOrders.toArray();
+
+        Logger.info("totalOrders: ", totalOrders);
+        Logger.info("dbOrders: ", dbOrders);
+
+        return { totalOrders, dbOrders } || { message: "okay", success: true };
+        // let {
+        //   isManual,
+        //   searchQuery,
+        //   riderID,
+        //   branches, // Assuming branches should map to branchID
+        //   startTime,
+        //   OrderID,
+        //   endTime,
+        //   fromDate,
+        //   toDate,
+        //   deliveryTime,
+        //   ...connectionArgs
+        // } = args;
+
+        // let query = {};
+        // let matchStage = [];
+
+        // // Apply filters to query based on args
+        // if (isManual !== undefined) {
+        //   query.isManual = isManual;
+        //   matchStage.push({ isManual });
+        // }
+
+        // if (riderID) {
+        //   query.riderID = riderID;
+        //   matchStage.push({ riderID });
+        // }
+
+        // if (branches) {
+        //   query.branchID = branches; // Matching branchID from Order collection
+        //   matchStage.push({ branchID: branches });
+        // }
+
+        // if (deliveryTime) {
+        //   query.deliveryTime = { $lt: deliveryTime };
+        //   matchStage.push({ deliveryTime: { $lt: deliveryTime } });
+        // }
+
+        // if (startTime) {
+        //   const start = new Date(startTime);
+        //   query.startTime = { $gte: start };
+        //   matchStage.push({ startTime: { $gte: start } });
+        // }
+
+        // if (endTime) {
+        //   query.startTime = { $lte: new Date(endTime) };
+        //   matchStage.push({ startTime: { $lte: new Date(endTime) } });
+        // }
+
+        // if (OrderID) {
+        //   query.OrderID = OrderID;
+        //   matchStage.push({ OrderID });
+        // }
+
+        // if (fromDate) {
+        //   query.createdAt = { ...query.createdAt, $gte: new Date(fromDate) };
+        //   matchStage.push({ createdAt: { $gte: new Date(fromDate) } });
+        // }
+
+        // if (toDate) {
+        //   query.createdAt = { ...query.createdAt, $lte: new Date(toDate) };
+        //   matchStage.push({ createdAt: { $lte: new Date(toDate) } });
+        // }
+
+        // if (searchQuery) {
+        //   const regexQuery = new RegExp(searchQuery, "i");
+        //   query.$or = [
+        //     { OrderID: { $regex: regexQuery } },
+        //     { OrderStatus: { $regex: regexQuery } },
+        //   ];
+        // }
+
+        // // Fetch data from Order collection
+        // const report = await Orders.find(query);
+
+        // Logger.info("report: ", report);
+
+        // // Return paginated response
+        // return getPaginatedResponse(report, connectionArgs, {
+        //   includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+        //   includeHasPreviousPage: wasFieldRequested(
+        //     "pageInfo.hasPreviousPage",
+        //     info
+        //   ),
+        //   includeTotalCount: wasFieldRequested("totalCount", info),
+        // });
+      } catch (error) {
+        console.log("error", error);
+        throw new ReactionError("access-denied", `${error}`);
+      }
+    },
     async getRiderOrdersByLoginRider(parent, args, context, info) {
       if (context.user === undefined || context.user === null) {
         throw new ReactionError(
@@ -1688,7 +2026,6 @@ export default {
         // query._id = "gaEncZjXwfkRPcwif";
         if (branchID) {
           query.branchID = branchID;
-
         }
         if (OrderStatus) {
           query["workflow.status"] = args.OrderStatus;
@@ -1729,13 +2066,13 @@ export default {
       try {
         const { Orders } = context.collections;
         const query = {};
-        const filterStatus = []
+        const filterStatus = [];
         if (type == "kitchenOrders") {
-          filterStatus.push("new", "processing", "ready", "pickedUp", "picked")
+          filterStatus.push("new", "processing", "ready", "pickedUp", "picked");
         } else if (type == "completed") {
-          filterStatus.push("delivered", "complete", "canceled")
+          filterStatus.push("delivered", "complete", "canceled");
         }
-        console.log("filterStatus ", filterStatus)
+        console.log("filterStatus ", filterStatus);
         // let statuses=await Orders.distinct("workflow.status")
         // console.log("statuses ",statuses)
         // query._id = "gaEncZjXwfkRPcwif"; // Example _id
@@ -1744,8 +2081,8 @@ export default {
         }
         if (filterStatus && filterStatus.length > 0) {
           query["workflow.status"] = {
-            $in: filterStatus
-          }
+            $in: filterStatus,
+          };
         }
         if (OrderStatus) {
           query["workflow.status"] = args.OrderStatus;
@@ -1758,7 +2095,7 @@ export default {
             $lte: end,
           };
         }
-        console.log("query ", query)
+        console.log("query ", query);
 
         const ordersResp = await Orders.aggregate([
           { $match: query },
@@ -1771,7 +2108,12 @@ export default {
               as: "riderOrderInfo",
             },
           },
-          { $unwind: { path: "$riderOrderInfo", preserveNullAndEmptyArrays: true } }, // Preserve documents even if riderOrderInfo is missing
+          {
+            $unwind: {
+              path: "$riderOrderInfo",
+              preserveNullAndEmptyArrays: true,
+            },
+          }, // Preserve documents even if riderOrderInfo is missing
           {
             $lookup: {
               from: "Accounts",
@@ -1795,7 +2137,12 @@ export default {
               as: "branchDetails",
             },
           },
-          { $unwind: { path: "$branchDetails", preserveNullAndEmptyArrays: true } },
+          {
+            $unwind: {
+              path: "$branchDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
           {
             $project: {
               id: "$_id",
@@ -2136,11 +2483,16 @@ export default {
                 completeInTimeOrder: {
                   $sum: {
                     $cond: [
-                      { $and: [{ $eq: ["$OrderStatus", "delivered"] }, { $lte: ["$deliveryTime", 25] }] },
+                      {
+                        $and: [
+                          { $eq: ["$OrderStatus", "delivered"] },
+                          { $lte: ["$deliveryTime", 25] },
+                        ],
+                      },
                       1,
-                      0
-                    ]
-                  }
+                      0,
+                    ],
+                  },
                 },
 
                 //  {
@@ -2234,6 +2586,35 @@ export default {
       } catch (error) {
         console.log(error);
         throw new ReactionError("access-denied", `${error}`);
+      }
+    },
+    async getRiderOrder(parent, args, context, info) {
+      // Ensure the user is authenticated
+      if (!context.user) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+
+      try {
+        const { riderOrderId } = args; // Extract riderOrderId from arguments
+
+        const { RiderOrder } = context.collections; // Access the RiderOrder collection
+
+        // Fetch the order with the specified id
+        const dbRiderOrder = await RiderOrder.findOne({
+          _id: ObjectID.ObjectId(riderOrderId),
+        });
+
+        // Return the order if found, otherwise return null
+        return dbRiderOrder || null;
+      } catch (error) {
+        console.error("Error fetching rider order:", error.message);
+        throw new ReactionError(
+          "fetch-error",
+          `Failed to fetch rider order: ${error.message}`
+        );
       }
     },
   },
