@@ -779,3 +779,6 @@ type Query {
     PageNumber: Int
   ): RiderReportPayload
 }
+type Subscription {
+  orderMessage: Order
+}

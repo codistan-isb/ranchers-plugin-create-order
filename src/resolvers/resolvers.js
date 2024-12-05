@@ -6,7 +6,11 @@ import { decodeOrderOpaqueId } from "../xforms/id.js";
 import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginatedResponse.js";
 import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import calculateDeliveryTIme from "../utils/calculateDeliveryTIme.js";
+import { PubSub } from "graphql-subscriptions";
+const pubSub = new PubSub();
 import seedrandom from "seedrandom";
+import { io } from "socket.io-client";
+
 // import Random from "@reactioncommerce/random";
 
 // import Random from "@reactioncommerce/random";
@@ -516,7 +520,7 @@ export default {
                   updatedAt: new Date(),
                 },
               },
-              { new: true }
+              { new: true, upsert: true }
             );
             const createdOrderIDs = {
               OrderID: RiderIDForAssign[0].OrderID,
@@ -527,6 +531,9 @@ export default {
               createdAt: new Date(),
             };
             await RiderOrderHistory.insertOne(createdOrderIDs);
+            let riderID = "test"
+            console.log("insertedOrders1 ", insertedOrders1)
+            pubSub.publish("ORDER_ASSIGNED", { orderMessage: insertedOrders1?.value });
             // await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerOrder, CustomerAccountID });
 
             const message = "Order has been assigned";
@@ -632,6 +639,11 @@ export default {
             // console.log("Order ID:- ", AllOrdersArray[0].OrderID);
             // console.log("RiderIDForAssign ", RiderIDForAssign[0]);
             if (insertedOrders) {
+              console.log("insertedOrders ", insertedOrders)
+              for (let i = 0; i < insertedOrders?.ops?.length; i++) {
+                console.log("insertedOrders[i] ",insertedOrders?.ops[i])
+                pubSub.publish("ORDER_ASSIGNED", { orderMessage: insertedOrders?.ops[i] });
+              }
               const message = "Order has been assigned";
               const customerMessage = "Your order is picked";
               const appType = "rider";
@@ -1519,7 +1531,7 @@ export default {
               },
             }
           }
-          
+
         ]).toArray();
         console.log("ordersResp ", ordersResp)
         // console.log("ordersResp.length ", ordersResp.length);
@@ -2235,6 +2247,11 @@ export default {
         console.log(error);
         throw new ReactionError("access-denied", `${error}`);
       }
+    },
+  },
+  Subscription: {
+    orderMessage: {
+      subscribe: () => pubSub.asyncIterator(["ORDER_ASSIGNED"]),
     },
   },
 };
