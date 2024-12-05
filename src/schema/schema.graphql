@@ -838,3 +838,6 @@ type DataType {
   # id: ID!
   data: JSON
 }
+type Subscription {
+  orderMessage: Order
+}
