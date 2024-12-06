@@ -7,6 +7,7 @@ import getPaginatedResponse from "@reactioncommerce/api-utils/graphql/getPaginat
 import wasFieldRequested from "@reactioncommerce/api-utils/graphql/wasFieldRequested.js";
 import calculateDeliveryTIme from "../utils/calculateDeliveryTIme.js";
 import { PubSub } from "graphql-subscriptions";
+import moment from 'moment-timezone';
 const pubSub = new PubSub();
 import seedrandom from "seedrandom";
 import Logger from "@reactioncommerce/logger";
@@ -2623,6 +2624,32 @@ export default {
 
         // Return the order if found, otherwise return null
         return dbRiderOrder || null;
+      } catch (error) {
+        console.error("Error fetching rider order:", error.message);
+        throw new ReactionError(
+          "fetch-error",
+          `Failed to fetch rider order: ${error.message}`
+        );
+      }
+    },
+    async getCurrentPakistanTime(parent, args, context, info) {
+      // Ensure the user is authenticated
+      if (!context.user) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+
+      try {
+        var worldTime = moment();
+        console.log("worldTime ",worldTime)
+        var pakistanDate = moment().tz('Asia/Karachi');
+        console.log("pakistanDate ",pakistanDate)
+        return {
+          time: worldTime
+        }
+
       } catch (error) {
         console.error("Error fetching rider order:", error.message);
         throw new ReactionError(

@@ -661,6 +661,9 @@ type RiderReportPayload {
   RiderReport: [RiderReport]
   totalPages: String
 }
+type pakistanTimeResponse {
+  time: DateTime
+}
 type Mutation {
   addIsManual(isManual: Boolean): OrderReport
   createRiderOrder(orders: [NewRiderOrderInput]): Order
@@ -782,6 +785,7 @@ type Query {
   ): RiderReportPayload
 
   getRiderOrder(riderOrderId: ID!): Order
+  getCurrentPakistanTime: pakistanTimeResponse
 }
 
 type OrderReportConnectionV2 {
