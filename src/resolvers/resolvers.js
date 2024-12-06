@@ -2632,4 +2632,9 @@ export default {
       }
     },
   },
+  Subscription: {
+    orderMessage: {
+      subscribe: () => pubSub.asyncIterator(["ORDER_ASSIGNED"]),
+    },
+  }
 };
