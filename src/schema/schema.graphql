@@ -661,8 +661,9 @@ type RiderReportPayload {
   RiderReport: [RiderReport]
   totalPages: String
 }
-type pakistanTimeResponse {
-  time: DateTime
+type isOrderTimeResponse {
+  isOrderTime: Boolean
+  currentTime: String
 }
 type Mutation {
   addIsManual(isManual: Boolean): OrderReport
@@ -785,7 +786,7 @@ type Query {
   ): RiderReportPayload
 
   getRiderOrder(riderOrderId: ID!): Order
-  getCurrentPakistanTime: pakistanTimeResponse
+  isOrderTime: isOrderTimeResponse
 }
 
 type OrderReportConnectionV2 {
