@@ -2299,12 +2299,12 @@ export default {
       }
     },
     async getCustomerOrderbyID(parent, args, context, info) {
-      if (context.user === undefined || context.user === null) {
-        throw new ReactionError(
-          "access-denied",
-          "Unauthorized access. Please Login First"
-        );
-      }
+      // if (context.user === undefined || context.user === null) {
+      //   throw new ReactionError(
+      //     "access-denied",
+      //     "Unauthorized access. Please Login First"
+      //   );
+      // }
       try {
         const { Orders } = context.collections;
         const { ID } = args;
