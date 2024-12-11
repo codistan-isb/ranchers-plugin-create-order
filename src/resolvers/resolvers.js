@@ -2299,18 +2299,20 @@ export default {
       }
     },
     async getCustomerOrderbyID(parent, args, context, info) {
-      // if (context.user === undefined || context.user === null) {
-      //   throw new ReactionError(
-      //     "access-denied",
-      //     "Unauthorized access. Please Login First"
-      //   );
-      // }
+     
       try {
         const { Orders } = context.collections;
         const { ID } = args;
         const CustomerOrderResp = await Orders.findOne({
           _id: decodeOpaqueId(ID).id,
         });
+      
+         if (CustomerOrderResp?.accountId!=null && context?.user?.id != CustomerOrderResp?.accountId ) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
         return CustomerOrderResp;
       } catch (error) {
         console.log("error ", error);
