@@ -2636,12 +2636,12 @@ export default {
     },
     async isOrderTime(parent, args, context, info) {
       // Ensure the user is authenticated
-      if (!context.user) {
-        throw new ReactionError(
-          "access-denied",
-          "Unauthorized access. Please Login First"
-        );
-      }
+      // if (!context.user) {
+      //   throw new ReactionError(
+      //     "access-denied",
+      //     "Unauthorized access. Please Login First"
+      //   );
+      // }
     
       try {
         const startTime = "11:45 AM"; // Start time
