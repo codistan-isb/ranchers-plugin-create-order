@@ -421,6 +421,9 @@ type OrderNew {
   isManual: Boolean
   createdAt: DateTime
   updatedAt: DateTime
+  paymentMethod: String
+  placedFrom: String
+  isPaid: Boolean
   # customerOrderInfo:customerOrderInfoPayload
 }
 type orderIdResolverPayload {

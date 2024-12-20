@@ -2090,7 +2090,7 @@ export default {
         console.log("filterStatus ", filterStatus);
         // let statuses=await Orders.distinct("workflow.status")
         // console.log("statuses ",statuses)
-        // query._id = "gaEncZjXwfkRPcwif"; // Example _id
+        // query._id = {$in:["giKsbwL4qHPNbmhSu","v4NxfoDHzyPGg9RwS"]}; // Example _id
         if (branchID) {
           query.branchID = branchID;
         }
@@ -2159,6 +2159,11 @@ export default {
             },
           },
           {
+            $addFields: {
+              isPaid: { $cond: [{ $eq: ["$paymentMethod", "EASYPAISA"] }, true, false] },
+            },
+          },
+          {
             $project: {
               id: "$_id",
               _id: 1,
@@ -2167,6 +2172,8 @@ export default {
               createdAt: 1,
               updatedAt: 1,
               branchID: 1,
+              placedFrom: 1,
+              isPaid: 1,
               summary: {
                 discountTotal: {
                   amount: { $sum: "$discounts.amount" },
@@ -2197,6 +2204,7 @@ export default {
               },
               email: 1,
               kitchenOrderID: 1,
+              paymentMethod: 1,
               status: "$workflow.status",
               branches: "$riderOrderInfo.branches",
               username: "$riderInfo.name",
@@ -2283,7 +2291,7 @@ export default {
           },
         ]).toArray();
 
-        // console.log(ordersResp);
+        console.log(ordersResp);
         // console.log(ordersResp[0]);
         // console.log("Random.id(), ", Random.id())
         // const ordersWithId = ordersResp.map((order) => ({
