@@ -1685,9 +1685,9 @@ export default {
             // { OrderID: { $in: matchingOrderIDs } },
           ];
         }
-        console.log("query", query);
+        // console.log("query", query);
         const report = await RiderOrder.find(query);
-        console.log(report[0])
+        // console.log(report[0])
         // const report = await RiderOrder.find([{ $match: { $and: matchStage } }]);
         return getPaginatedResponse(report, connectionArgs, {
           includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
