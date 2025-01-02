@@ -1102,6 +1102,7 @@ export default {
           },
         };
         modifier.$set.branchID = transferTo;
+        modifier.$set.transferFrom = transferFrom;
         const { modifiedCount, value: updatedOrder } =
           await Orders.findOneAndUpdate(
             { _id: decodeOrderOpaqueId(orderID) },
@@ -2146,6 +2147,12 @@ export default {
             },
           },
           {
+            // Convert branchID to ObjectId and lookup in BranchData
+            $addFields: {
+              transferFromBranchObjectId: { $toObjectId: "$transferFrom" }, // Convert branchID string to ObjectId
+            },
+          },
+          {
             $lookup: {
               from: "BranchData", // The collection where branch information is stored
               localField: "branchObjectId", // Use the converted ObjectId field
@@ -2156,6 +2163,20 @@ export default {
           {
             $unwind: {
               path: "$branchDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "BranchData", // The collection where branch information is stored
+              localField: "transferFromBranchObjectId", // Use the converted ObjectId field
+              foreignField: "_id", // Field in BranchData that matches the branchID
+              as: "transferFromBranchDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$transferFromBranchDetails",
               preserveNullAndEmptyArrays: true,
             },
           },
@@ -2210,6 +2231,7 @@ export default {
               branches: "$riderOrderInfo.branches",
               username: "$riderInfo.name",
               OrderStatus: "$riderOrderInfo.OrderStatus",
+              transferFromBranchDetails: "$transferFromBranchDetails",
               riderOrderInfo: {
                 _id: "$riderOrderInfo._id",
                 startTime: "$riderOrderInfo.startTime",
@@ -2287,6 +2309,11 @@ export default {
                 _id: "$branchID",
                 name: "$branchDetails.name", // Use the name from branchDetail
                 __typename: "BranchInfo",
+              },
+              transferFromBranchInfo: {
+                _id: "$branchID",
+                name: "$transferFromBranchDetails.name", // Use the name from branchDetail
+                __typename: "transferFromBranchInfo",
               },
             },
           },

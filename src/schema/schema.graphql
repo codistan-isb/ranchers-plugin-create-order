@@ -397,6 +397,7 @@ type OrderNew {
   # deliveryTime: Float
   "branch Info Displayed"
   branchInfo: Branch
+  transferFromBranchInfo: Branch
   Notes: String
   riderInfo: AccountNew
   customerInfo: customerInfoPayload
