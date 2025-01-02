@@ -2130,7 +2130,7 @@ export default {
               path: "$riderOrderInfo",
               preserveNullAndEmptyArrays: true,
             },
-          }, // Preserve documents even if riderOrderInfo is missing
+          },
           {
             $lookup: {
               from: "Accounts",
@@ -2139,24 +2139,24 @@ export default {
               as: "riderInfo",
             },
           },
-          { $unwind: { path: "$riderInfo", preserveNullAndEmptyArrays: true } }, // Preserve documents even if riderInfo is missing
+          { $unwind: { path: "$riderInfo", preserveNullAndEmptyArrays: true } },
           {
-            // Convert branchID to ObjectId and lookup in BranchData
             $addFields: {
-              branchObjectId: { $toObjectId: "$branchID" }, // Convert branchID string to ObjectId
-            },
-          },
-          {
-            // Convert branchID to ObjectId and lookup in BranchData
-            $addFields: {
-              transferFromBranchObjectId: { $toObjectId: "$transferFrom" }, // Convert branchID string to ObjectId
-            },
+              branchObjectId: { $toObjectId: "$branchID" },
+              transferFromBranchObjectId: {
+                $cond: {
+                  if: { $ne: ["$transferFrom", null] },
+                  then: { $toObjectId: "$transferFrom" },
+                  else: "$$REMOVE",
+                },
+              },
+            }, 
           },
           {
             $lookup: {
-              from: "BranchData", // The collection where branch information is stored
-              localField: "branchObjectId", // Use the converted ObjectId field
-              foreignField: "_id", // Field in BranchData that matches the branchID
+              from: "BranchData",
+              localField: "branchObjectId",
+              foreignField: "_id",
               as: "branchDetails",
             },
           },
@@ -2168,18 +2168,38 @@ export default {
           },
           {
             $lookup: {
-              from: "BranchData", // The collection where branch information is stored
-              localField: "transferFromBranchObjectId", // Use the converted ObjectId field
-              foreignField: "_id", // Field in BranchData that matches the branchID
+              from: "BranchData",
+              localField: "transferFromBranchObjectId",
+              foreignField: "_id",
               as: "transferFromBranchDetails",
             },
           },
           {
-            $unwind: {
-              path: "$transferFromBranchDetails",
-              preserveNullAndEmptyArrays: true,
-            },
+            $addFields: {
+              transferFromBranchDetails: {
+                $cond: {
+                  if: { $eq: [{ $size: "$transferFromBranchDetails" }, 0] },
+                  then: null,
+                  else: { $arrayElemAt: ["$transferFromBranchDetails", 0] }
+                }
+              }
+            }
           },
+          {
+          $addFields: {
+            transferFromBranchInfo: {
+              $cond: {
+                if: { $ne: ["$transferFromBranchDetails", null] },
+                then: {
+                  _id: "$transferFromBranchDetails._id",
+                  name: "$transferFromBranchDetails.name",
+                  __typename: "TransferFromBranchInfo"
+                },
+                else: null
+              }
+            }
+          }
+        },
           {
             $addFields: {
               isPaid: { $cond: [{ $eq: ["$paymentMethod", "EASYPAISA"] }, true, false] },
@@ -2231,7 +2251,7 @@ export default {
               branches: "$riderOrderInfo.branches",
               username: "$riderInfo.name",
               OrderStatus: "$riderOrderInfo.OrderStatus",
-              transferFromBranchDetails: "$transferFromBranchDetails",
+              transferFromBranchDetails: 1,
               riderOrderInfo: {
                 _id: "$riderOrderInfo._id",
                 startTime: "$riderOrderInfo.startTime",
@@ -2248,12 +2268,12 @@ export default {
               },
               fulfillmentGroups: {
                 $map: {
-                  input: "$shipping", // Map the shipping field
+                  input: "$shipping",
                   as: "shippingItem",
                   in: {
                     selectedFulfillmentOption: {
                       fulfillmentMethod: {
-                        fulfillmentTypes: ["$$shippingItem.type"], // Correct
+                        fulfillmentTypes: ["$$shippingItem.type"],
                         __typename: "FulfillmentMethod",
                       },
                       __typename: "FulfillmentOption",
@@ -2280,20 +2300,16 @@ export default {
                                 },
                               },
                             },
-                            // __typename: "OrderItem",
                           },
                         },
-                        // __typename: "OrderItemConnection",
                       },
                     },
-                    // __typename: "OrderFulfillmentGroup",
                   },
                 },
-                // __typename: "OrderFulfillmentGroups",
               },
               notes: {
-                content: { $arrayElemAt: ["$notes.content", 0] }, // Access first element using $arrayElemAt
-                createdAt: { $arrayElemAt: ["$notes.createdAt", 0] }, // Access first createdAt element using $arrayElemAt
+                content: { $arrayElemAt: ["$notes.content", 0] },
+                createdAt: { $arrayElemAt: ["$notes.createdAt", 0] },
                 __typename: "Notes",
               },
               deliveryTime: 1,
@@ -2302,21 +2318,17 @@ export default {
                 __typename: "BranchTimePickup",
               },
               customerInfo: {
-                address1: { $arrayElemAt: ["$shipping.address.address1", 0] }, // Ensure address1 is treated as a string
+                address1: { $arrayElemAt: ["$shipping.address.address1", 0] },
                 __typename: "CustomerInfo",
               },
               branchInfo: {
                 _id: "$branchID",
-                name: "$branchDetails.name", // Use the name from branchDetail
+                name: "$branchDetails.name",
                 __typename: "BranchInfo",
               },
-              transferFromBranchInfo: {
-                _id: "$branchID",
-                name: "$transferFromBranchDetails.name", // Use the name from branchDetail
-                __typename: "transferFromBranchInfo",
-              },
-            },
-          },
+              transferFromBranchInfo: 1
+            }, 
+          }
         ]).toArray();
 
         console.log(ordersResp);
