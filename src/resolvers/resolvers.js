@@ -2113,6 +2113,10 @@ export default {
           };
         }
         console.log("query ", query);
+        // const testQuery={
+        //   _id:"DZsAQLr5C5rjnTdgj"
+        // }
+        // console.log("testQuery ",testQuery)
 
         const ordersResp = await Orders.aggregate([
           { $match: query },
@@ -2203,6 +2207,7 @@ export default {
           {
             $addFields: {
               isPaid: { $cond: [{ $eq: ["$paymentMethod", "EASYPAISA"] }, true, false] },
+              isGuestUser: { $cond: [{ $eq: ["$accountId", null] }, true, false] },
             },
           },
           {
@@ -2216,6 +2221,7 @@ export default {
               branchID: 1,
               placedFrom: 1,
               isPaid: 1,
+              isGuestUser: 1,
               summary: {
                 discountTotal: {
                   amount: { $sum: "$discounts.amount" },
@@ -2289,6 +2295,7 @@ export default {
                             optionTitle: "$$item.optionTitle",
                             title: "$$item.title",
                             variantTitle: "$$item.variantTitle",
+                            price:"$$item.price",
                             attributes: {
                               $map: {
                                 input: "$$item.attributes",

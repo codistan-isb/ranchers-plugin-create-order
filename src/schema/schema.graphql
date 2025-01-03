@@ -425,6 +425,7 @@ type OrderNew {
   paymentMethod: String
   placedFrom: String
   isPaid: Boolean
+  isGuestUser: Boolean
   # customerOrderInfo:customerOrderInfoPayload
 }
 type orderIdResolverPayload {
