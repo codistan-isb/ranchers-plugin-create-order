@@ -2154,7 +2154,7 @@ export default {
                   else: "$$REMOVE",
                 },
               },
-            }, 
+            },
           },
           {
             $lookup: {
@@ -2190,20 +2190,20 @@ export default {
             }
           },
           {
-          $addFields: {
-            transferFromBranchInfo: {
-              $cond: {
-                if: { $ne: ["$transferFromBranchDetails", null] },
-                then: {
-                  _id: "$transferFromBranchDetails._id",
-                  name: "$transferFromBranchDetails.name",
-                  __typename: "TransferFromBranchInfo"
-                },
-                else: null
+            $addFields: {
+              transferFromBranchInfo: {
+                $cond: {
+                  if: { $ne: ["$transferFromBranchDetails", null] },
+                  then: {
+                    _id: "$transferFromBranchDetails._id",
+                    name: "$transferFromBranchDetails.name",
+                    __typename: "TransferFromBranchInfo"
+                  },
+                  else: null
+                }
               }
             }
-          }
-        },
+          },
           {
             $addFields: {
               isPaid: { $cond: [{ $eq: ["$paymentMethod", "EASYPAISA"] }, true, false] },
@@ -2295,7 +2295,7 @@ export default {
                             optionTitle: "$$item.optionTitle",
                             title: "$$item.title",
                             variantTitle: "$$item.variantTitle",
-                            price:"$$item.price",
+                            price: "$$item.price",
                             attributes: {
                               $map: {
                                 input: "$$item.attributes",
@@ -2334,7 +2334,7 @@ export default {
                 __typename: "BranchInfo",
               },
               transferFromBranchInfo: 1
-            }, 
+            },
           }
         ]).toArray();
 
@@ -2700,53 +2700,44 @@ export default {
       }
     },
     async isOrderTime(parent, args, context, info) {
-      // Ensure the user is authenticated
-      // if (!context.user) {
-      //   throw new ReactionError(
-      //     "access-denied",
-      //     "Unauthorized access. Please Login First"
-      //   );
-      // }
-
       try {
         const startTime = "11:15 AM"; // Start time
         const endTime = "01:45 AM"; // End time on the next day
+
         const pakistanDate = moment().tz('Asia/Karachi'); // Get current Pakistan time
         const currentTime = pakistanDate; // Use the full moment object
 
         console.log("pakistanDate:", pakistanDate.format());
         console.log("currentTime:", currentTime.format());
 
-        // Parse startMoment and endMoment
+        // Determine if the current time is before 2:00 AM
+        const isBefore2AM = currentTime.hours() < 2;
+        const referenceDay = isBefore2AM ? currentTime.clone().subtract(1, 'day') : currentTime;
+
         let startMoment = moment.tz(
-          `${pakistanDate.format('YYYY-MM-DD')} ${startTime}`,
+          `${referenceDay.format('YYYY-MM-DD')} ${startTime}`,
           'YYYY-MM-DD hh:mm A',
           'Asia/Karachi'
         );
 
         let endMoment = moment.tz(
-          `${pakistanDate.format('YYYY-MM-DD')} ${endTime}`,
+          `${referenceDay.format('YYYY-MM-DD')} ${endTime}`,
           'YYYY-MM-DD hh:mm A',
           'Asia/Karachi'
         );
 
-        console.log("startMoment (before adjustment):", startMoment.format());
-        console.log("endMoment (before adjustment):", endMoment.format());
-
-        // If end time is earlier than start time, adjust endMoment to the next day
+        // If endMoment is logically before startMoment, adjust to the next day
         if (endMoment.isBefore(startMoment)) {
           endMoment.add(1, 'day');
         }
 
-        console.log("startMoment (after adjustment):", startMoment.format());
-        console.log("endMoment (after adjustment):", endMoment.format());
+        console.log("startMoment (adjusted):", startMoment.format());
+        console.log("endMoment (adjusted):", endMoment.format());
 
         // Check if the current time is within the range
-        const isInRange = currentTime.isBetween(startMoment, endMoment);
+        const isInRange = currentTime.isBetween(startMoment, endMoment, null, '[)');
 
         console.log("isInRange:", isInRange);
-        console.log("currentTime ", currentTime)
-        console.log("currentTime.format() ", currentTime.format())
 
         return {
           isOrderTime: isInRange,
@@ -2759,7 +2750,8 @@ export default {
           `Failed to fetch rider order: ${error.message}`
         );
       }
-    },
+    }
+
   },
   Subscription: {
     orderMessage: {
