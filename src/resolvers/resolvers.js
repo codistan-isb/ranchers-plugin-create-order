@@ -1703,6 +1703,229 @@ export default {
         throw new ReactionError("access-denied", `${error}`);
       }
     },
+    async generateOnlineOrderReport(parent, args, context, info) {
+      // console.log("args ", args);
+      // console.log("info", info);
+      let { authToken, userId, collections } = context;
+      let { RiderOrder, Orders } = collections;
+      if (context.user === undefined || context.user === null) {
+        throw new ReactionError(
+          "access-denied",
+          "Unauthorized access. Please Login First"
+        );
+      }
+
+      try {
+        let {
+          searchQuery,
+          riderID,
+          branches,
+          startTime,
+          OrderID,
+          endTime,
+          fromDate,
+          toDate,
+          deliveryTime,
+          offset,
+          first,
+          ...connectionArgs
+        } = args;
+        console.log("offset,first ", offset, first)
+        // console.log("args ", args);
+        let query = {};
+        let matchStage = [];
+        // if (isManual === true) {
+        //   query.isManual = true;
+        //   matchStage.push({ isManual: true });
+        // }
+        // if (riderID) {
+        //   query.riderID = riderID;
+        //   matchStage.push({ riderID: riderID });
+        // }
+        if (branches) {
+          query.branchID = branches;
+        }
+        // if (deliveryTime) {
+        //   query.deliveryTime = deliveryTime;
+        //   matchStage.push({ deliveryTime: deliveryTime });
+        // }
+        // if (deliveryTime) {
+        //   query.deliveryTime = { $lt: deliveryTime };
+        //   matchStage.push({ deliveryTime: { $lt: deliveryTime } });
+        // }
+
+        if (startTime) {
+          const start = new Date(startTime); // Fix variable name
+          query.startTime = {
+            $gte: start,
+          };
+          matchStage.push({ $match: { startTime: { $gte: start } } });
+        }
+        if (endTime) {
+          query.endTime = {
+            $lte: new Date(endTime),
+          };
+          matchStage.push({
+            $match: { startTime: { $lte: new Date(endTime) } },
+          });
+        }
+        // if (OrderID) {
+        //   query.OrderID = OrderID;
+        //   matchStage.push({ OrderID: OrderID });
+        // }
+        if (fromDate && fromDate !== undefined) {
+          query.createdAt = {
+            ...query.createdAt,
+            $gte: new Date(fromDate),
+          };
+          matchStage.push({
+            $match: { createdAt: { $gte: new Date(fromDate) } },
+          });
+        }
+        if (toDate && toDate !== undefined) {
+          query.createdAt = {
+            ...query.createdAt,
+            $lte: new Date(toDate),
+          };
+          matchStage.push({
+            $match: { createdAt: { $lte: new Date(toDate) } },
+          });
+        }
+        // if (searchQuery) {
+        //   const regexQuery = new RegExp(searchQuery, "i");
+        //   query.$or = [
+        //     { OrderID: { $regex: regexQuery } },
+        //     { OrderStatus: { $regex: regexQuery } },
+        //     // { OrderID: { $in: matchingOrderIDs } },
+        //   ];
+        // }
+        // console.log("query", query);
+        const offsetNew = parseInt(args.offset, 10); // Ensure these are integers
+        const rowPerPageNew = parseInt(args.first, 10);
+        console.log("query ", query)
+        let totalCount = await Orders.countDocuments(query);
+        console.log("totalCount ",totalCount)
+        // Assuming 'db' is your database connection and 'isManual' is a boolean parameter from the API
+
+        // Start with the base pipeline
+        let pipeline = [
+          {
+            $match: query  // Presuming 'query' is pre-defined
+          },
+          {
+            $lookup: {
+              from: "RiderOrder",
+              localField: "_id",
+              foreignField: "OrderID",
+              as: "riderOrderInfo"
+            }
+          },
+          {
+            $unwind: {
+              path: "$riderOrderInfo",
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $lookup: {
+              from: "Accounts",
+              localField: "riderOrderInfo.riderID",
+              foreignField: "_id",
+              as: "riderInfo"
+            }
+          },
+          {
+            $unwind: {
+              path: "$riderInfo",
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          // // Add the dynamic match stage if isManual parameter is specified
+          // ...((typeof isManual !== 'undefined') ? [{
+          //   $match: {
+          //     "riderOrderInfo.isManual": isManual
+          //   }
+          // }] : []),
+          {
+            $project: {
+              OrderID: "$_id",
+              riderInfo: {
+                firstName: "$riderInfo.profile.firstName",
+                lastName: "$riderInfo.profile.lastName",
+                phone: "$riderInfo.phone",
+                email: { $arrayElemAt: ["$riderInfo.emails.address", 0] },
+                __typename: "RiderInfo"
+              },
+              riderOrderAmount: "$riderOrderInfo.riderOrderAmount",
+              orderInfo: {
+                payments: "$payments",
+                __typename: "OrderInfo"
+              },
+              createdAt: 1,
+              branchCity: { $arrayElemAt: ["$shipping.address.city", 0] },
+              OrderStatus: "$workflow.status",
+              deliveryTime: "$deliveryTime",
+              startTime: "$startTime",
+              endTime: "$endTime",
+              branchInfo: {
+                name: "$riderOrderInfo.branchInfo.name",
+                __typename: "BranchInfo"
+              },
+              customerInfo: {
+                address1: { $arrayElemAt: ["$shipping.address.address1", 0] },
+                fullName: { $arrayElemAt: ["$shipping.address.fullName", 0] },
+                __typename: "CustomerInfo"
+              },
+              kitchenOrderIDInfo: {
+                kitchenOrderID: "$kitchenOrderID",
+                __typename: "KitchenOrderIDInfo"
+              },
+              rejectionReason: "$riderOrderInfo.rejectionReason",
+              orderDetailTime: {
+                prepTime: "$prepTime",
+                deliveryTime: "$deliveryTime",
+                __typename: "OrderDetailTime"
+              },
+              __typename: "OrderDetails"
+            }
+          },
+          {
+            $sort: {
+              createdAt: -1
+            }
+          },
+          {
+            $skip: offsetNew
+          },
+          {
+            $limit: rowPerPageNew
+          }
+        ];
+        console.log("pipeline ",pipeline)
+
+        // Execute the pipeline
+        const report = await Orders.aggregate(pipeline).toArray();
+        console.log("Report: ", report);
+
+
+        return {
+          totalCount: totalCount,
+          nodes: report
+        }
+        // const report = await RiderOrder.find([{ $match: { $and: matchStage } }]);
+        // return getPaginatedResponse(report, connectionArgs, {
+        //   includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
+        //   includeHasPreviousPage: wasFieldRequested(
+        //     "pageInfo.hasPreviousPage",
+        //     info
+        //   ),
+        //   includeTotalCount: wasFieldRequested("totalCount", info),
+        // });
+      } catch (error) {
+        console.log("error ", error);
+        throw new ReactionError("access-denied", `${error}`);
+      }
+    },
     async generateOrderReportV2(parent, args, context, info) {
       let { authToken, userId, collections } = context;
       let { Orders } = collections; // Use the Order collection here

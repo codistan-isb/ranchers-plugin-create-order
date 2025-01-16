@@ -428,6 +428,59 @@ type OrderNew {
   isGuestUser: Boolean
   # customerOrderInfo:customerOrderInfoPayload
 }
+type RiderReportOrderNew {
+  _id: ID
+  id: ID
+  startTime: DateTime
+  endTime: DateTime
+  OrderStatus: OrderStatusValue
+  deliveryTime: Float
+  OrderID: String
+  username: String
+  branches: String
+  riderID: String
+  # deliveryTime: Float
+  "branch Info Displayed"
+  branchInfo: Branch
+  transferFromBranchInfo: Branch
+  Notes: String
+  riderInfo: AccountNew
+  customerInfo: customerInfoPayload
+  rejectionReason: String
+  customerOrderTime: customerOrderTimePayload
+  branchTimePickup: branchTimePickupPayload
+  kitchenOrderIDInfo: kitchenOrderIDPayload
+  riderOrderInfo: riderOrderInfoPayload
+  orderIdResolver: orderIdResolverPayload
+  orderDetailTime: orderDetailTimePayload
+  summary: OrderSummary!
+  payments: [Payment]
+  notes: [OrderNote]
+  fulfillmentGroups: [OrderFulfillmentGroupNew]
+  branchID: ID
+  email: String
+  kitchenOrderID: String
+  status: String!
+  Latitude: Float
+  Longitude: Float
+  riderOrderAmount: Float
+  riderOrderNotes: String
+  isManual: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+  paymentMethod: String
+  placedFrom: String
+  isPaid: Boolean
+  isGuestUser: Boolean
+  branchCity: String
+  orderInfo: OrderNew
+  # customerOrderInfo:customerOrderInfoPayload
+}
+
+type generateOnlineOrderReportResponse {
+  totalCount: Int!
+  nodes: [RiderReportOrderNew]
+}
 type orderIdResolverPayload {
   orderId: ID
 }
@@ -724,6 +777,30 @@ type Query {
     # "Return results sorted in this order"
     sortOrder: SortOrder = desc # "By default, groups are sorted by when they were created, oldest first. Set this to sort by one of the other allowed fields" # sortBy: OrderReportSortBy = startTime #  OrderReportConnection!
   ): OrderReportConnection!
+  generateOnlineOrderReport(
+    # isManual: Boolean
+    branches: String
+    startTime: DateTime
+    endTime: DateTime
+    riderID: String
+    OrderID: String
+    fromDate: DateTime
+    toDate: DateTime
+    deliveryTime: Float
+    searchQuery: String
+    "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
+    after: ConnectionCursor
+    # "Return only results that come before this cursor. Use this with `last` to specify the number of results to return."
+    before: ConnectionCursor
+    # "Return at most this many results. This parameter may be used with either `after` or `offset` parameters."
+    first: ConnectionLimitInt
+    # "Return at most this many results. This parameter may be used with the `before` parameter."
+    last: ConnectionLimitInt
+    # "Return only results that come after the Nth result. This parameter may be used with the `first` parameter."
+    offset: Int
+    # "Return results sorted in this order"
+    sortOrder: SortOrder = desc # "By default, groups are sorted by when they were created, oldest first. Set this to sort by one of the other allowed fields" # sortBy: OrderReportSortBy = startTime #  OrderReportConnection!
+  ): generateOnlineOrderReportResponse
 
   generateOrderReportV2(data: JSON): JSON
 
