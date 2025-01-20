@@ -494,6 +494,8 @@ export default {
             createdAt: now,
           };
         });
+        console.log("RiderIDForAssign[0].OrderID ",RiderIDForAssign[0].startTime)
+        console.log("Date.now() ",Date.now())
         const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
         if (riderStatus && riderStatus.currentStatus === "offline") {
           throw new ReactionError(
@@ -506,6 +508,7 @@ export default {
         }).toArray();
 
         if (existingRiderOrders.length > 0) {
+          console.log("existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID ",existingRiderOrders[0].riderID, RiderIDForAssign[0].riderID)
           if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
             const update = {};
             const insertedOrders1 = await RiderOrder.findOneAndUpdate(
@@ -516,7 +519,7 @@ export default {
                   branches: RiderIDForAssign[0].branches,
                   OrderID: RiderIDForAssign[0].OrderID,
                   OrderStatus: RiderIDForAssign[0].OrderStatus,
-                  startTime: RiderIDForAssign[0].startTime,
+                  startTime: new Date(),
                   riderOrderAmount: RiderIDForAssign[0].riderOrderAmount,
                   riderOrderNotes: RiderIDForAssign[0].riderOrderNotes,
                   updatedAt: new Date(),
