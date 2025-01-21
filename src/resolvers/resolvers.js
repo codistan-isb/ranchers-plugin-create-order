@@ -494,8 +494,8 @@ export default {
             createdAt: now,
           };
         });
-        console.log("RiderIDForAssign[0].OrderID ",RiderIDForAssign[0].startTime)
-        console.log("Date.now() ",Date.now())
+        console.log("RiderIDForAssign[0].OrderID ", RiderIDForAssign[0].startTime)
+        console.log("Date.now() ", Date.now())
         const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
         if (riderStatus && riderStatus.currentStatus === "offline") {
           throw new ReactionError(
@@ -508,7 +508,7 @@ export default {
         }).toArray();
 
         if (existingRiderOrders.length > 0) {
-          console.log("existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID ",existingRiderOrders[0].riderID, RiderIDForAssign[0].riderID)
+          console.log("existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID ", existingRiderOrders[0].riderID, RiderIDForAssign[0].riderID)
           if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
             const update = {};
             const insertedOrders1 = await RiderOrder.findOneAndUpdate(
@@ -1731,10 +1731,14 @@ export default {
           deliveryTime,
           offset,
           first,
+          orderType,
+          paymentMethod,
           ...connectionArgs
         } = args;
+        console.log("args ", args);
         console.log("offset,first ", offset, first)
-        // console.log("args ", args);
+        console.log("orderType ", orderType)
+
         let query = {};
         let matchStage = [];
         // if (isManual === true) {
@@ -1747,6 +1751,20 @@ export default {
         // }
         if (branches) {
           query.branchID = branches;
+        }
+        if (orderType) {
+          if (orderType == "Web") {
+            query.placedFrom = "web"
+          }
+          if (orderType == "App") {
+            query.placedFrom = "app"
+          }
+          if (orderType == "Canceled") {
+            query["workflow.status"] = "canceled";
+          }
+        }
+        if (paymentMethod) {
+          query.paymentMethod = paymentMethod
         }
         // if (deliveryTime) {
         //   query.deliveryTime = deliveryTime;
@@ -1807,41 +1825,65 @@ export default {
         const rowPerPageNew = parseInt(args.first, 10);
         console.log("query ", query)
         let totalCount = await Orders.countDocuments(query);
-        console.log("totalCount ",totalCount)
+        console.log("totalCount ", totalCount)
         // Assuming 'db' is your database connection and 'isManual' is a boolean parameter from the API
 
         // Start with the base pipeline
         let pipeline = [
           {
             $match: query  // Presuming 'query' is pre-defined
-          },
+          },       
           {
             $lookup: {
               from: "RiderOrder",
               localField: "_id",
               foreignField: "OrderID",
-              as: "riderOrderInfo"
-            }
+              as: "riderOrderInfo",
+            },
           },
           {
             $unwind: {
               path: "$riderOrderInfo",
-              preserveNullAndEmptyArrays: true
-            }
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "BranchData",
+              let: {
+                branchIdObj: { $toObjectId: "$branchID" },
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $eq: ["$_id", "$$branchIdObj"],
+                    },
+                  },
+                },
+              ],
+              as: "branchInfo",
+            },
+          },
+          {
+            $unwind: {
+              path: "$branchInfo",
+              preserveNullAndEmptyArrays: true,
+            },
           },
           {
             $lookup: {
               from: "Accounts",
               localField: "riderOrderInfo.riderID",
               foreignField: "_id",
-              as: "riderInfo"
-            }
+              as: "riderInfo",
+            },
           },
           {
             $unwind: {
               path: "$riderInfo",
-              preserveNullAndEmptyArrays: true
-            }
+              preserveNullAndEmptyArrays: true,
+            },
           },
           // // Add the dynamic match stage if isManual parameter is specified
           // ...((typeof isManual !== 'undefined') ? [{
@@ -1856,46 +1898,67 @@ export default {
                 firstName: "$riderInfo.profile.firstName",
                 lastName: "$riderInfo.profile.lastName",
                 phone: "$riderInfo.phone",
-                email: { $arrayElemAt: ["$riderInfo.emails.address", 0] },
-                __typename: "RiderInfo"
+                email: {
+                  $arrayElemAt: [
+                    "$riderInfo.emails.address",
+                    0,
+                  ],
+                },
+                __typename: "RiderInfo",
               },
-              riderOrderAmount: "$riderOrderInfo.riderOrderAmount",
+              riderOrderAmount:
+                "$riderOrderInfo.riderOrderAmount",
               orderInfo: {
                 payments: "$payments",
-                __typename: "OrderInfo"
+                __typename: "OrderInfo",
               },
               createdAt: 1,
-              branchCity: { $arrayElemAt: ["$shipping.address.city", 0] },
+              branchCity: {
+                $arrayElemAt: [
+                  "$shipping.address.city",
+                  0,
+                ],
+              },
               OrderStatus: "$workflow.status",
               deliveryTime: "$deliveryTime",
               startTime: "$startTime",
               endTime: "$endTime",
-              branchInfo: {
-                name: "$riderOrderInfo.branchInfo.name",
-                __typename: "BranchInfo"
-              },
+              placedFrom: "$placedFrom",
+              branchInfo: "$branchInfo",
+              paymentMethod: "$paymentMethod",
               customerInfo: {
-                address1: { $arrayElemAt: ["$shipping.address.address1", 0] },
-                fullName: { $arrayElemAt: ["$shipping.address.fullName", 0] },
-                __typename: "CustomerInfo"
+                address1: {
+                  $arrayElemAt: [
+                    "$shipping.address.address1",
+                    0,
+                  ],
+                },
+                fullName: {
+                  $arrayElemAt: [
+                    "$shipping.address.fullName",
+                    0,
+                  ],
+                },
+                __typename: "CustomerInfo",
               },
               kitchenOrderIDInfo: {
                 kitchenOrderID: "$kitchenOrderID",
-                __typename: "KitchenOrderIDInfo"
+                __typename: "KitchenOrderIDInfo",
               },
-              rejectionReason: "$riderOrderInfo.rejectionReason",
+              rejectionReason:
+                "$riderOrderInfo.rejectionReason",
               orderDetailTime: {
                 prepTime: "$prepTime",
                 deliveryTime: "$deliveryTime",
-                __typename: "OrderDetailTime"
+                __typename: "OrderDetailTime",
               },
-              __typename: "OrderDetails"
-            }
+              __typename: "OrderDetails",
+            },
           },
           {
             $sort: {
-              createdAt: -1
-            }
+              createdAt: -1,
+            },
           },
           {
             $skip: offsetNew
@@ -1904,7 +1967,7 @@ export default {
             $limit: rowPerPageNew
           }
         ];
-        console.log("pipeline ",pipeline)
+        console.log("pipeline ", pipeline)
 
         // Execute the pipeline
         const report = await Orders.aggregate(pipeline).toArray();

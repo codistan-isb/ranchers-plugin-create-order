@@ -697,6 +697,17 @@ input NewRiderOrderInput {
   riderOrderNotes: String
   isManual: Boolean
 }
+enum orderTypesEnum {
+  All 
+  Web
+  App 
+  Canceled
+}
+enum paymentMethodEnum {
+  CARD 
+  CASH
+  EASYPAISA
+}
 input riderOrderHistory {
   startTime: DateTime
   endTime: DateTime
@@ -787,6 +798,8 @@ type Query {
     fromDate: DateTime
     toDate: DateTime
     deliveryTime: Float
+    orderType: orderTypesEnum
+    paymentMethod: paymentMethodEnum
     searchQuery: String
     "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
     after: ConnectionCursor
