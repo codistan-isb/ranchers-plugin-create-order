@@ -648,18 +648,20 @@ export default {
             if (insertedOrders) {
               console.log("insertedOrders ", insertedOrders);
               for (let i = 0; i < insertedOrders?.ops?.length; i++) {
-                console.log("insertedOrders[i] ", insertedOrders?.ops[i]);
+                console.log("insertedOrders?.ops[i]] ", insertedOrders?.ops[i]);
                 pubSub.publish("ORDER_ASSIGNED", {
                   orderMessage: insertedOrders?.ops[i],
                 });
               }
+              console.log("before message")
               const message = "Order has been assigned";
               const customerMessage = "Your order is picked";
               const appType = "rider";
-              const id = RiderIDForAssign[0].riderID;
-              const userId = RiderIDForAssign[0].riderID;
+              const id = RiderIDForAssign[0]?.riderID;
+              const userId = RiderIDForAssign[0]?.riderID;
               const appType1 = "customer";
-              let OrderIDs = RiderIDForAssign[0].OrderID;
+              let OrderIDs = RiderIDForAssign[0]?.OrderID;
+              console.log("before context.mutations.oneSignalCreateNotification ")
               // const paymentIntentClientSecret =
               context.mutations.oneSignalCreateNotification(context, {
                 message,
@@ -670,6 +672,7 @@ export default {
               // await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerAccountID, CustomerOrder });
 
               // console.log("context Mutation: ", paymentIntentClientSecret);
+              console.log("CustomerAccountID ", CustomerAccountID)
               if (CustomerAccountID) {
                 // const paymentIntentClientSecret1 =
                 context.mutations.oneSignalCreateNotification(context, {
@@ -685,12 +688,27 @@ export default {
                   $set: { "workflow.status": "pickedUp" },
                 };
                 const options = { new: false };
+                console.log("AllOrdersArray ", AllOrdersArray)
+                console.log("AllOrdersArray[0].OrderID ", AllOrdersArray[0].OrderID)
                 const updatedOrder = await Orders.findOneAndUpdate(
                   { _id: AllOrdersArray[0].OrderID },
                   updateOrders,
                   options
                 );
                 // console.log("updated Order:- ", updatedOrder);
+              } else {
+                const updateOrders = {
+                  $set: { "workflow.status": "pickedUp" },
+                };
+                const options = { new: false };
+                console.log("AllOrdersArray ", AllOrdersArray)
+                console.log("AllOrdersArray[0].OrderID ", AllOrdersArray[0].OrderID)
+                const updatedOrder = await Orders.findOneAndUpdate(
+                  { _id: AllOrdersArray[0].OrderID },
+                  updateOrders,
+                  options
+                );
+                console.log("updatedOrder ",updatedOrder)
               }
             }
             // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
@@ -1832,7 +1850,7 @@ export default {
         let pipeline = [
           {
             $match: query  // Presuming 'query' is pre-defined
-          },       
+          },
           {
             $lookup: {
               from: "RiderOrder",
