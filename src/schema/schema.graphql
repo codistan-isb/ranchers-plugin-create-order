@@ -708,6 +708,10 @@ enum paymentMethodEnum {
   CASH
   EASYPAISA
 }
+enum orderStatusesEnum {
+  new
+  processing
+}
 input riderOrderHistory {
   startTime: DateTime
   endTime: DateTime
@@ -801,6 +805,7 @@ type Query {
     orderType: orderTypesEnum
     paymentMethod: paymentMethodEnum
     searchQuery: String
+    status: orderStatusesEnum
     "Return only results that come after this cursor. Use this with `first` to specify the number of results to return."
     after: ConnectionCursor
     # "Return only results that come before this cursor. Use this with `last` to specify the number of results to return."
