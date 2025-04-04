@@ -708,7 +708,7 @@ export default {
                   updateOrders,
                   options
                 );
-                console.log("updatedOrder ",updatedOrder)
+                console.log("updatedOrder ", updatedOrder)
               }
             }
             // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
@@ -1757,7 +1757,7 @@ export default {
         console.log("args ", args);
         console.log("offset,first ", offset, first)
         console.log("orderType ", orderType)
-        console.log("status ",status)
+        console.log("status ", status)
 
         let query = {};
         let matchStage = [];
@@ -3010,8 +3010,8 @@ export default {
     },
     async isOrderTime(parent, args, context, info) {
       try {
-        const startTime = "11:30 AM"; // Start time
-         const endTime = "12:45 AM"; // End time on the next day
+        const startTime = "11:15 AM"; // Start time
+        const endTime = "01:45 AM"; // End time on the next day
 
         const pakistanDate = moment().tz('Asia/Karachi'); // Get current Pakistan time
         const currentTime = pakistanDate; // Use the full moment object
