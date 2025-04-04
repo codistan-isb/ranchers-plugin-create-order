@@ -3010,8 +3010,12 @@ export default {
     },
     async isOrderTime(parent, args, context, info) {
       try {
-        const startTime = "11:15 AM"; // Start time
-        const endTime = "01:45 AM"; // End time on the next day
+        const { ContentDetail } = context?.collections;
+        let slideDataResp = await ContentDetail.findOne({});
+        console.log("slideDataResp", slideDataResp);
+        const startTime = slideDataResp?.startTime||"11:15 AM"; // Start time
+        const endTime = slideDataResp?.endTime||"01:45 AM"; // End time on the next day
+        console.log("startTime, endTime",startTime, endTime)
 
         const pakistanDate = moment().tz('Asia/Karachi'); // Get current Pakistan time
         const currentTime = pakistanDate; // Use the full moment object
