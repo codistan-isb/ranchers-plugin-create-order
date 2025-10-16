@@ -494,8 +494,8 @@ export default {
             createdAt: now,
           };
         });
-        console.log("RiderIDForAssign[0].OrderID ", RiderIDForAssign[0].startTime)
-        console.log("Date.now() ", Date.now())
+        console.log("RiderIDForAssign[0].OrderID ", RiderIDForAssign[0].startTime);
+        console.log("Date.now() ", Date.now());
         const riderStatus = await Accounts.findOne({ _id: RiderIDForAssign });
         if (riderStatus && riderStatus.currentStatus === "offline") {
           throw new ReactionError(
@@ -508,7 +508,7 @@ export default {
         }).toArray();
 
         if (existingRiderOrders.length > 0) {
-          console.log("existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID ", existingRiderOrders[0].riderID, RiderIDForAssign[0].riderID)
+          console.log("existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID ", existingRiderOrders[0].riderID, RiderIDForAssign[0].riderID);
           if (existingRiderOrders[0].riderID !== RiderIDForAssign[0].riderID) {
             const update = {};
             const insertedOrders1 = await RiderOrder.findOneAndUpdate(
@@ -653,7 +653,7 @@ export default {
                   orderMessage: insertedOrders?.ops[i],
                 });
               }
-              console.log("before message")
+              console.log("before message");
               const message = "Order has been assigned";
               const customerMessage = "Your order is picked";
               const appType = "rider";
@@ -661,7 +661,7 @@ export default {
               const userId = RiderIDForAssign[0]?.riderID;
               const appType1 = "customer";
               let OrderIDs = RiderIDForAssign[0]?.OrderID;
-              console.log("before context.mutations.oneSignalCreateNotification ")
+              console.log("before context.mutations.oneSignalCreateNotification ");
               // const paymentIntentClientSecret =
               context.mutations.oneSignalCreateNotification(context, {
                 message,
@@ -672,7 +672,7 @@ export default {
               // await appEvents.emit("afterCreatingRiderOrder", { createdBy: userId, CustomerAccountID, CustomerOrder });
 
               // console.log("context Mutation: ", paymentIntentClientSecret);
-              console.log("CustomerAccountID ", CustomerAccountID)
+              console.log("CustomerAccountID ", CustomerAccountID);
               if (CustomerAccountID) {
                 // const paymentIntentClientSecret1 =
                 context.mutations.oneSignalCreateNotification(context, {
@@ -688,8 +688,8 @@ export default {
                   $set: { "workflow.status": "pickedUp" },
                 };
                 const options = { new: false };
-                console.log("AllOrdersArray ", AllOrdersArray)
-                console.log("AllOrdersArray[0].OrderID ", AllOrdersArray[0].OrderID)
+                console.log("AllOrdersArray ", AllOrdersArray);
+                console.log("AllOrdersArray[0].OrderID ", AllOrdersArray[0].OrderID);
                 const updatedOrder = await Orders.findOneAndUpdate(
                   { _id: AllOrdersArray[0].OrderID },
                   updateOrders,
@@ -701,14 +701,14 @@ export default {
                   $set: { "workflow.status": "pickedUp" },
                 };
                 const options = { new: false };
-                console.log("AllOrdersArray ", AllOrdersArray)
-                console.log("AllOrdersArray[0].OrderID ", AllOrdersArray[0].OrderID)
+                console.log("AllOrdersArray ", AllOrdersArray);
+                console.log("AllOrdersArray[0].OrderID ", AllOrdersArray[0].OrderID);
                 const updatedOrder = await Orders.findOneAndUpdate(
                   { _id: AllOrdersArray[0].OrderID },
                   updateOrders,
                   options
                 );
-                console.log("updatedOrder ", updatedOrder)
+                console.log("updatedOrder ", updatedOrder);
               }
             }
             // updateOrderStatus(AllOrdersArray[0].OrderID, "pickedUp", Orders);
@@ -1755,9 +1755,9 @@ export default {
           ...connectionArgs
         } = args;
         console.log("args ", args);
-        console.log("offset,first ", offset, first)
-        console.log("orderType ", orderType)
-        console.log("status ", status)
+        console.log("offset,first ", offset, first);
+        console.log("orderType ", orderType);
+        console.log("status ", status);
 
         let query = {};
         let matchStage = [];
@@ -1774,17 +1774,17 @@ export default {
         }
         if (orderType) {
           if (orderType == "Web") {
-            query.placedFrom = "web"
+            query.placedFrom = "web";
           }
           if (orderType == "App") {
-            query.placedFrom = "app"
+            query.placedFrom = "app";
           }
           if (orderType == "Canceled") {
             query["workflow.status"] = "canceled";
           }
         }
         if (paymentMethod) {
-          query.paymentMethod = paymentMethod
+          query.paymentMethod = paymentMethod;
         }
         // if (deliveryTime) {
         //   query.deliveryTime = deliveryTime;
@@ -1843,9 +1843,9 @@ export default {
         // console.log("query", query);
         const offsetNew = parseInt(args.offset, 10); // Ensure these are integers
         const rowPerPageNew = parseInt(args.first, 10);
-        console.log("query ", query)
+        console.log("query ", query);
         let totalCount = await Orders.countDocuments(query);
-        console.log("totalCount ", totalCount)
+        console.log("totalCount ", totalCount);
         // Assuming 'db' is your database connection and 'isManual' is a boolean parameter from the API
 
         // Start with the base pipeline
@@ -1987,7 +1987,7 @@ export default {
             $limit: rowPerPageNew
           }
         ];
-        console.log("pipeline ", pipeline)
+        console.log("pipeline ", pipeline);
 
         // Execute the pipeline
         const report = await Orders.aggregate(pipeline).toArray();
@@ -1997,7 +1997,7 @@ export default {
         return {
           totalCount: totalCount,
           nodes: report
-        }
+        };
         // const report = await RiderOrder.find([{ $match: { $and: matchStage } }]);
         // return getPaginatedResponse(report, connectionArgs, {
         //   includeHasNextPage: wasFieldRequested("pageInfo.hasNextPage", info),
@@ -2666,7 +2666,7 @@ export default {
       try {
         const { Orders, RiderOrder } = context.collections;
         const { ID } = args;
-        console.log("context?.user?.id ", context?.user?.id)
+        console.log("context?.user?.id ", context?.user?.id);
         const CustomerOrderResp = await Orders.findOne({
           _id: decodeOpaqueId(ID).id,
         });
@@ -2675,7 +2675,7 @@ export default {
           if (CustomerOrderResp?.accountId != null) {
             const riderOrderInfo = await RiderOrder.findOne({
               OrderID: CustomerOrderResp._id
-            })
+            });
             // console.log("riderOrderInfo ", riderOrderInfo)
             if (riderOrderInfo?.riderID != context?.user?.id) {
               throw new ReactionError(
@@ -3012,9 +3012,9 @@ export default {
         const { ContentDetail } = context?.collections;
         let slideDataResp = await ContentDetail.findOne({});
         console.log("slideDataResp", slideDataResp);
-        const startTime = slideDataResp?.startTime||"11:15 AM"; // Start time
-        const endTime = slideDataResp?.endTime||"01:45 AM"; // End time on the next day
-        console.log("startTime, endTime",startTime, endTime)
+        const startTime = slideDataResp?.startTime || "11:15 AM"; // Start time
+        const endTime = slideDataResp?.endTime || "01:45 AM"; // End time on the next day
+        console.log("startTime, endTime", startTime, endTime);
 
         const pakistanDate = moment().tz('Asia/Karachi'); // Get current Pakistan time
         const currentTime = pakistanDate; // Use the full moment object
