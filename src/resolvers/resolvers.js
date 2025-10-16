@@ -2515,7 +2515,6 @@ export default {
           },
           {
             $addFields: {
-              isPaid: { $cond: [{ $eq: ["$paymentMethod", "EASYPAISA"] }, true, false] },
               isGuestUser: { $cond: [{ $eq: ["$accountId", null] }, true, false] },
             },
           },
