@@ -2530,6 +2530,7 @@ export default {
               placedFrom: 1,
               isPaid: 1,
               paymentStatus: 1,
+              paymentInitiatedAt:1,
               isGuestUser: 1,
               summary: {
                 discountTotal: {

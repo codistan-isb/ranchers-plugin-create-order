@@ -427,6 +427,7 @@ type OrderNew {
   isPaid: Boolean
   isGuestUser: Boolean
   paymentStatus:String
+  paymentInitiatedAt:String
   # customerOrderInfo:customerOrderInfoPayload
 }
 type RiderReportOrderNew {
