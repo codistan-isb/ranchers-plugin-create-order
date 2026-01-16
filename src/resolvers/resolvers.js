@@ -2529,6 +2529,7 @@ export default {
               branchID: 1,
               placedFrom: 1,
               isPaid: 1,
+              paymentStatus: 1,
               isGuestUser: 1,
               summary: {
                 discountTotal: {
