@@ -2519,6 +2519,76 @@ export default {
             },
           },
           {
+            $lookup: {
+              from: "Discounts",
+              let: { discountIds: { $ifNull: ["$discounts.discountId", []] } },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $or: [
+                        { $in: [{ $toString: "$_id" }, "$$discountIds"] },
+                        { $in: ["$code", "$$discountIds"] },
+                      ],
+                    },
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    code: 1,
+                    method: "$calculation.method",
+                  },
+                },
+              ],
+              as: "discountCodeDocs",
+            },
+          },
+          {
+            $addFields: {
+              appliedDiscounts: {
+                $map: {
+                  input: { $ifNull: ["$discounts", []] },
+                  as: "discount",
+                  in: {
+                    $let: {
+                      vars: {
+                        matched: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: "$discountCodeDocs",
+                                as: "doc",
+                                cond: {
+                                  $or: [
+                                    {
+                                      $eq: [
+                                        { $toString: "$$doc._id" },
+                                        { $toString: "$$discount.discountId" },
+                                      ],
+                                    },
+                                    { $eq: ["$$doc.code", "$$discount.discountId"] },
+                                  ],
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                      in: {
+                        discountId: "$$discount.discountId",
+                        amount: "$$discount.amount",
+                        code: "$$matched.code",
+                        method: "$$matched.method",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
             $project: {
               id: "$_id",
               _id: 1,
@@ -2532,6 +2602,7 @@ export default {
               paymentStatus: 1,
               paymentInitiatedAt:1,
               isGuestUser: 1,
+              appliedDiscounts: 1,
               summary: {
                 discountTotal: {
                   amount: { $sum: "$discounts.amount" },
